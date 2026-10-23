@@ -91,6 +91,9 @@ values (the file's own earlier value, else the environment's; single quotes keep
 expands them). A byte order mark and `\r\n` or `\r` line ends are read too. Whitespace is Python's here as well, as it
 is for python-dotenv's `\s`: an ideographic space before a `#` begins a comment as a space does.
 
+Write names without quotes. python-dotenv reads `'NAME'=value` as `NAME`, but here the quotes are part of the name,
+which no setting has: the line does nothing, and nothing says so.
+
 `persist` replaces the setting's assignment (an `export ` before it allowed, all the lines of a quoted value), drops
 later ones of the same name, keeps every other byte as it was, and puts the file in place at once, with its permissions
 (0600 for a new one) from the moment it is written; a symbolic link stays and its target is written. Processes writing
