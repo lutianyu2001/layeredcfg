@@ -1,6 +1,7 @@
 // Text to values and back, the way Python reads and writes them (so that a binding behaves as Python code did).
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -9,16 +10,23 @@
 
 namespace layeredconf::text {
 
-// ASCII whitespace off both ends; ASCII letters made lower case.
+// Whitespace is what Python's str.isspace() takes, beyond ASCII too (U+3000, U+00A0 and the others), and digits are
+// Unicode's decimal digits (８, ٣), both as the unicodedata of the Python the library was built with has them.
+
+// The length in bytes of the whitespace character at `at`, 0 if there is none there.
+std::size_t space_at(std::string_view s, std::size_t at);
+
+// As Python's str.strip(): whitespace off both ends. lower() makes ASCII letters lower case.
 std::string_view strip(std::string_view s);
 std::string lower(std::string_view s);
 
-// As Python's int(s) in base 10: whitespace around, a sign, digits with single underscores between them. Past the
-// range of a 64-bit integer is no value; so are digits and whitespace beyond ASCII, which Python would take.
+// As Python's int(s) in base 10: whitespace around (but for \x1c to \x1f, which int() does not take), a sign, digits
+// with single underscores between them. Past the range of a 64-bit integer is no value.
 std::optional<std::int64_t> parse_int(std::string_view s);
 
-// As Python's float(s): whitespace around, a sign, digits with an optional point and exponent (underscores between
-// digits), or inf, infinity, nan in any case. A number too large is infinite and one too small zero, as in Python.
+// As Python's float(s): whitespace around (as for int()), a sign, digits with an optional point and exponent
+// (underscores between digits), or inf, infinity, nan in any case. A number too large is infinite and one too small
+// zero, as in Python.
 std::optional<double> parse_float(std::string_view s);
 
 // Whether the bytes are UTF-8 (the text of every layer must be).

@@ -12,9 +12,25 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 find_package(tomlplusplus 3.4 REQUIRED)
+set(python_components Interpreter)
+if(LAYEREDCONF_BUILD_PYTHON)
+  list(APPEND python_components Development.Module)
+endif()
+find_package(Python 3.10 REQUIRED COMPONENTS ${python_components})
 
-add_library(layeredconf STATIC src/config.cpp src/envfile.cpp src/text.cpp)
-target_include_directories(layeredconf PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+# Digits and whitespace beyond ASCII are read as Python reads them, from a table written from the unicodedata of the
+# Python found here: for a wheel, the Python it is built for, whose Unicode version it then has.
+set(unicode_table ${CMAKE_CURRENT_BINARY_DIR}/generated/unicode_table.inc)
+add_custom_command(
+  OUTPUT ${unicode_table}
+  COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/unicode_table.py ${unicode_table}
+  DEPENDS tools/unicode_table.py ${Python_EXECUTABLE}
+  COMMENT "Writing the Unicode table from Python's unicodedata"
+  VERBATIM)
+
+add_library(layeredconf STATIC src/config.cpp src/envfile.cpp src/text.cpp ${unicode_table})
+target_include_directories(layeredconf PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                                       PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated)
 target_link_libraries(layeredconf PRIVATE tomlplusplus::tomlplusplus)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
   target_compile_options(layeredconf PRIVATE -Wall -Wextra -Wpedantic)
@@ -32,7 +48,6 @@ if(LAYEREDCONF_BUILD_TESTS)
 endif()
 
 if(LAYEREDCONF_BUILD_PYTHON)
-  find_package(Python 3.10 REQUIRED COMPONENTS Interpreter Development.Module)
   find_package(pybind11 CONFIG REQUIRED)
   pybind11_add_module(_core MODULE python/bindings.cpp)
   target_link_libraries(_core PRIVATE layeredconf)

@@ -22,7 +22,8 @@ struct Assignment {
 using Lookup = std::function<std::optional<std::string>(const std::string&)>;
 
 // The assignments of a file, in order (a later one of a name wins). What it reads:
-//   - a UTF-8 byte order mark at the start; lines ended by \n, \r\n or \r;
+//   - a UTF-8 byte order mark at the start; lines ended by \n, \r\n or \r; whitespace as Python's str.isspace()
+//     takes it (python-dotenv's \s), U+3000 and the others beyond ASCII too;
 //   - blank lines and lines that begin with `#`; an `export ` before a name;
 //   - unquoted values, ending at the line's end or at a `#` after whitespace, stripped (`NAME= # note` is empty);
 //   - 'single-quoted' values, taken as they are but for \' and \\;

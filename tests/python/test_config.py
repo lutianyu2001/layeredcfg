@@ -3,6 +3,7 @@ problems, secrets, persist, snapshots."""
 
 import os
 import stat
+import unicodedata
 from decimal import Decimal
 from fractions import Fraction
 from pathlib import Path
@@ -244,6 +245,46 @@ def test_python_values_are_converted_as_python_converts_them(defaults):
     config.set("server.port", 8421.0)
     config.set("notify.enabled", 2)
     assert config.overrides() == {"server.port": "8421", "notify.enabled": "True"}
+
+
+def outcome(function, *args):
+    """What a conversion gives, as its repr, or ValueError."""
+    try:
+        return repr(function(*args))
+    except ValueError:
+        return "ValueError"
+
+
+def python_bool(text):
+    word = text.strip().lower()
+    if word not in ("1", "true", "yes", "on", "0", "false", "no", "off", ""):
+        raise ValueError(text)
+    return word in ("1", "true", "yes", "on")
+
+
+def test_digits_and_whitespace_beyond_ascii_are_read_as_this_python_reads_them(defaults):
+    config = make(defaults)
+    zeros = [code for code in range(0x110000) if unicodedata.decimal(chr(code), -1) == 0]
+    spaces = [code for code in range(0x110000) if chr(code).isspace()]
+    # Every decimal digit and every whitespace character of this Python, the characters next to them, and a few more.
+    codes = {zero + k for zero in zeros for k in range(-1, 11)} | {space + k for space in spaces for k in (-1, 0, 1)}
+    codes |= {0x7F, 0xB2, 0x180E, 0x200B, 0xFEFF, 0xFF0B, 0xFF0E, 0xFF45}
+    for char in (chr(code) for code in sorted(codes) if not 0xD800 <= code <= 0xDFFF):
+        for text in (char, char + "5", "5" + char, "-" + char, char + "_1", "1." + char, char + "e1", char + "on"):
+            assert outcome(config.cast, "server.port", text) == outcome(int, text), ascii(text)
+            assert outcome(config.cast, "quota.ratio", text) == outcome(float, text), ascii(text)
+            assert outcome(config.cast, "notify.enabled", text) == outcome(python_bool, text), ascii(text)
+            items = [item.strip() for item in (text + "," + text).split(",") if item.strip()]
+            assert config.cast("quota.hosts", text + "," + text) == items, ascii(text)
+
+
+def test_a_file_written_with_full_width_digits_and_spaces_reads_as_python_reads_it(defaults, tmp_path):
+    file = tmp_path / ".env.local"
+    # ８４２１, an ideographic space, a comment in Chinese; a line that begins with that space, ０.５
+    file.write_text("APP_SERVER_PORT=\uff18\uff14\uff12\uff11\u3000# \u5907\u6ce8\n"
+                    "\u3000APP_QUOTA_RATIO = \uff10.\uff15\n")
+    config = make(defaults, files=[file])
+    assert config.server.port == 8421 and config.quota.ratio == 0.5 and config.problems() == {}
 
 
 def test_text_that_is_not_utf8_is_an_invalid_value_not_a_crash(defaults, tmp_path):

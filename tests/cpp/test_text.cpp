@@ -50,6 +50,44 @@ TEST_CASE("floats are read as Python's float() reads them") {
   }
 }
 
+TEST_CASE("digits and whitespace beyond ASCII are read as Python's int() and float() read them") {
+  CHECK(parse_int("８４２０") == 8420);  // full-width digits
+  CHECK(parse_int("٣٥") == 35);                // Arabic-Indic digits
+  CHECK(parse_int("\U0001D7D3") == 5);                   // a mathematical digit, beyond the BMP
+  CHECK(parse_int("-５") == -5);
+  CHECK(parse_int("１_０") == 10);
+  CHECK(parse_int("１_0") == 10);
+  CHECK(parse_int(" 5　") == 5);  // a no-break space and an ideographic space around
+  CHECK(parse_int(" 5\u0085") == 5);
+  CHECK(parse_float("５.５") == 5.5);
+  CHECK(parse_float("１e５") == 100000.0);
+  CHECK(parse_float("٣.٥") == 3.5);
+  CHECK(parse_float("　-０.５　") == -0.5);
+  // No other character beyond ASCII (full-width signs, points and letters, a superscript, zero-width and byte order
+  // marks), and not \x1c to \x1f, which str.isspace() takes but int() and float() do not.
+  for (const char* bad : {"\x1c" "5", "5\x1f", "＋" "5", "５．５", "²", "​" "5", "﻿" "5",
+                          "᠎" "5", "1　" "2", "１ｅ５", "ｉｎｆ", "\xEF\xBC"}) {
+    CAPTURE(bad);
+    CHECK_FALSE(parse_int(bad).has_value());
+    CHECK_FALSE(parse_float(bad).has_value());
+  }
+}
+
+TEST_CASE("strip, booleans and lists take off Python's whitespace") {
+  CHECK(strip("\x1c a \x1f\u0085　") == "a");
+  CHECK(strip("​ a") == "​ a");  // a zero-width space is no whitespace
+  CHECK(strip("　 ").empty());
+  CHECK(strip("\xE3\x80 ") == "\xE3\x80");  // not UTF-8: no whitespace
+  CHECK(space_at("a　", 1) == 3);
+  CHECK(space_at("a　", 0) == 0);
+  CHECK(space_at("\xE3\x80", 0) == 0);
+  CHECK(space_at("", 0) == 0);
+  CHECK(parse_bool("　yes ") == true);
+  CHECK(parse_bool("\x1con") == true);
+  CHECK(parse_bool("　") == false);
+  CHECK(split_list("a.lan　, b.lan, ") == std::vector<std::string>{"a.lan", "b.lan"});
+}
+
 TEST_CASE("a boolean is one of its words") {
   for (const char* yes : {"1", "true", "TRUE", " yes ", "On"}) CHECK(parse_bool(yes) == true);
   for (const char* no : {"", "0", "false", "No", "OFF"}) CHECK(parse_bool(no) == false);

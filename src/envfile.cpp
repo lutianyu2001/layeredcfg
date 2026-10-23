@@ -2,14 +2,13 @@
 
 #include <map>
 
+#include "text.hpp"
+
 namespace layeredconf::envfile {
 
 namespace {
 
-// Whitespace within a line (python-dotenv's: any but CR and LF).
-bool is_blank(char c) { return c == ' ' || c == '\t' || c == '\f' || c == '\v'; }
 bool is_newline(char c) { return c == '\n' || c == '\r'; }
-bool is_space(char c) { return is_blank(c) || is_newline(c); }
 
 class Reader {
  public:
@@ -46,12 +45,12 @@ class Reader {
  private:
   // A statement, from its name to past the end of its last line.
   std::optional<Assignment> statement() {
-    if (s_.compare(at_, 6, "export") == 0 && at_ + 6 < s_.size() && is_blank(s_[at_ + 6])) {
+    if (s_.compare(at_, 6, "export") == 0 && blank_at(at_ + 6)) {
       at_ += 6;
       skip_blanks();
     }
     std::string name;
-    while (at_ < s_.size() && s_[at_] != '=' && s_[at_] != '#' && !is_space(s_[at_])) name += s_[at_++];
+    while (at_ < s_.size() && s_[at_] != '=' && s_[at_] != '#' && !text::space_at(s_, at_)) name += s_[at_++];
     skip_blanks();
     if (name.empty() || at_ >= s_.size() || s_[at_] != '=') {
       skip_line();  // no name, or a name without a value
@@ -117,21 +116,22 @@ class Reader {
     return value;
   }
 
-  // To the line's end, blanks around taken off; a `#` after whitespace begins a comment.
+  // To the line's end, whitespace around taken off; a `#` after whitespace begins a comment.
   std::string unquoted() {
     std::size_t start = at_;
     while (at_ < s_.size() && !is_newline(s_[at_])) ++at_;
     std::string_view line = s_.substr(start, at_ - start);
-    for (std::size_t i = 1; i < line.size(); ++i) {
-      if (line[i] == '#' && is_space(line[i - 1])) {
+    bool after_space = false;
+    for (std::size_t i = 0; i < line.size();) {
+      if (line[i] == '#' && after_space) {
         line = line.substr(0, i);
         break;
       }
+      std::size_t length = text::space_at(line, i);
+      after_space = length > 0;
+      i += after_space ? length : 1;
     }
-    std::size_t begin = 0, end = line.size();
-    while (begin < end && is_space(line[begin])) ++begin;
-    while (end > begin && is_space(line[end - 1])) --end;
-    return std::string(line.substr(begin, end - begin));
+    return std::string(text::strip(line));
   }
 
   // ${NAME} and ${NAME:-default}, as python-dotenv takes them: a name of anything but `}` and `:`.
@@ -168,8 +168,14 @@ class Reader {
     return out;
   }
 
+  // The length of the whitespace character at `at` that does not end a line (python-dotenv's [^\S\r\n]), 0 if
+  // there is none there.
+  std::size_t blank_at(std::size_t at) const {
+    return at < s_.size() && is_newline(s_[at]) ? 0 : text::space_at(s_, at);
+  }
+
   void skip_blanks() {
-    while (at_ < s_.size() && is_blank(s_[at_])) ++at_;
+    while (std::size_t length = blank_at(at_)) at_ += length;
   }
 
   void skip_line() {

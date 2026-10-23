@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <iterator>
 #include <limits>
 #include <system_error>
 
@@ -12,7 +13,75 @@ namespace layeredconf::text {
 
 namespace {
 
-bool is_space(char c) { return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v'; }
+#include "unicode_table.inc"
+
+constexpr char32_t not_utf8 = 0xFFFFFFFF;
+
+struct Decoded {
+  char32_t code;       // not_utf8 when the bytes are no UTF-8 character
+  std::size_t length;  // in bytes, 1 for bytes that are no character
+};
+
+// The UTF-8 character at `at`: no overlong forms, no surrogates, nothing past U+10FFFF.
+Decoded decode(std::string_view s, std::size_t at) {
+  unsigned char c = static_cast<unsigned char>(s[at]);
+  std::size_t length = c < 0x80 ? 1 : (c >> 5) == 0x6 ? 2 : (c >> 4) == 0xE ? 3 : (c >> 3) == 0x1E ? 4 : 0;
+  if (length == 0 || at + length > s.size()) return {not_utf8, 1};
+  char32_t code = length == 1 ? c : length == 2 ? (c & 0x1F) : length == 3 ? (c & 0x0F) : (c & 0x07);
+  for (std::size_t k = 1; k < length; ++k) {
+    unsigned char next = static_cast<unsigned char>(s[at + k]);
+    if ((next >> 6) != 0x2) return {not_utf8, 1};
+    code = (code << 6) | (next & 0x3F);
+  }
+  static const char32_t least[] = {0, 0, 0x80, 0x800, 0x10000};
+  if (code < least[length] || (code >= 0xD800 && code <= 0xDFFF) || code > 0x10FFFF) return {not_utf8, 1};
+  return {code, length};
+}
+
+bool is_space(char32_t code) { return std::binary_search(std::begin(spaces), std::end(spaces), code); }
+
+// The value of a decimal digit, -1 for a character that is none.
+int decimal(char32_t code) {
+  const char32_t* after = std::upper_bound(std::begin(digit_zeros), std::end(digit_zeros), code);
+  if (after == std::begin(digit_zeros) || code - after[-1] > 9) return -1;
+  return static_cast<int>(code - after[-1]);
+}
+
+// The text as Python's int() and float() read it: a whitespace character beyond ASCII made a space and a decimal digit
+// beyond ASCII the ASCII digit of its value (Python's _PyUnicode_TransformDecimalAndSpaceToASCII); nothing when there
+// is another character beyond ASCII, which neither reads.
+std::optional<std::string> ascii_number(std::string_view s) {
+  std::string out;
+  for (std::size_t at = 0; at < s.size();) {
+    if (static_cast<unsigned char>(s[at]) < 0x80) {
+      out += s[at++];
+      continue;
+    }
+    Decoded c = decode(s, at);
+    int digit = decimal(c.code);
+    if (is_space(c.code)) {
+      out += ' ';
+    } else if (digit >= 0) {
+      out += static_cast<char>('0' + digit);
+    } else {
+      return std::nullopt;
+    }
+    at += c.length;
+  }
+  return out;
+}
+
+// The whitespace int() and float() take off that text (Python's Py_ISSPACE: not \x1c to \x1f, which str.isspace()
+// takes).
+bool is_number_space(char c) { return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v'; }
+
+std::string_view strip_number(std::string_view s) {
+  std::size_t begin = 0, end = s.size();
+  while (begin < end && is_number_space(s[begin])) ++begin;
+  while (end > begin && is_number_space(s[end - 1])) --end;
+  return s.substr(begin, end - begin);
+}
+
 bool is_digit(char c) { return c >= '0' && c <= '9'; }
 
 // Digits with single underscores between them, from `at`, appended to `out` without the underscores. False if there is
@@ -53,10 +122,21 @@ long long decimal_exponent(const std::string& number) {
 
 }  // namespace
 
+std::size_t space_at(std::string_view s, std::size_t at) {
+  if (at >= s.size()) return 0;
+  Decoded c = decode(s, at);
+  return is_space(c.code) ? c.length : 0;
+}
+
 std::string_view strip(std::string_view s) {
-  std::size_t begin = 0, end = s.size();
-  while (begin < end && is_space(s[begin])) ++begin;
-  while (end > begin && is_space(s[end - 1])) --end;
+  std::size_t begin = 0;
+  while (std::size_t length = space_at(s, begin)) begin += length;
+  std::size_t end = begin;  // past the last character that is not whitespace
+  for (std::size_t at = begin; at < s.size();) {
+    std::size_t length = space_at(s, at);
+    at += length ? length : decode(s, at).length;
+    if (!length) end = at;
+  }
   return s.substr(begin, end - begin);
 }
 
@@ -69,7 +149,9 @@ std::string lower(std::string_view s) {
 }
 
 std::optional<std::int64_t> parse_int(std::string_view raw) {
-  std::string_view s = strip(raw);
+  std::optional<std::string> ascii = ascii_number(raw);
+  if (!ascii) return std::nullopt;
+  std::string_view s = strip_number(*ascii);
   std::size_t at = 0;
   bool negative = false;
   if (at < s.size() && (s[at] == '+' || s[at] == '-')) negative = s[at++] == '-';
@@ -91,7 +173,9 @@ std::optional<std::int64_t> parse_int(std::string_view raw) {
 }
 
 std::optional<double> parse_float(std::string_view raw) {
-  std::string_view s = strip(raw);
+  std::optional<std::string> ascii = ascii_number(raw);
+  if (!ascii) return std::nullopt;
+  std::string_view s = strip_number(*ascii);
   std::size_t at = 0;
   bool negative = false;
   if (at < s.size() && (s[at] == '+' || s[at] == '-')) negative = s[at++] == '-';
@@ -127,21 +211,10 @@ std::optional<double> parse_float(std::string_view raw) {
 }
 
 bool valid_utf8(std::string_view s) {
-  std::size_t i = 0;
-  while (i < s.size()) {
-    unsigned char c = static_cast<unsigned char>(s[i]);
-    std::size_t length = c < 0x80 ? 1 : (c >> 5) == 0x6 ? 2 : (c >> 4) == 0xE ? 3 : (c >> 3) == 0x1E ? 4 : 0;
-    if (length == 0 || i + length > s.size()) return false;
-    std::uint32_t code = length == 1 ? c : length == 2 ? (c & 0x1F) : length == 3 ? (c & 0x0F) : (c & 0x07);
-    for (std::size_t k = 1; k < length; ++k) {
-      unsigned char next = static_cast<unsigned char>(s[i + k]);
-      if ((next >> 6) != 0x2) return false;
-      code = (code << 6) | (next & 0x3F);
-    }
-    // No overlong forms, no surrogates, nothing past U+10FFFF.
-    static const std::uint32_t least[] = {0, 0, 0x80, 0x800, 0x10000};
-    if (code < least[length] || (code >= 0xD800 && code <= 0xDFFF) || code > 0x10FFFF) return false;
-    i += length;
+  for (std::size_t at = 0; at < s.size();) {
+    Decoded c = decode(s, at);
+    if (c.code == not_utf8) return false;
+    at += c.length;
   }
   return true;
 }

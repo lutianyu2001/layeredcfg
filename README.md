@@ -69,15 +69,18 @@ The library is C++17; it reads TOML with [toml++](https://marzer.github.io/tomlp
 | Default's type | A value as text |
 |---|---|
 | boolean | `1`, `true`, `yes`, `on`; `0`, `false`, `no`, `off` or nothing (any case) |
-| integer | as Python's `int()`: a sign, digits, underscores between digits |
-| float | as Python's `float()`: a point, an exponent, `inf`, `nan` |
+| integer | as Python's `int()`: whitespace around, a sign, digits, underscores between digits |
+| float | as Python's `float()`: as for an integer, and a point, an exponent, `inf`, `nan` |
 | string | as it is |
 | list of strings | comma-separated, each item stripped, empty ones left out |
 
-Text must be UTF-8 (a value that is not is an invalid value), and digits and whitespace are ASCII: Python's `int()` and
-`float()` also take other Unicode digits, these do not. A value given from Python that is not text is converted as Python
-converts it (`int()`, `float()`, `bool()`, `str()`, `list()`), a `Decimal` or `None` included. A TOML default of another
-type (a date, a list of numbers) is refused when the file is read: no other layer could write it. Floats are written back as Python writes them (`45.0`, `1e+16`), so a binding behaves as Python code did.
+Text must be UTF-8 (a value that is not is an invalid value). Digits and whitespace are Python's, beyond ASCII too:
+`８４２０` is 8420, as it is for `int()`, and a no-break space or an ideographic space (U+3000) is whitespace, in values
+and in the files alike. Which characters they are comes from the `unicodedata` of the Python the library is built with,
+so a wheel has the Unicode version of the Python it is for. A value given from Python that is not text is converted as
+Python converts it (`int()`, `float()`, `bool()`, `str()`, `list()`), a `Decimal` or `None` included. A TOML default of
+another type (a date, a list of numbers) is refused when the file is read: no other layer could write it. Floats are
+written back as Python writes them (`45.0`, `1e+16`), so a binding behaves as Python code did.
 
 ## Env-style files
 
@@ -85,7 +88,8 @@ type (a date, a list of numbers) is refused when the file is read: no other laye
 whitespace begins a comment, so `NAME= # note` is empty), `'single-quoted'` values taken as they are, `"double-quoted"`
 ones with escapes, quoted values over several lines, and `${NAME}` or `${NAME:-default}` in unquoted and double-quoted
 values (the file's own earlier value, else the environment's; single quotes keep them as they are, where python-dotenv
-expands them). A byte order mark and `\r\n` or `\r` line ends are read too.
+expands them). A byte order mark and `\r\n` or `\r` line ends are read too. Whitespace is Python's here as well, as it
+is for python-dotenv's `\s`: an ideographic space before a `#` begins a comment as a space does.
 
 `persist` replaces the setting's assignment (an `export ` before it allowed, all the lines of a quoted value), drops
 later ones of the same name, keeps every other byte as it was, and puts the file in place at once, with its permissions
@@ -95,7 +99,9 @@ with it, unless a file read after the written one sets the same name.
 
 ## Building
 
-Everything runs in the [pixi](https://pixi.sh) environment of this directory (compilers, CMake, toml++, pybind11):
+Everything runs in the [pixi](https://pixi.sh) environment of this directory (compilers, CMake, toml++, pybind11, and a
+Python, which a build of the C++ library needs too: the table of Unicode digits and whitespace is written from its
+`unicodedata` by `tools/unicode_table.py`):
 
 ```bash
 pixi run test          # the C++ tests and the Python tests

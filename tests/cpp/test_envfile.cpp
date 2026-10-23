@@ -80,11 +80,32 @@ TEST_CASE("${NAME} takes the file's own earlier value, then the environment's, t
   CHECK(values["DOUBLE"] == "/home/u!");
 }
 
+TEST_CASE("whitespace beyond ASCII is whitespace, as python-dotenv's \\s takes it") {
+  CHECK(read("A=1\u3000# note\n"
+             "\u3000B=2\n"
+             "C\u3000=\u3000 3\u00A0\n"
+             "export\u3000D=4\n"
+             "E='x'\u3000# note\n"
+             "F=1\x1c#note\n"
+             "G=\u3000#note\n"
+             "H=1\u0085I=2\u2028\n"
+             "J\u00A0K=1\n") == std::map<std::string, std::string>{{"A", "1"},
+                                                                {"B", "2"},
+                                                                {"C", "3"},
+                                                                {"D", "4"},
+                                                                {"E", "x"},
+                                                                {"F", "1"},
+                                                                {"G", ""},
+                                                                {"H", "1\u0085I=2"}});
+  CHECK(replace("\u3000A=1\n", "A", "2") == "A=2\n");
+}
+
 TEST_CASE("a value is written so that it reads back as it is") {
   CHECK(quote("45.0") == "45.0");
   CHECK(quote("a.lan,b.lan") == "a.lan,b.lan");
   CHECK(quote("") == "");
-  for (std::string value : {"two words", "a#b", "it's", "back\\slash", "${X}", "two\nlines", "\"q\""}) {
+  for (std::string value : {"two words", "a#b", "it's", "back\\slash", "${X}", "two\nlines", "\"q\"",
+                            "\u3000padded\u3000", "a\x1c"}) {
     CAPTURE(value);
     CHECK(read("V=" + quote(value) + "\n")["V"] == value);
   }
