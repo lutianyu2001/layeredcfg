@@ -31,6 +31,26 @@ std::string kind_name(ErrorKind kind) {
   return "?";
 }
 
+// Text to Python and back as os.environ has it: bytes that are not UTF-8 become surrogates and back (surrogateescape),
+// so that such a value is reported as an invalid value instead of failing to convert.
+py::str to_python(const std::string& text) {
+  PyObject* decoded = PyUnicode_DecodeUTF8(text.data(), static_cast<Py_ssize_t>(text.size()), "surrogateescape");
+  if (!decoded) throw py::error_already_set();
+  return py::reinterpret_steal<py::str>(decoded);
+}
+
+std::string from_python(const py::handle& text) {
+  PyObject* encoded = PyUnicode_AsEncodedString(text.ptr(), "utf-8", "surrogateescape");
+  if (!encoded) throw py::error_already_set();
+  py::bytes bytes = py::reinterpret_steal<py::bytes>(encoded);
+  return std::string(bytes);
+}
+
+py::object raw_to_python(const Value& value) {
+  if (const auto* text = std::get_if<std::string>(&value)) return to_python(*text);
+  return py::cast(value);
+}
+
 Config make(const fs::path& defaults, const std::string& prefix, const std::vector<fs::path>& files,
             const fs::path& write_file, const fs::path& root, const std::set<std::string>& file_only,
             const std::set<std::string>& persisted, const std::set<std::string>& secret, const py::object& get,
@@ -48,7 +68,7 @@ Config make(const fs::path& defaults, const std::string& prefix, const std::vect
     options.environment.get = [get](const std::string& name) -> std::optional<std::string> {
       py::object value = get(name);
       if (value.is_none()) return std::nullopt;
-      return value.cast<std::string>();
+      return from_python(value);
     };
   }
   if (!set.is_none()) {
@@ -73,12 +93,14 @@ PYBIND11_MODULE(_core, m) {
     try {
       if (pointer) std::rethrow_exception(pointer);
     } catch (const Error& error) {
-      py::object raw = error.raw() ? py::cast(*error.raw()) : py::none();
+      py::object raw = error.raw() ? raw_to_python(*error.raw()) : py::none();
       py::object expected = error.expected() ? py::object(py::str(type_name(*error.expected()))) : py::none();
-      py::tuple args = py::make_tuple(kind_name(error.kind()), error.key(), raw, expected, error.what());
+      py::tuple args = py::make_tuple(kind_name(error.kind()), to_python(error.key()), raw, expected, to_python(error.what()));
       PyErr_SetObject(error_type.get_stored().ptr(), args.ptr());
     }
   });
+
+  py::class_<State>(m, "State");
 
   py::class_<Config>(m, "Config")
       .def(py::init(&make), py::arg("defaults"), py::kw_only(), py::arg("prefix") = "",
@@ -101,8 +123,8 @@ PYBIND11_MODULE(_core, m) {
              py::list out;
              for (const Problem& problem : config.problems()) {
                py::object file = problem.file.empty() ? py::none() : py::cast(problem.file);
-               out.append(py::make_tuple(problem.key, source_name(problem.source), problem.variable, file, problem.text,
-                                         type_name(problem.expected)));
+               out.append(py::make_tuple(problem.key, source_name(problem.source), problem.variable, file,
+                                         to_python(problem.text), type_name(problem.expected)));
              }
              return out;
            })
@@ -111,9 +133,16 @@ PYBIND11_MODULE(_core, m) {
       .def("clear_overrides", &Config::clear_overrides)
       .def("override_values", &Config::override_values)
       .def("overrides", &Config::overrides)
-      .def("file_values", &Config::file_values)
+      .def("file_values",
+           [](const Config& config) {
+             py::dict out;
+             for (const auto& [name, text] : config.file_values()) out[to_python(name)] = to_python(text);
+             return out;
+           })
       .def("set_file_values", &Config::set_file_values, py::arg("values"), py::arg("file") = "")
       .def("reload_files", &Config::reload_files)
+      .def("state", &Config::state)
+      .def("restore", &Config::restore)
       .def("persist", &Config::persist, py::arg("key"), py::arg("raw"), py::arg("file") = "");
 
   m.def("to_text", &to_text);

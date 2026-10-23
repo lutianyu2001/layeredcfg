@@ -23,10 +23,11 @@ endif()
 if(LAYEREDCONF_BUILD_TESTS)
   enable_testing()
   find_package(doctest REQUIRED)
+  find_package(Threads REQUIRED)
   add_executable(layeredconf_tests tests/cpp/main.cpp tests/cpp/test_text.cpp tests/cpp/test_envfile.cpp
                                    tests/cpp/test_config.cpp)
   target_include_directories(layeredconf_tests PRIVATE src)
-  target_link_libraries(layeredconf_tests PRIVATE layeredconf doctest::doctest)
+  target_link_libraries(layeredconf_tests PRIVATE layeredconf doctest::doctest Threads::Threads)
   add_test(NAME layeredconf_tests COMMAND layeredconf_tests)
 endif()
 

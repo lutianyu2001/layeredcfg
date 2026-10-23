@@ -83,6 +83,22 @@ struct Problem {
   Type expected;
 };
 
+// A value read from a file, and the file.
+struct FileValue {
+  std::string text;
+  std::filesystem::path file;
+};
+
+class Config;
+
+// The overrides and what was read from the files, to be put back with Config::restore (tests).
+class State {
+ private:
+  friend class Config;
+  std::vector<std::pair<std::string, Value>> overrides_;
+  std::map<std::string, FileValue, std::less<>> files_;
+};
+
 struct Options {
   // What the names of the environment and the files begin with.
   std::string prefix;
@@ -132,7 +148,8 @@ class Config {
   void set(std::string_view key, const Value& raw);
   void unset(std::string_view key);
   void clear_overrides();
-  // As given, and as text that `set` would take again (lists comma-separated), both in the order first set.
+  // As given, and as text that `set` takes again (text as it was given, anything else as its converted value), both in
+  // the order first set.
   const std::vector<std::pair<std::string, Value>>& override_values() const noexcept { return overrides_; }
   std::vector<std::pair<std::string, std::string>> overrides() const;
 
@@ -143,20 +160,23 @@ class Config {
   void set_file_values(const std::map<std::string, std::string>& values, const std::filesystem::path& file = {});
   void reload_files();
 
-  // Write a setting of `persisted` into a file for good: its line replaced (an `export ` before it allowed), later
-  // lines of the same name dropped, every other line kept as it was, the file replaced at once with its permissions
-  // (0600 for a new one). The value read from the files changes with it, and the environment's too where it has the
-  // variable, so that it holds at once; an override still wins. Returns the value as the setting's type.
+  // The overrides and the files' values, to be put back as they were (tests).
+  State state() const;
+  void restore(const State& state);
+
+  // Write a setting of `persisted` into a file for good: its assignment replaced (an `export ` before it allowed, all
+  // the lines of a quoted value), later ones of the same name dropped, everything else kept as it was, the file
+  // replaced at once with its permissions (0600 for a new one; a symbolic link stays and its target is written). The
+  // value read from the files changes with it, unless a file read after this one sets it too (that one still wins),
+  // and the environment's where it has the variable, so that it holds at once; an override still wins. Several
+  // processes writing at once do not corrupt the file, but the last one's file is what stays. Returns the value as
+  // the setting's type.
   Value persist(std::string_view key, const Value& raw, const std::filesystem::path& file = {});
 
  private:
   struct Setting {
     Type type;
     Value fallback;
-  };
-  struct FileValue {
-    std::string text;
-    std::filesystem::path file;
   };
 
   Config() = default;

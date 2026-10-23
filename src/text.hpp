@@ -14,12 +14,15 @@ std::string_view strip(std::string_view s);
 std::string lower(std::string_view s);
 
 // As Python's int(s) in base 10: whitespace around, a sign, digits with single underscores between them. Past the
-// range of a 64-bit integer is no value.
+// range of a 64-bit integer is no value; so are digits and whitespace beyond ASCII, which Python would take.
 std::optional<std::int64_t> parse_int(std::string_view s);
 
 // As Python's float(s): whitespace around, a sign, digits with an optional point and exponent (underscores between
 // digits), or inf, infinity, nan in any case. A number too large is infinite and one too small zero, as in Python.
 std::optional<double> parse_float(std::string_view s);
+
+// Whether the bytes are UTF-8 (the text of every layer must be).
+bool valid_utf8(std::string_view s);
 
 // 1, true, yes, on and 0, false, no, off or nothing, in any case; anything else is no boolean.
 std::optional<bool> parse_bool(std::string_view s);

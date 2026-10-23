@@ -74,19 +74,24 @@ The library is C++17; it reads TOML with [toml++](https://marzer.github.io/tomlp
 | string | as it is |
 | list of strings | comma-separated, each item stripped, empty ones left out |
 
-A TOML default of another type (a date, a list of numbers) is refused when the file is read: no other layer could
-write it. Floats are written back as Python writes them (`45.0`, `1e+16`), so a binding behaves as Python code did.
+Text must be UTF-8 (a value that is not is an invalid value), and digits and whitespace are ASCII: Python's `int()` and
+`float()` also take other Unicode digits, these do not. A value given from Python that is not text is converted as Python
+converts it (`int()`, `float()`, `bool()`, `str()`, `list()`), a `Decimal` or `None` included. A TOML default of another
+type (a date, a list of numbers) is refused when the file is read: no other layer could write it. Floats are written back as Python writes them (`45.0`, `1e+16`), so a binding behaves as Python code did.
 
 ## Env-style files
 
 `NAME=value` lines, as python-dotenv reads them for the most part: comments, `export `, unquoted values (a `#` after
-whitespace begins a comment), `'single-quoted'` values taken as they are, `"double-quoted"` ones with escapes, quoted
-values over several lines, and `${NAME}` or `${NAME:-default}` in unquoted and double-quoted values (the file's own
-earlier value, else the environment's).
+whitespace begins a comment, so `NAME= # note` is empty), `'single-quoted'` values taken as they are, `"double-quoted"`
+ones with escapes, quoted values over several lines, and `${NAME}` or `${NAME:-default}` in unquoted and double-quoted
+values (the file's own earlier value, else the environment's; single quotes keep them as they are, where python-dotenv
+expands them). A byte order mark and `\r\n` or `\r` line ends are read too.
 
-`persist` replaces the setting's line (an `export ` before it allowed), drops later lines of the same name, keeps every
-other line as it was, and puts the file in place at once, with its permissions (0600 for a new one) from the moment it
-is written.
+`persist` replaces the setting's assignment (an `export ` before it allowed, all the lines of a quoted value), drops
+later ones of the same name, keeps every other byte as it was, and puts the file in place at once, with its permissions
+(0600 for a new one) from the moment it is written; a symbolic link stays and its target is written. Processes writing
+at the same time do not corrupt the file, but the last one's file is what stays. What the configuration reads changes
+with it, unless a file read after the written one sets the same name.
 
 ## Building
 

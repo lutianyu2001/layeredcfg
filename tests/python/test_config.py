@@ -3,6 +3,8 @@ problems, secrets, persist, snapshots."""
 
 import os
 import stat
+from decimal import Decimal
+from fractions import Fraction
 from pathlib import Path
 
 import pytest
@@ -226,3 +228,41 @@ def test_a_file_is_found_upwards(tmp_path, monkeypatch):
     assert find_upward(".env.local") == tmp_path / ".env.local"
     assert find_upward(".no-such-file-anywhere") is None
     assert os.getcwd() == str(tmp_path / "a")
+
+
+def test_python_values_are_converted_as_python_converts_them(defaults):
+    config = make(defaults)
+    assert config.cast("quota.ratio", Decimal("2.5")) == 2.5 and config.cast("quota.ratio", Fraction(1, 2)) == 0.5
+    assert config.cast("server.port", Decimal("7")) == 7 and config.cast("server.port", True) == 1
+    assert config.cast("notify.enabled", []) is False and config.cast("server.host", None) == "None"
+    for key, value in (("server.port", None), ("quota.ratio", None), ("quota.hosts", 5), ("server.port", 2**63),
+                       ("server.port", float("nan"))):
+        with pytest.raises(InvalidValue):
+            config.cast(key, value)
+    with pytest.raises(FileOnlyKey):  # refused for being file-only before its value is looked at
+        config.set("log.max_mib", None)
+    config.set("server.port", 8421.0)
+    config.set("notify.enabled", 2)
+    assert config.overrides() == {"server.port": "8421", "notify.enabled": "True"}
+
+
+def test_text_that_is_not_utf8_is_an_invalid_value_not_a_crash(defaults, tmp_path):
+    file = tmp_path / ".env.local"
+    file.write_bytes(b"APP_SERVER_HOST=caf\xe9\n")
+    config = make(defaults, files=[file], environ={"APP_LOG_DIR": "caf\udce9"})
+    with pytest.raises(InvalidValue) as raised:
+        config.server.host
+    assert raised.value.raw == "caf\udce9"
+    assert set(config.problems()) == {"server.host", "log.dir"}
+    assert config.file_values() == {"APP_SERVER_HOST": "caf\udce9"}
+
+
+def test_a_snapshot_keeps_which_file_each_value_came_from(defaults, tmp_path):
+    first, second = tmp_path / "a.env", tmp_path / "b.env"
+    first.write_text("APP_SERVER_PORT=x\n")
+    second.write_text("APP_QUOTA_RATIO=0.2\n")
+    config = make(defaults, files=[first, second])
+    saved = config.snapshot()
+    config.set_file_values({})
+    config.restore(saved)
+    assert config.problems()["server.port"].endswith("of a.env")

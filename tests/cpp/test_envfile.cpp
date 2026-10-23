@@ -97,3 +97,25 @@ TEST_CASE("a name's line is replaced, later ones dropped, every other line kept"
   CHECK(replace("", "B", "2") == "B=2\n");
   CHECK(replace("A=1\r\n", "A", "3") == "A=3\n");
 }
+
+TEST_CASE("a comment right after the equals sign, a byte order mark, other line ends, form feeds") {
+  CHECK(read("A=   # fill in later\nB=#not a comment\nC= \t# note\n") ==
+        std::map<std::string, std::string>{{"A", ""}, {"B", "#not a comment"}, {"C", ""}});
+  CHECK(read("\xEF\xBB\xBF" "A=1\nB=2\n") == std::map<std::string, std::string>{{"A", "1"}, {"B", "2"}});
+  CHECK(read("A=1\rB=2\rC=3") == std::map<std::string, std::string>{{"A", "1"}, {"B", "2"}, {"C", "3"}});
+  CHECK(read("\fA=1\n") == std::map<std::string, std::string>{{"A", "1"}});
+  CHECK(read("A=${B:C}\nD=$E ${F:-x}\n") == std::map<std::string, std::string>{{"A", "${B:C}"}, {"D", "$E x"}});
+}
+
+TEST_CASE("replace takes a quoted value's lines as one and keeps every other byte") {
+  // A line inside another variable's value is that value's, not an assignment.
+  std::string text = "APP_NOTE=\"first\nAPP_LIMIT=5 in the note\n\"\r\nAPP_LIMIT=0.1\r\n# end\r\n";
+  CHECK(replace(text, "APP_LIMIT", "0.3") == "APP_NOTE=\"first\nAPP_LIMIT=5 in the note\n\"\r\nAPP_LIMIT=0.3\n# end\r\n");
+  // A value over several lines is replaced whole.
+  std::string mine = "A=1\nAPP_HOST='line one\nAPP_PORT=1'\nB=2";
+  std::string once = replace(mine, "APP_HOST", "localhost");
+  CHECK(once == "A=1\nAPP_HOST=localhost\nB=2");
+  CHECK(replace(once, "C", "3") == "A=1\nAPP_HOST=localhost\nB=2\nC=3\n");
+  CHECK(read(replace("X=1\n", "APP_HOST", quote("two\nAPP_PORT=1"))) ==
+        std::map<std::string, std::string>{{"X", "1"}, {"APP_HOST", "two\nAPP_PORT=1"}});
+}

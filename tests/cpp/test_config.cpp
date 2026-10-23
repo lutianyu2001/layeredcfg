@@ -6,7 +6,9 @@
 #include <fstream>
 #include <map>
 #include <random>
+#include <limits>
 #include <sstream>
+#include <thread>
 
 #include "layeredconf/layeredconf.hpp"
 
@@ -176,7 +178,13 @@ TEST_CASE("an override is checked as it is set, and kept in the order first set,
   config.set("quota.ratio", Value{0.6});
   config.set("server.port", Value{std::string("8422")});
   CHECK(config.overrides() == std::vector<std::pair<std::string, std::string>>{
-                                  {"server.port", "8422"}, {"quota.hosts", " a ,,b"}, {"quota.ratio", "0.6"}});
+                                  {"server.port", "8422"}, {"quota.hosts", "a,b"}, {"quota.ratio", "0.6"}});
+  // As text that set takes again: what is not text is written as its converted value.
+  config.set("server.port", Value{8421.0});
+  config.set("notify.enabled", Value{std::int64_t{2}});
+  CHECK(config.overrides()[0].second == "8421");
+  CHECK(config.overrides()[3].second == "True");
+  for (const auto& [key, text] : config.overrides()) CHECK_NOTHROW(config.cast(key, Value{text}));
   config.clear_overrides();
   CHECK(config.overrides().empty());
 }
@@ -262,4 +270,92 @@ TEST_CASE("a file is found from a directory upwards") {
   fs::create_directories(scratch.dir / "a" / "b");
   CHECK(find_upward(".env.local", scratch.dir / "a" / "b") == file);
   CHECK_FALSE(find_upward(".no-such-file-anywhere", scratch.dir / "a").has_value());
+}
+
+TEST_CASE("persist into a file that a later file outranks does not claim the value") {
+  Scratch scratch;
+  FakeEnvironment environment;
+  fs::path low = scratch.write("low.env", "APP_QUOTA_RATIO=0.1\n");
+  fs::path high = scratch.write("high.env", "APP_QUOTA_RATIO=0.9\n");
+  Options o = options(environment, {low, high});
+  o.write_file = low;
+  Config config = Config::parse(DEFAULTS, o);
+  config.persist("quota.ratio", Value{0.5});
+  CHECK(std::get<double>(config.get("quota.ratio")) == 0.9);
+  config.reload_files();
+  CHECK(std::get<double>(config.get("quota.ratio")) == 0.9);
+  CHECK(Scratch::read(low) == "APP_QUOTA_RATIO=0.5\n");
+}
+
+TEST_CASE("persist writes a link's target and keeps the link") {
+  Scratch scratch;
+  FakeEnvironment environment;
+  fs::path real = scratch.write("real.env", "APP_QUOTA_RATIO=0.1\n");
+  fs::path link = scratch.dir / ".env.local";
+  fs::create_symlink(real, link);
+  Config config = Config::parse(DEFAULTS, options(environment, {link}));
+  config.persist("quota.ratio", Value{0.4});
+  CHECK(fs::is_symlink(link));
+  CHECK(Scratch::read(real) == "APP_QUOTA_RATIO=0.4\n");
+}
+
+TEST_CASE("writers at the same time leave a whole file and no temporary ones") {
+  Scratch scratch;
+  fs::path file = scratch.write(".env.local", "# kept\n");
+  auto write = [&](double value) {
+    FakeEnvironment environment;
+    Config config = Config::parse(DEFAULTS, options(environment, {file}));
+    for (int i = 0; i < 200; ++i) config.persist("quota.ratio", Value{value});
+  };
+  std::thread one(write, 0.25), two(write, 0.75);
+  one.join();
+  two.join();
+  std::string text = Scratch::read(file);
+  CHECK((text == "# kept\nAPP_QUOTA_RATIO=0.25\n" || text == "# kept\nAPP_QUOTA_RATIO=0.75\n"));
+  int entries = 0;
+  for (const auto& entry : fs::directory_iterator(scratch.dir)) {
+    (void)entry;
+    ++entries;
+  }
+  CHECK(entries == 1);
+}
+
+TEST_CASE("a snapshot keeps which file each value came from") {
+  Scratch scratch;
+  FakeEnvironment environment;
+  fs::path a = scratch.write("a.env", "APP_SERVER_PORT=x\n");
+  fs::path b = scratch.write("b.env", "APP_QUOTA_RATIO=0.2\n");
+  Config config = Config::parse(DEFAULTS, options(environment, {a, b}));
+  State saved = config.state();
+  config.set_file_values({});
+  config.set("server.port", Value{std::int64_t{1}});
+  config.restore(saved);
+  CHECK(config.overrides().empty());
+  REQUIRE(config.problems().size() == 1);
+  CHECK(config.problems()[0].file == a);
+}
+
+TEST_CASE("text that is not UTF-8 is no value, the defaults file must be a file, a float of -2^63 is an integer") {
+  Scratch scratch;
+  FakeEnvironment environment;
+  fs::path file = scratch.write(".env.local", "APP_SERVER_HOST=caf\xE9\n");
+  Config config = Config::parse(DEFAULTS, options(environment, {file}));
+  CHECK_THROWS_AS(config.get("server.host"), Error);
+  CHECK(config.problems().size() == 1);
+  CHECK_THROWS_AS(Config::load(scratch.dir, options(environment)), Error);
+  config.set("server.port", Value{-9223372036854775808.0});
+  CHECK(std::get<std::int64_t>(config.get("server.port")) == std::numeric_limits<std::int64_t>::min());
+}
+
+TEST_CASE("found upwards from where a path really is, and keys in tomllib's order") {
+  Scratch scratch;
+  fs::path file = scratch.write("a/.env.local", "A=1\n");
+  fs::create_directories(scratch.dir / "b");
+  CHECK_FALSE(find_upward(".env.local", scratch.dir / "a" / ".." / "b").has_value());
+  CHECK(find_upward(".env.local", scratch.dir / "b" / ".." / "a") == file);
+  FakeEnvironment environment;
+  Options plain;
+  plain.environment = environment.get();
+  Config config = Config::parse("[x.y]\nz = 1\n[a]\nq = 2\n[x]\nw = 3\n", plain);
+  CHECK(config.keys() == std::vector<std::string>{"x.y.z", "x.w", "a.q"});
 }

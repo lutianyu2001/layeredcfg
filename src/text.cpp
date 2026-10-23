@@ -1,5 +1,6 @@
 #include "text.hpp"
 
+#include <algorithm>
 #include <charconv>
 #include <cmath>
 #include <cstdio>
@@ -32,16 +33,19 @@ bool digit_run(std::string_view s, std::size_t& at, std::string& out) {
 }
 
 // The power of ten of the first significant digit of a decimal number written as digits, an optional point and an
-// optional exponent ("0.00012e3" is 0.12: -1); 0 for a number that is zero.
-long decimal_exponent(const std::string& number) {
+// optional exponent ("0.00012e3" is 0.12: -1); 0 for a number that is zero. Only its sign is used, past the range of
+// a double, so an exponent of more than a billion digits' worth is taken as a billion (no overflow).
+long long decimal_exponent(const std::string& number) {
+  constexpr long long far = 1000000000;
   std::size_t e = number.find('e');
   std::string mantissa = number.substr(0, e);
-  long exponent = e == std::string::npos ? 0 : std::strtol(number.c_str() + e + 1, nullptr, 10);
+  long long exponent = e == std::string::npos ? 0 : std::strtoll(number.c_str() + e + 1, nullptr, 10);
+  exponent = std::max(-far, std::min(far, exponent));
   std::size_t point = mantissa.find('.');
   if (point == std::string::npos) point = mantissa.size();
   for (std::size_t i = 0; i < mantissa.size(); ++i) {
     if (mantissa[i] == '.' || mantissa[i] == '0') continue;
-    long place = i < point ? static_cast<long>(point - i) - 1 : -static_cast<long>(i - point);
+    long long place = i < point ? static_cast<long long>(point - i) - 1 : -static_cast<long long>(i - point);
     return place + exponent;
   }
   return 0;
@@ -95,7 +99,7 @@ std::optional<double> parse_float(std::string_view raw) {
   if (word == "inf" || word == "infinity") {
     return negative ? -std::numeric_limits<double>::infinity() : std::numeric_limits<double>::infinity();
   }
-  if (word == "nan") return std::nan("");
+  if (word == "nan") return negative ? -std::nan("") : std::nan("");
   std::string number;
   bool whole = digit_run(s, at, number);
   bool fraction = false;
@@ -120,6 +124,26 @@ std::optional<double> parse_float(std::string_view raw) {
     return std::nullopt;
   }
   return negative ? -value : value;
+}
+
+bool valid_utf8(std::string_view s) {
+  std::size_t i = 0;
+  while (i < s.size()) {
+    unsigned char c = static_cast<unsigned char>(s[i]);
+    std::size_t length = c < 0x80 ? 1 : (c >> 5) == 0x6 ? 2 : (c >> 4) == 0xE ? 3 : (c >> 3) == 0x1E ? 4 : 0;
+    if (length == 0 || i + length > s.size()) return false;
+    std::uint32_t code = length == 1 ? c : length == 2 ? (c & 0x1F) : length == 3 ? (c & 0x0F) : (c & 0x07);
+    for (std::size_t k = 1; k < length; ++k) {
+      unsigned char next = static_cast<unsigned char>(s[i + k]);
+      if ((next >> 6) != 0x2) return false;
+      code = (code << 6) | (next & 0x3F);
+    }
+    // No overlong forms, no surrogates, nothing past U+10FFFF.
+    static const std::uint32_t least[] = {0, 0, 0x80, 0x800, 0x10000};
+    if (code < least[length] || (code >= 0xD800 && code <= 0xDFFF) || code > 0x10FFFF) return false;
+    i += length;
+  }
+  return true;
 }
 
 std::optional<bool> parse_bool(std::string_view raw) {

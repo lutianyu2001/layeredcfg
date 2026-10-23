@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <functional>
 #include <sstream>
 #include <tuple>
 
@@ -63,6 +64,7 @@ bool truthy(const Value& value) {
 // that is not text, int(2.7) is 2, str(True) is "True").
 std::optional<Value> convert_to(Type type, const Value& raw) {
   if (const auto* text = std::get_if<std::string>(&raw)) {
+    if (!text::valid_utf8(*text)) return std::nullopt;  // every layer's text is UTF-8
     switch (type) {
       case Type::Bool:
         if (auto v = text::parse_bool(*text)) return Value{*v};
@@ -106,27 +108,33 @@ std::optional<Value> convert_to(Type type, const Value& raw) {
   }
   double d = std::get<double>(raw);
   if (type == Type::Float) return Value{d};
-  if (!std::isfinite(d) || std::fabs(d) >= 9.2233720368547758e18) return std::nullopt;
+  if (!std::isfinite(d) || d < -9223372036854775808.0 || d >= 9223372036854775808.0) return std::nullopt;
   return Value{static_cast<std::int64_t>(std::trunc(d))};
 }
 
 std::string read_file(const fs::path& path) {
+  std::error_code error;
+  if (!fs::is_regular_file(path, error)) throw Error(ErrorKind::Io, "", "cannot read " + path.string() + ": not a file");
   std::ifstream in(path, std::ios::binary);
-  if (!in) throw Error(ErrorKind::Io, "", "cannot read " + path.string() + ": " + std::strerror(errno));
   std::ostringstream text;
-  text << in.rdbuf();
+  if (in) text << in.rdbuf();
+  if (!in || in.bad()) throw Error(ErrorKind::Io, "", "cannot read " + path.string() + ": " + std::strerror(errno));
   return text.str();
 }
 
 // Written beside the file and put in its place at once, so that a write that fails halfway leaves the old file whole;
 // with the old file's permissions, 0600 for a new one, from the moment it is created.
-void replace_file(const fs::path& path, const std::string& text) {
+void replace_file(const fs::path& given, const std::string& text) {
+  std::error_code error_code;
+  fs::path path = fs::exists(given, error_code) ? fs::canonical(given, error_code) : given;  // a link's target
+  if (error_code) path = given;
   struct stat old {};
   mode_t mode = ::stat(path.c_str(), &old) == 0 ? (old.st_mode & 07777) : 0600;
-  fs::path spare = path;
-  spare += ".writing";
-  int fd = ::open(spare.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0600);
-  if (fd < 0) throw Error(ErrorKind::Io, "", "cannot write " + spare.string() + ": " + std::strerror(errno));
+  // A name of its own (mkstemp makes it 0600), so that writers at the same time do not write into one another's.
+  std::string pattern = path.string() + ".writing-XXXXXX";
+  int fd = ::mkstemp(pattern.data());
+  if (fd < 0) throw Error(ErrorKind::Io, "", "cannot write beside " + path.string() + ": " + std::strerror(errno));
+  fs::path spare = pattern;
   const char* data = text.data();
   std::size_t left = text.size();
   bool ok = ::fchmod(fd, mode) == 0;
@@ -180,9 +188,15 @@ void flatten(const toml::table& table, const std::string& prefix, const std::str
              std::set<std::string, std::less<>>& sections) {
   std::vector<std::pair<std::string, const toml::node*>> entries;
   for (auto&& [name, node] : table) entries.emplace_back(std::string(name.str()), &node);
-  auto place = [](const toml::node* node) {
+  // A table first appears where the first thing in it is written ([x.y] before [x] makes x appear at [x.y]), as
+  // Python's tomllib inserts it.
+  std::function<std::tuple<std::uint32_t, std::uint32_t>(const toml::node*)> place = [&](const toml::node* node) {
     const auto& begin = node->source().begin;
-    return std::make_tuple(begin.line, begin.column);
+    auto first = begin.line ? std::make_tuple(begin.line, begin.column) : std::make_tuple(~0u, ~0u);
+    if (const toml::table* inner = node->as_table()) {
+      for (auto&& [name, child] : *inner) first = std::min(first, place(&child));
+    }
+    return first;
   };
   std::stable_sort(entries.begin(), entries.end(),
                    [&](const auto& a, const auto& b) { return place(a.second) < place(b.second); });
@@ -290,8 +304,9 @@ std::string to_text(const Value& value) {
 
 std::optional<fs::path> find_upward(const std::string& name, const fs::path& start) {
   std::error_code error;
-  fs::path directory = fs::absolute(start, error);
+  fs::path directory = fs::absolute(start, error).lexically_normal();
   if (error) return std::nullopt;
+  if (directory.has_relative_path() && directory.filename().empty()) directory = directory.parent_path();
   while (true) {
     fs::path candidate = directory / name;
     if (fs::is_regular_file(candidate, error)) return candidate;
@@ -468,8 +483,25 @@ void Config::clear_overrides() { overrides_.clear(); }
 
 std::vector<std::pair<std::string, std::string>> Config::overrides() const {
   std::vector<std::pair<std::string, std::string>> out;
-  for (const auto& [key, value] : overrides_) out.emplace_back(key, to_text(value));
+  for (const auto& [key, value] : overrides_) {
+    // Text as it was given (a path keeps its ~); anything else as its converted value, which the type reads back
+    // (8421.0 for an integer is 8421).
+    const auto* text = std::get_if<std::string>(&value);
+    out.emplace_back(key, text ? *text : to_text(convert(key, settings_.find(key)->second, value)));
+  }
   return out;
+}
+
+State Config::state() const {
+  State state;
+  state.overrides_ = overrides_;
+  state.files_ = files_;
+  return state;
+}
+
+void Config::restore(const State& state) {
+  overrides_ = state.overrides_;
+  files_ = state.files_;
 }
 
 std::map<std::string, std::string> Config::file_values() const {
@@ -515,7 +547,16 @@ Value Config::persist(std::string_view key, const Value& raw, const fs::path& fi
   std::string name = variable(key);
   std::string text = to_text(typed);
   replace_file(target, envfile::replace(old, name, envfile::quote(text)));
-  files_[name] = FileValue{text, target};
+  // Where the files stand now: a file read after the written one that sets the name still wins.
+  auto rank = [&](const fs::path& file) {
+    for (std::size_t i = 0; i < options_.files.size(); ++i) {
+      std::error_code same;
+      if (file == options_.files[i] || fs::equivalent(file, options_.files[i], same)) return i;
+    }
+    return options_.files.size();  // not one of the files: as if read last
+  };
+  auto current = files_.find(name);
+  if (current == files_.end() || rank(current->second.file) <= rank(target)) files_[name] = FileValue{text, target};
   if (env(name) && options_.environment.set) options_.environment.set(name, text);
   return typed;
 }

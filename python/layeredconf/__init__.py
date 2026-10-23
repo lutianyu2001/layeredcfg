@@ -29,7 +29,6 @@ __all__ = [
     "InvalidValue",
     "NotPersisted",
     "Section",
-    "Snapshot",
     "UnknownKey",
     "find_upward",
 ]
@@ -99,16 +98,6 @@ class Section:
         return f"<config section {self._prefix.rstrip('.')!r}>"
 
 
-class Snapshot:
-    """The overrides and what was read from the files, to be put back with `Config.restore` (tests)."""
-
-    __slots__ = ("overrides", "files")
-
-    def __init__(self, overrides: list[tuple[str, Any]], files: dict[str, str]) -> None:
-        self.overrides = overrides
-        self.files = files
-
-
 def find_upward(name: str, start: str | os.PathLike[str] | None = None) -> Path | None:
     """The first file `name` in `start` (the current directory) or a directory above it."""
     return _core.find_upward(name, os.fspath(start) if start is not None else os.getcwd())
@@ -144,6 +133,7 @@ class Config:
         # The file `persist` writes into, named by the message of an override that is refused.
         self._written = Path(write_file) if write_file else Path(given[-1]) if given else None
         self._persisted = sorted(persisted)
+        self._file_only = set(file_only)
         self._core = self._call(
             _core.Config,
             os.fspath(defaults),
@@ -151,7 +141,7 @@ class Config:
             files=given,
             write_file=os.fspath(write_file) if write_file else "",
             root=os.fspath(root) if root else "",
-            file_only=set(file_only),
+            file_only=self._file_only,
             persisted=set(self._persisted),
             secret=set(secret),
             get=environment.get,
@@ -197,7 +187,7 @@ class Config:
 
     def cast(self, key: str, value: Any) -> Any:
         """A value converted to the setting's type, as the layers would convert it."""
-        return self._call(self._core.cast, key, _plain(value))
+        return self._call(self._core.cast, key, self._raw(key, value))
 
     def source(self, key: str) -> str:
         """Where the value comes from: override, env, file or default."""
@@ -223,7 +213,8 @@ class Config:
 
     def set(self, key: str, value: Any) -> None:
         """Override a setting (the command line's `-c key=value`). The value is converted at once."""
-        self._call(self._core.set, key, _plain(value))
+        # A setting that cannot be overridden says so before its value is looked at.
+        self._call(self._core.set, key, "" if key in self._file_only else self._raw(key, value))
 
     def unset(self, key: str) -> None:
         self._call(self._core.unset, key)
@@ -252,18 +243,37 @@ class Config:
         """Write a setting of `persisted` into `file` (else the write file) for good: its line replaced, every other line
         kept, the file replaced at once with its permissions. It holds at once: what was read from the files changes,
         and the environment's variable if it has one; an override still wins. Returns the value as the setting's type."""
-        return self._call(self._core.persist, key, _plain(value), os.fspath(file) if file else "")
+        return self._call(self._core.persist, key, self._raw(key, value), os.fspath(file) if file else "")
 
     # -- for tests
 
-    def snapshot(self) -> Snapshot:
-        return Snapshot(list(self._core.override_values()), self.file_values())
+    def snapshot(self) -> Any:
+        """The overrides and what was read from the files, with the file each came from, for `restore`."""
+        return self._core.state()
 
-    def restore(self, snapshot: Snapshot) -> None:
-        self._core.clear_overrides()
-        for key, value in snapshot.overrides:
-            self._core.set(key, value)
-        self._core.set_file_values(dict(snapshot.files))
+    def restore(self, snapshot: Any) -> None:
+        self._core.restore(snapshot)
+
+    def _raw(self, key: str, value: Any) -> Any:
+        """A value as the core takes it. Text (a path as its text) goes as it is, for the core to read; anything else is
+        converted here as Python converts it, int(), float(), bool(), str() or list() by the setting's type, which the
+        core could not do for every Python type (a Decimal, a Fraction, None)."""
+        if isinstance(value, os.PathLike):
+            value = os.fspath(value)
+        if isinstance(value, str):
+            return value
+        kind = self.type(key)
+        try:
+            if kind == "list":
+                return [str(item) for item in value]
+            converted = {"bool": bool, "int": int, "float": float, "str": str}[kind](value)
+            if kind == "int" and not -(2**63) <= converted < 2**63:
+                raise OverflowError(value)
+            return converted
+        except (TypeError, ValueError, OverflowError):
+            raise InvalidValue(
+                self._message("invalid_value", key=key, raw=value, expected=kind), key, value, kind
+            ) from None
 
     # -- errors
 
@@ -293,11 +303,3 @@ class Config:
             )
         return ConfigError(message, key)
 
-
-def _plain(value: Any) -> Any:
-    """A value as the core takes it: a path as its text, a tuple or a set as a list."""
-    if isinstance(value, os.PathLike):
-        return os.fspath(value)
-    if isinstance(value, (tuple, set, frozenset)):
-        return list(value)
-    return value
