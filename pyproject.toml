@@ -1,0 +1,28 @@
+[build-system]
+requires = ["scikit-build-core>=0.10", "pybind11>=2.13"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "layeredconf"
+dynamic = ["version"]
+description = "Layered configuration: defaults from a TOML file, overridden by env-style files, the environment and the command line, each value converted to its default's type"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+  "Programming Language :: C++",
+  "Programming Language :: Python :: 3",
+  "Operating System :: POSIX",
+]
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+wheel.packages = ["python/layeredconf"]
+cmake.build-type = "Release"
+
+[tool.scikit-build.cmake.define]
+LAYEREDCONF_BUILD_PYTHON = "ON"
+
+[tool.scikit-build.metadata.version]
+provider = "scikit_build_core.metadata.regex"
+input = "CMakeLists.txt"
+regex = 'project\(layeredconf VERSION (?P<value>[0-9][0-9.]*)'

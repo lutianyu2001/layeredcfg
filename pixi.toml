@@ -1,0 +1,33 @@
+[workspace]
+name = "layeredconf"
+version = "0.1.0"
+description = "Layered configuration: defaults from a TOML file, overridden by env-style files, the environment and the command line"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = "3.12.*"
+cxx-compiler = "*"
+cmake = ">=3.26"
+ninja = "*"
+tomlplusplus = ">=3.4"
+pybind11 = ">=2.13"
+scikit-build-core = ">=0.10"
+doctest = ">=2.4"
+pip = "*"
+pytest = ">=8"
+
+[activation.env]
+# Keep ~/.local site-packages out of the environment.
+PYTHONNOUSERSITE = "1"
+
+[tasks]
+# The C++ library and its tests, built in build/.
+configure = { cmd = "cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DLAYEREDCONF_BUILD_TESTS=ON", description = "Configure the C++ build in build/" }
+build = { cmd = "cmake --build build", depends-on = ["configure"], description = "Build the C++ library and its tests" }
+test-cpp = { cmd = "ctest --test-dir build --output-on-failure", depends-on = ["build"], description = "Run the C++ tests" }
+# The Python package: built into a wheel in dist/ from the environment's own build tools (no download).
+wheel = { cmd = "rm -rf dist && pip wheel . --no-build-isolation --no-deps -w dist", description = "Build the Python wheel into dist/" }
+install-wheel = { cmd = "pip install --force-reinstall --no-deps dist/layeredconf-*.whl", depends-on = ["wheel"], description = "Build the wheel and install it into this environment" }
+test-python = { cmd = "python -m pytest -q tests/python", depends-on = ["install-wheel"], description = "Build and install the wheel, then run the Python tests" }
+test = { depends-on = ["test-cpp", "test-python"], description = "Run the C++ and the Python tests" }
