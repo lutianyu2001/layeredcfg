@@ -128,6 +128,20 @@ def test_problems_say_what_is_wrong_and_where_it_is_written(defaults, tmp_path):
     }
 
 
+def test_values_given_by_hand_are_said_to_be_in_the_write_file_and_nothing_is_relative_to_the_current_directory(
+    defaults, tmp_path
+):
+    from layeredconf import _core
+
+    core = _core.Config(str(defaults), files=[str(tmp_path / "x.env")], get=lambda name: None)
+    core.set_file_values({"SERVER_PORT": "x"})
+    assert core.problems() == [("server.port", "file", "SERVER_PORT", tmp_path / "x.env", "x", "int")]
+    assert core.path("log.dir") == Path("data/logs")  # no root: still relative
+    config = Config(defaults, write_file=tmp_path / "w.env", environ={})
+    config.set_file_values({"SERVER_PORT": "y"})
+    assert config.problems()["server.port"].endswith("written in SERVER_PORT of w.env")
+
+
 def test_messages_can_be_given_in_a_program_s_own_words(defaults, tmp_path):
     words = {
         "unknown_key": "未知的配置项: {key}",

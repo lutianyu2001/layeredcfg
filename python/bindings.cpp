@@ -59,6 +59,8 @@ Config make(const fs::path& defaults, const std::string& prefix, const std::vect
 
 }  // namespace
 
+// A path argument's default is "": pybind11 keeps a default as a Python object, and an empty std::filesystem::path made
+// into one is Path("."), which comes back as "." and is no longer empty.
 PYBIND11_MODULE(_core, m) {
   m.doc() = "The C++ core of layeredconf.";
   m.attr("__version__") = LAYEREDCONF_VERSION;
@@ -80,7 +82,7 @@ PYBIND11_MODULE(_core, m) {
 
   py::class_<Config>(m, "Config")
       .def(py::init(&make), py::arg("defaults"), py::kw_only(), py::arg("prefix") = "",
-           py::arg("files") = std::vector<fs::path>{}, py::arg("write_file") = fs::path(), py::arg("root") = fs::path(),
+           py::arg("files") = std::vector<fs::path>{}, py::arg("write_file") = "", py::arg("root") = "",
            py::arg("file_only") = std::set<std::string>{}, py::arg("persisted") = std::set<std::string>{},
            py::arg("secret") = std::set<std::string>{}, py::arg("get") = py::none(), py::arg("set") = py::none())
       .def("keys", &Config::keys)
@@ -110,9 +112,9 @@ PYBIND11_MODULE(_core, m) {
       .def("override_values", &Config::override_values)
       .def("overrides", &Config::overrides)
       .def("file_values", &Config::file_values)
-      .def("set_file_values", &Config::set_file_values, py::arg("values"), py::arg("file") = fs::path())
+      .def("set_file_values", &Config::set_file_values, py::arg("values"), py::arg("file") = "")
       .def("reload_files", &Config::reload_files)
-      .def("persist", &Config::persist, py::arg("key"), py::arg("raw"), py::arg("file") = fs::path());
+      .def("persist", &Config::persist, py::arg("key"), py::arg("raw"), py::arg("file") = "");
 
   m.def("to_text", &to_text);
   m.def("find_upward", &find_upward, py::arg("name"), py::arg("start"));

@@ -480,7 +480,13 @@ std::map<std::string, std::string> Config::file_values() const {
 
 void Config::set_file_values(const std::map<std::string, std::string>& values, const fs::path& file) {
   files_.clear();
-  for (const auto& [name, text] : values) files_.emplace(name, FileValue{text, file});
+  fs::path where = file.empty() ? write_target() : file;
+  for (const auto& [name, text] : values) files_.emplace(name, FileValue{text, where});
+}
+
+fs::path Config::write_target() const {
+  if (!options_.write_file.empty()) return options_.write_file;
+  return options_.files.empty() ? fs::path() : options_.files.back();
 }
 
 void Config::reload_files() {
@@ -502,8 +508,7 @@ Value Config::persist(std::string_view key, const Value& raw, const fs::path& fi
     throw Error(ErrorKind::NotPersisted, std::string(key), std::string(key) + " is not one of the settings to persist");
   }
   Value typed = convert(key, s, raw);
-  fs::path target = !file.empty() ? file : !options_.write_file.empty() ? options_.write_file : fs::path();
-  if (target.empty() && !options_.files.empty()) target = options_.files.back();
+  fs::path target = file.empty() ? write_target() : file;
   if (target.empty()) throw Error(ErrorKind::Io, std::string(key), "no file to write " + std::string(key) + " into");
   std::error_code error;
   std::string old = fs::exists(target, error) ? read_file(target) : std::string();

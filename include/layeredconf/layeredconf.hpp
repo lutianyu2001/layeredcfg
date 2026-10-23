@@ -138,7 +138,8 @@ class Config {
 
   // What was read from the files: variable -> text.
   std::map<std::string, std::string> file_values() const;
-  // Replace it (tests, or values a caller read itself); `file` is said to be where they are written.
+  // Replace it (tests, or values a caller read itself); `file` is said to be where they are written, by default the
+  // file persist writes into.
   void set_file_values(const std::map<std::string, std::string>& values, const std::filesystem::path& file = {});
   void reload_files();
 
@@ -160,6 +161,7 @@ class Config {
 
   Config() = default;
   const Setting& setting(std::string_view key) const;
+  std::filesystem::path write_target() const;
   const Value* override_of(std::string_view key) const;
   std::optional<std::string> env(const std::string& name) const;
   Value convert(std::string_view key, const Setting& setting, const Value& raw) const;

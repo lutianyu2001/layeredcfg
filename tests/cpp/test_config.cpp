@@ -199,6 +199,10 @@ TEST_CASE("problems are the values of the environment and the files that do not 
   // An override hides what is under it.
   config.set("server.port", Value{std::int64_t{1}});
   CHECK(config.problems().size() == 1);
+  // Values given by a caller are said to be in the file persist writes into.
+  config.set_file_values({{"APP_QUOTA_RATIO", "x"}});
+  REQUIRE(config.problems().size() == 1);
+  CHECK(config.problems()[0].file == file);
 }
 
 TEST_CASE("secrets are shown masked when they have a value") {
