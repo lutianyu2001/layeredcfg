@@ -1,6 +1,27 @@
 # layeredconf
+<p align="right">
+    <a href="../README.md">English</a> | <strong>中文</strong>
+</p>
 
-分层配置库：核心是 C++，带 Python 绑定。[English](README.md)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+一个轻量的分层配置库，核心是 C++，带 Python 绑定：每个配置项的值取自 TOML 默认值文件、环境变量写法的文件、环境变量或命令行，并转换成默认值的类型。
+
+## 目录
+
+- [概述](#概述)
+- [功能特性](#功能特性)
+- [前置要求](#前置要求)
+- [安装](#安装)
+- [用法](#用法)
+- [各层的写法](#各层的写法)
+- [环境变量写法的文件](#环境变量写法的文件)
+- [测试](#测试)
+- [兼容性](#兼容性)
+- [许可证](#许可证)
+- [作者](#作者)
+
+## 概述
 
 一个 TOML 默认值文件说明有哪些配置项，每一项是什么类型：就是它默认值的类型。一个配置项的值取自有它的最高一层，
 
@@ -10,9 +31,55 @@
 
 并转换成默认值的类型。转换不了就是错，绝不猜：布尔值写成 `ture` 是写错了，不是假。配置项在环境变量和文件里的名字是前缀加上键名，大写、点换成下划线：前缀是 `APP_` 时，`server.port` 是 `APP_SERVER_PORT`。
 
-不用在代码里另写一份定义：加一个配置项，就是在 TOML 文件里加一行，带上注释。
+## 功能特性
 
-## Python
+- 不用在代码里另写一份定义：加一个配置项，就是在 TOML 文件里加一行，带上注释
+- 四层：默认值、环境变量写法的文件、环境变量、覆盖
+- 严格转换成默认值的类型，文字照 Python 的方式转换
+- 环境变量写法的文件大体照 python-dotenv 的方式读
+- 把值原地写回文件，别的字节原样保留（`persist`）
+- 密钥显示时打码；可以规定某些配置项只能由文件设置
+- C++17 库，加上 Python 绑定，出错时是 Python 惯用的异常
+
+## 前置要求
+
+- [pixi](https://pixi.sh)，其余的都由它装进这个目录的环境：
+  - 支持 C++17 的编译器
+  - CMake ≥3.26
+  - [toml++](https://marzer.github.io/tomlplusplus/) ≥3.4
+  - pybind11 ≥2.13
+  - Python 3.12：只构建 C++ 库也要用它，Unicode 的数字和空白表由 `tools/unicode_table.py` 从它的 `unicodedata` 生成
+
+## 安装
+
+layeredconf 还没有发布，需要从源码构建。
+
+1. 克隆仓库：
+
+   ```bash
+   git clone https://github.com/lutianyu2001/layeredconf.git
+   cd layeredconf
+   ```
+
+2. 打出 wheel，放在 `dist/`：
+
+   ```bash
+   pixi run wheel
+   ```
+
+3. 装进你的 Python：
+
+   ```bash
+   pip install dist/layeredconf-*.whl
+   ```
+
+wheel 静态链接了 C++ 运行库，不依赖构建环境里的那一份。
+
+C++ 项目用 `add_subdirectory` 把这个目录加进 CMake 项目，链接 `layeredconf` 目标即可；配置时要能找到 toml++ 和 Python 解释器。
+
+## 用法
+
+### Python
 
 ```python
 from layeredconf import Config, find_upward
@@ -20,28 +87,28 @@ from layeredconf import Config, find_upward
 config = Config(
     "defaults.toml",
     prefix="APP_",
-    files=[find_upward(".env.local"), "/srv/app/.env.local"],  # 后面的文件优先
-    root="/srv/app",                    # 相对路径相对于它
-    file_only={"log.max_dir_size_mib"}, # 不能用命令行覆盖
+    files=[find_upward(".env.local"), "/srv/app/.env.local"],  # a later file wins
+    root="/srv/app",                    # what a relative path is relative to
+    file_only={"log.max_dir_size_mib"}, # not to be overridden on the command line
     persisted={"subagent.timeout_minutes"},
     secret={"notify.token"},
 )
 
-config.server.port                   # 8420，和默认值一样是整数
+config.server.port                   # 8420, an int, as the default is
 config.get("server.port")
-config.set("server.port", "8421")    # 覆盖，当场转换
-config.path("data.dir")              # 展开 ~，相对路径接在 root 后面
-config.source("server.port")         # "override"、"env"、"file" 或 "default"
-config.shown("notify.token")         # 有值时是 "***"
-config.problems()                    # 环境变量和文件里所有转换不了的值
-config.persist("subagent.timeout_minutes", 45)  # 写进文件，立即生效
+config.set("server.port", "8421")    # an override, converted at once
+config.path("data.dir")              # ~ expanded, a relative path joined to the root
+config.source("server.port")         # "override", "env", "file" or "default"
+config.shown("notify.token")         # "***" when it has a value
+config.problems()                    # every value of the environment and the files that does not convert
+config.persist("subagent.timeout_minutes", 45)  # written into the file for good, in force at once
 ```
 
 出错时是 Python 惯用的异常：`UnknownKey` 是 `KeyError`，`InvalidValue` 和 `FileOnlyKey` 是 `ValueError`，`NotPersisted` 是 `KeyError`，它们都是 `ConfigError`；不存在的属性是 `AttributeError`。错误信息是模板，程序可以换成自己的话（`messages=`，见 `layeredconf.MESSAGES`）。
 
 环境变量就是 `os.environ`（或者 `environ=` 给的映射），取值时才读：Python 代码设的变量立即生效。文件里的值只读进配置，绝不放进进程的环境变量：那样的话，这个进程启动的每个程序都会继承它们。
 
-## C++
+### C++
 
 ```cpp
 #include <layeredconf/layeredconf.hpp>
@@ -75,17 +142,43 @@ auto port = std::get<std::int64_t>(config.get("server.port"));
 
 `persist` 换掉这个配置项的那条赋值（前面可以有 `export `，引号里跨行的值整个换掉），删掉后面同名的，别的字节原样保留，然后一次把文件换上去：权限照原文件（新文件是 0600），从写的那一刻起就是；符号链接留着，写的是它指向的文件。几个进程同时写不会把文件写坏，但留下的是最后一个写的。配置读到的值跟着变，除非排在这个文件后面的文件也设了同一个名字。
 
-## 构建
+## 测试
 
-都在这个目录的 [pixi](https://pixi.sh) 环境里（编译器、CMake、toml++、pybind11，还有 Python：只构建 C++ 库也要用它，Unicode 的数字和空白表由 `tools/unicode_table.py` 从它的 `unicodedata` 生成）：
+| 命令 | 说明 |
+|---|---|
+| `pixi run test` | C++ 和 Python 的测试 |
+| `pixi run test-cpp` | C++ 的测试，构建在 `build/` 里 |
+| `pixi run test-python` | 打出并安装 wheel，再跑 Python 的测试 |
 
-```bash
-pixi run test          # C++ 和 Python 的测试
-pixi run wheel         # 打出 wheel，放在 dist/
-```
+## 兼容性
 
-wheel 静态链接了 C++ 运行库，不依赖构建环境里的那一份。
+目前只支持 POSIX（Linux、macOS）。
 
-## 状态
+测试环境：
 
-还没有发布。目前只支持 POSIX（Linux、macOS）。
+- Ubuntu 24.04.4 LTS（x86_64）
+  - GCC 15.3.0
+  - CMake 4.4.4
+  - Python 3.12.15
+  - [toml++](https://github.com/marzer/tomlplusplus) 3.4.0
+  - [pybind11](https://github.com/pybind/pybind11) 3.1.0
+
+## 许可证
+
+Copyright 2026 Tianyu (Sky) Lu
+
+The entire repository is licensed under the Apache License, Version 2.0 
+(the "License"); you may not use any file in this repository except in 
+compliance with the License. You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+## 作者
+
+Tianyu (Sky) Lu
