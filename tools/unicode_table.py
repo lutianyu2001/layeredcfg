@@ -1,9 +1,10 @@
-"""Write the core's Unicode table from the unicodedata of the Python that runs this: its decimal digits and its
+"""Write the core's Unicode table (Rust) from the unicodedata of the Python that runs this: its decimal digits and its
 whitespace, so that the core reads numbers and strips text as that Python does (int(), float(), str.strip()).
 
     python tools/unicode_table.py OUT
 
-The build runs it with the Python it finds, for a wheel the one the wheel is for.
+The core's build script (crates/layeredconf/build.rs) runs it with the Python it is given, for a wheel the one the
+wheel is for.
 """
 
 import sys
@@ -37,10 +38,10 @@ def table() -> str:
     return (
         f"// Written by tools/unicode_table.py from Python's unicodedata (Unicode {unicodedata.unidata_version}); "
         "not to be edited.\n\n"
-        "// The zero of each run of ten decimal digits, ascending.\n"
-        f"constexpr char32_t digit_zeros[] = {{\n{rows(zeros)}\n}};\n\n"
-        "// The characters str.isspace() takes for whitespace, ascending.\n"
-        f"constexpr char32_t spaces[] = {{\n{rows(spaces)}\n}};\n"
+        "/// The zero of each run of ten decimal digits, ascending.\n"
+        f"pub(crate) static DIGIT_ZEROS: [u32; {len(zeros)}] = [\n{rows(zeros)}\n];\n\n"
+        "/// The characters str.isspace() takes for whitespace, ascending.\n"
+        f"pub(crate) static SPACES: [u32; {len(spaces)}] = [\n{rows(spaces)}\n];\n"
     )
 
 

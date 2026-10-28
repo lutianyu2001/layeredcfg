@@ -182,10 +182,14 @@ def test_persist_writes_the_line_keeps_the_rest_and_holds_at_once(defaults, tmp_
     assert file.read_text() == "# ntfy\nAPP_NOTIFY_TOPIC=secret\nAPP_QUOTA_RATIO=0.45\n"
     assert stat.S_IMODE(file.stat().st_mode) == 0o600
     assert config.quota.ratio == 0.45 and environ == {}
-    # The environment's variable, which wins over the file, is replaced too.
+    # The environment's variable, which wins over the file, is replaced too, for this configuration only (the
+    # environment is not changed), until the variable is set again.
     environ["APP_QUOTA_RATIO"] = "0.9"
     config.persist("quota.ratio", 0.3)
-    assert environ["APP_QUOTA_RATIO"] == "0.3" and config.quota.ratio == 0.3
+    assert environ["APP_QUOTA_RATIO"] == "0.9" and config.quota.ratio == 0.3
+    assert config.source("quota.ratio") == "env"
+    environ["APP_QUOTA_RATIO"] = "0.7"
+    assert config.quota.ratio == 0.7
     # Only the settings to persist; another file when given one.
     with pytest.raises(NotPersisted):
         config.persist("server.port", 1)

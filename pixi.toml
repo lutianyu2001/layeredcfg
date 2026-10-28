@@ -5,29 +5,24 @@ description = "Layered configuration: defaults from a TOML file, overridden by e
 channels = ["conda-forge"]
 platforms = ["linux-64"]
 
+# Rust comes from rustup, at the version rust-toolchain.toml pins.
 [dependencies]
 python = "3.12.*"
-cxx-compiler = "*"
-cmake = ">=3.26"
-ninja = "*"
-tomlplusplus = ">=3.4"
-pybind11 = ">=2.13"
-scikit-build-core = ">=0.10"
-doctest = ">=2.4"
+maturin = ">=1.9,<2"
 pip = "*"
 pytest = ">=8"
 
 [activation.env]
 # Keep ~/.local site-packages out of the environment.
 PYTHONNOUSERSITE = "1"
+# The Unicode table is written from this environment's Python.
+PYO3_PYTHON = "$CONDA_PREFIX/bin/python"
 
 [tasks]
-# The C++ library and its tests, built in build/.
-configure = { cmd = "cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DLAYEREDCONF_BUILD_TESTS=ON", description = "Configure the C++ build in build/" }
-build = { cmd = "cmake --build build", depends-on = ["configure"], description = "Build the C++ library and its tests" }
-test-cpp = { cmd = "ctest --test-dir build --output-on-failure", depends-on = ["build"], description = "Run the C++ tests" }
+test-rust = { cmd = "cargo test --locked -p layeredconf", description = "Run the Rust tests" }
+lint = { cmd = "cargo fmt --all --check && cargo clippy --locked --workspace --all-targets -- -D warnings", description = "Check formatting and run clippy" }
 # The Python package: built into a wheel in dist/ from the environment's own build tools (no download).
 wheel = { cmd = "rm -rf dist && pip wheel . --no-build-isolation --no-deps -w dist", description = "Build the Python wheel into dist/" }
 install-wheel = { cmd = "pip install --force-reinstall --no-deps dist/layeredconf-*.whl", depends-on = ["wheel"], description = "Build the wheel and install it into this environment" }
 test-python = { cmd = "python -m pytest -q tests/python", depends-on = ["install-wheel"], description = "Build and install the wheel, then run the Python tests" }
-test = { depends-on = ["test-cpp", "test-python"], description = "Run the C++ and the Python tests" }
+test = { depends-on = ["test-rust", "test-python"], description = "Run the Rust and the Python tests" }

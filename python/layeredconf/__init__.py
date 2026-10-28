@@ -5,7 +5,7 @@ taken from the highest layer that has one,
 
     defaults (the TOML file) < env-style files < the environment < overrides (the command line)
 
-and converted to its default's type; a value that does not convert is an error, not a guess. The core is C++
+and converted to its default's type; a value that does not convert is an error, not a guess. The core is Rust
 (`layeredconf._core`); this module is its Python face: attribute access (`config.server.port`), Python's exceptions,
 and the messages they carry, which a program can give in its own words.
 """
@@ -145,7 +145,6 @@ class Config:
             persisted=set(self._persisted),
             secret=set(secret),
             get=environment.get,
-            set=environment.__setitem__,
         )
 
     # -- the settings
@@ -242,7 +241,9 @@ class Config:
     def persist(self, key: str, value: Any, file: str | os.PathLike[str] | None = None) -> Any:
         """Write a setting of `persisted` into `file` (else the write file) for good: its line replaced, every other line
         kept, the file replaced at once with its permissions. It holds at once: what was read from the files changes,
-        and the environment's variable if it has one; an override still wins. Returns the value as the setting's type."""
+        and so does the environment's variable if it has one, for this configuration only (the environment itself is
+        not changed) and until the variable is set again; an override still wins. Returns the value as the setting's
+        type."""
         return self._call(self._core.persist, key, self._raw(key, value), os.fspath(file) if file else "")
 
     # -- for tests

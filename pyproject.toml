@@ -1,6 +1,6 @@
 [build-system]
-requires = ["scikit-build-core>=0.10", "pybind11>=2.13"]
-build-backend = "scikit_build_core.build"
+requires = ["maturin>=1.9,<2"]
+build-backend = "maturin"
 
 [project]
 name = "layeredconf"
@@ -11,20 +11,15 @@ license = "Apache-2.0"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
 classifiers = [
-  "Programming Language :: C++",
+  "Programming Language :: Rust",
   "Programming Language :: Python :: 3",
   "Operating System :: POSIX",
 ]
 
-[tool.scikit-build]
-minimum-version = "build-system.requires"
-wheel.packages = ["python/layeredconf"]
-cmake.build-type = "Release"
-
-[tool.scikit-build.cmake.define]
-LAYEREDCONF_BUILD_PYTHON = "ON"
-
-[tool.scikit-build.metadata.version]
-provider = "scikit_build_core.metadata.regex"
-input = "CMakeLists.txt"
-regex = 'project\(layeredconf VERSION (?P<value>[0-9][0-9.]*)'
+# The version is the Cargo workspace's (Cargo.toml).
+[tool.maturin]
+manifest-path = "crates/layeredconf-python/Cargo.toml"
+python-source = "python"
+module-name = "layeredconf._core"
+locked = true
+strip = true

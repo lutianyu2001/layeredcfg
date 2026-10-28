@@ -1,0 +1,11 @@
+[package]
+name = "layeredconf"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+toml = { version = "1.1.8", default-features = false, features = ["std", "parse", "preserve_order"] }
+nix = { version = "0.31.3", default-features = false, features = ["user"] }
+

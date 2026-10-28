@@ -3,3 +3,4 @@
 /.pixi/
 __pycache__/
 *.egg-info/
+/target/
