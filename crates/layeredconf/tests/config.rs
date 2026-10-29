@@ -287,7 +287,7 @@ fn persist_replaces_the_setting_line_keeps_the_file_other_lines_and_permissions_
     assert_eq!(get(&config, "quota.ratio"), Value::Float(0.45));
     assert_eq!(config.source("quota.ratio").unwrap(), Source::File);
     // A variable of the environment, which wins over the file, reads as what was written, for this configuration only
-    // and until the environment's value changes.
+    // and whenever the environment has the value it had then.
     environment.set("APP_QUOTA_RATIO", "0.9");
     config.persist("quota.ratio", 0.3, None).unwrap();
     assert_eq!(environment.value("APP_QUOTA_RATIO").unwrap(), "0.9");
@@ -424,4 +424,38 @@ fn persist_refuses_a_line_a_quote_never_closed_would_take_in() {
     // A value without the quote is written.
     config.persist("server.host", "localhost", None).unwrap();
     assert_eq!(Scratch::read(&file), format!("{source}APP_SERVER_HOST=localhost\n"));
+}
+
+#[test]
+fn a_key_written_twice_is_the_setting_its_first_one_says() {
+    let environment = FakeEnvironment::default();
+    let config = parse("\"a.b\" = 1\n[a]\nb = \"x\"\n", plain(&environment));
+    assert_eq!(config.type_of("a.b").unwrap(), Type::Int);
+    assert_eq!(config.default_value("a.b").unwrap(), &Value::Int(1));
+}
+
+#[test]
+fn persist_refuses_a_name_no_env_style_file_can_have() {
+    let scratch = Scratch::new();
+    let environment = FakeEnvironment::default();
+    let file = scratch.write(".env.local", "");
+    let options = Options { files: vec![file.clone()], persisted: ["a b".to_owned()].into(), ..plain(&environment) };
+    let mut config = parse("\"a b\" = \"x\"\n", options);
+    let error = config.persist("a b", "y", None).unwrap_err();
+    assert_eq!(error.kind(), ErrorKind::Io);
+    assert!(error.message().contains("A B is no name an env-style file can have"), "{}", error.message());
+    assert_eq!(Scratch::read(&file), "");
+}
+
+#[test]
+fn persist_writes_the_target_of_a_link_whose_target_is_not_there_yet() {
+    let scratch = Scratch::new();
+    let environment = FakeEnvironment::default();
+    let link = scratch.dir.join(".env.local");
+    std::os::unix::fs::symlink("real.env", &link).unwrap();
+    let options = Options { write_file: Some(link.clone()), ..options(&environment, &[]) };
+    let mut config = parse(DEFAULTS, options);
+    config.persist("quota.ratio", "0.5", None).unwrap();
+    assert!(fs::symlink_metadata(&link).unwrap().file_type().is_symlink());
+    assert_eq!(Scratch::read(&scratch.dir.join("real.env")), "APP_QUOTA_RATIO=0.5\n");
 }

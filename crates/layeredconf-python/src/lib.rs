@@ -37,6 +37,9 @@ fn to_python<'py>(py: Python<'py>, text: &[u8]) -> PyResult<Bound<'py, PyAny>> {
 }
 
 fn from_python(text: &Bound<'_, PyAny>) -> PyResult<OsString> {
+    if text.is_instance_of::<PyBytes>() {
+        return Ok(OsString::from_vec(text.extract()?)); // a path as bytes
+    }
     let bytes = text.call_method1("encode", ("utf-8", "surrogateescape"))?;
     Ok(OsString::from_vec(bytes.extract()?))
 }

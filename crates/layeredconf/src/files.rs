@@ -46,14 +46,26 @@ fn spare_suffix() -> String {
         .collect()
 }
 
+/// The file a path names, through symbolic links, also those whose target does not exist yet.
+fn link_target(given: &Path) -> PathBuf {
+    if let Ok(target) = fs::canonicalize(given) {
+        return target;
+    }
+    let mut path = given.to_path_buf();
+    for _ in 0..40 {
+        let Ok(link) = fs::read_link(&path) else { break };
+        path = match path.parent() {
+            Some(directory) => directory.join(link),
+            None => link,
+        };
+    }
+    path
+}
+
 /// Written beside the file and put in its place at once, so that a write that fails halfway leaves the old file whole;
 /// with the old file's permissions, 0600 for a new one, from the moment it is created.
 pub(crate) fn replace_file(given: &Path, text: &[u8]) -> Result<()> {
-    // A link's target.
-    let path = match fs::canonicalize(given) {
-        Ok(target) if given.exists() => target,
-        _ => given.to_path_buf(),
-    };
+    let path = link_target(given);
     let mode = fs::metadata(&path).map_or(0o600, |old| old.permissions().mode() & 0o7777);
     // A name of its own, created 0600, so that writers at the same time do not write into one another's.
     let (spare, mut file) = loop {

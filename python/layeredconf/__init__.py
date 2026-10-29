@@ -242,7 +242,7 @@ class Config:
         """Write a setting of `persisted` into `file` (else the write file) for good: its line replaced, every other line
         kept, the file replaced at once with its permissions. It holds at once: what was read from the files changes,
         and so does the environment's variable if it has one, for this configuration only (the environment itself is
-        not changed) and until the variable is set again; an override still wins. Returns the value as the setting's
+        not changed) and whenever the variable has the value it had then; an override still wins. Returns the value as the setting's
         type."""
         return self._call(self._core.persist, key, self._raw(key, value), os.fspath(file) if file else "")
 

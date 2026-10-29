@@ -183,13 +183,15 @@ def test_persist_writes_the_line_keeps_the_rest_and_holds_at_once(defaults, tmp_
     assert stat.S_IMODE(file.stat().st_mode) == 0o600
     assert config.quota.ratio == 0.45 and environ == {}
     # The environment's variable, which wins over the file, is replaced too, for this configuration only (the
-    # environment is not changed), until the variable is set again.
+    # environment is not changed), whenever the variable has the value it had then.
     environ["APP_QUOTA_RATIO"] = "0.9"
     config.persist("quota.ratio", 0.3)
     assert environ["APP_QUOTA_RATIO"] == "0.9" and config.quota.ratio == 0.3
     assert config.source("quota.ratio") == "env"
     environ["APP_QUOTA_RATIO"] = "0.7"
     assert config.quota.ratio == 0.7
+    environ["APP_QUOTA_RATIO"] = "0.9"
+    assert config.quota.ratio == 0.3
     # Only the settings to persist; another file when given one.
     with pytest.raises(NotPersisted):
         config.persist("server.port", 1)
@@ -223,6 +225,8 @@ def test_bad_defaults_and_settings_that_do_not_exist_are_refused(tmp_path):
     good.write_text(DEFAULTS)
     with pytest.raises(UnknownKey):
         Config(good, secret={"no.such"})
+    # Paths as bytes too, as os.fspath gives them.
+    assert Config(os.fsencode(good)).server.port == 8420
 
 
 def test_a_file_is_found_upwards(tmp_path, monkeypatch):

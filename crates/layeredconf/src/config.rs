@@ -230,12 +230,16 @@ impl Config {
         let mut config = Config {
             options,
             keys: flat.iter().map(|(key, _)| key.clone()).collect(),
-            settings: flat.into_iter().collect(),
+            settings: BTreeMap::new(),
             sections,
             overrides: Vec::new(),
             files: BTreeMap::new(),
             written: BTreeMap::new(),
         };
+        // A key written twice ("a.b" and b in [a]) is the setting its first one says.
+        for (key, setting) in flat {
+            config.settings.entry(key).or_insert(setting);
+        }
         let groups = [&config.options.file_only, &config.options.persisted, &config.options.secret];
         for key in groups.into_iter().flatten() {
             config.setting(key)?; // each must be a setting
@@ -488,7 +492,8 @@ impl Config {
     /// replaced at once with its permissions (0600 for a new one; a symbolic link stays and its target is written).
     /// It holds at once: the value read from the files changes with it, unless a file read after this one sets it too
     /// (that one still wins), and so does the environment's where it has the variable, for this configuration only
-    /// (the process's environment is not changed), until the environment's value changes; an override still wins.
+    /// (the process's environment is not changed), whenever the environment has the value it had then; an override
+    /// still wins.
     /// Several processes writing at once do not corrupt the file, but the last one's file is what stays. Returns the
     /// value as the setting's type.
     pub fn persist(&mut self, key: &str, raw: impl Into<Raw>, file: Option<&Path>) -> Result<Value> {
@@ -509,15 +514,13 @@ impl Config {
         let old = if target.exists() { read_file(&target)? } else { Vec::new() };
         let name = OsString::from(self.variable(key));
         let text = typed.to_string();
+        let cannot =
+            |why: &str| Error::new(ErrorKind::Io, key, format!("cannot write {key} into {}: {why}", target.display()));
+        if !envfile::parse(&[name.as_bytes(), b"=x"].concat(), &|_| None).iter().any(|a| a.name == name.as_bytes()) {
+            return Err(cannot(&format!("{} is no name an env-style file can have", name.display())));
+        }
         let Some(replaced) = envfile::replace(&old, name.as_bytes(), &envfile::quote(text.as_bytes())) else {
-            return Err(Error::new(
-                ErrorKind::Io,
-                key,
-                format!(
-                    "cannot write {key} into {}: a quote in it that is never closed would take in the line",
-                    target.display()
-                ),
-            ));
+            return Err(cannot("a quote in it that is never closed would take in the line"));
         };
         replace_file(&target, &replaced)?;
         // Where the files stand now: a file read after the written one that sets the name still wins.
