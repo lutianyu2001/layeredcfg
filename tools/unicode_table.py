@@ -12,10 +12,15 @@ import unicodedata
 from pathlib import Path
 
 
-def rows(codes: list[int]) -> str:
-    return "\n".join(
-        "    " + ", ".join(f"0x{code:04X}" for code in codes[at : at + 8]) + "," for at in range(0, len(codes), 8)
-    )
+def ranges(codes: list[int]) -> list[tuple[int, int]]:
+    """The codes as runs of consecutive ones, first and last."""
+    runs: list[tuple[int, int]] = []
+    for code in codes:
+        if runs and runs[-1][1] == code - 1:
+            runs[-1] = (runs[-1][0], code)
+        else:
+            runs.append((code, code))
+    return runs
 
 
 def table() -> str:
@@ -35,15 +40,21 @@ def table() -> str:
             sys.exit(f"U+{zero:04X} does not begin a run of ten digits")
     if digits != 10 * len(zeros):
         sys.exit("a decimal digit outside the runs of ten")
+    # Matches of ranges rather than tables searched, so that there is no loop for Kani to unwind.
+    space_arms = "\n        | ".join(
+        f"0x{first:04X}" if first == last else f"0x{first:04X}..=0x{last:04X}" for first, last in ranges(spaces)
+    )
+    digit_arms = "\n".join(f"        0x{zero:04X}..=0x{zero + 9:04X} => Some(0x{zero:04X})," for zero in zeros)
     return (
         f"// Written by tools/unicode_table.py from Python's unicodedata (Unicode {unicodedata.unidata_version}); "
         "not to be edited.\n\n"
-        "/// The zero of each run of ten decimal digits, ascending.\n"
-        f"pub(crate) static DIGIT_ZEROS: [u32; {len(zeros)}] = [\n{rows(zeros)}\n];\n\n"
-        "/// The characters str.isspace() takes for whitespace, ascending.\n"
-        f"pub(crate) static SPACES: [u32; {len(spaces)}] = [\n{rows(spaces)}\n];\n"
+        "/// Whether str.isspace() takes the character for whitespace.\n"
+        "pub(crate) fn is_space(code: u32) -> bool {\n"
+        f"    matches!(\n        code,\n        {space_arms}\n    )\n}}\n\n"
+        "/// The zero of the run of ten decimal digits the character is in, nothing for a character that is no digit.\n"
+        "pub(crate) fn digit_zero(code: u32) -> Option<u32> {\n"
+        f"    match code {{\n{digit_arms}\n        _ => None,\n    }}\n}}\n"
     )
-
 
 if __name__ == "__main__":
     out = Path(sys.argv[1])

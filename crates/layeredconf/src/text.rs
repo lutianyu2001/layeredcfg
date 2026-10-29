@@ -52,37 +52,33 @@ pub(crate) fn decode(s: &[u8], at: usize) -> Decoded {
     Decoded { code, length }
 }
 
-fn is_space(code: u32) -> bool {
-    SPACES.binary_search(&code).is_ok()
-}
-
 /// The value of a decimal digit, nothing for a character that is none.
 fn decimal(code: u32) -> Option<u8> {
-    let after = DIGIT_ZEROS.partition_point(|&zero| zero <= code);
-    let zero = DIGIT_ZEROS[after.checked_sub(1)?];
-    u8::try_from(code - zero).ok().filter(|&digit| digit <= 9)
+    u8::try_from(code - digit_zero(code)?).ok()
 }
 
 /// The text as Python's int() and float() read it: a whitespace character beyond ASCII made a space and a decimal
 /// digit beyond ASCII the ASCII digit of its value (Python's _PyUnicode_TransformDecimalAndSpaceToASCII); nothing
 /// when there is another character beyond ASCII, which neither reads.
 fn ascii_number(s: &[u8]) -> Option<Vec<u8>> {
-    let mut out = Vec::with_capacity(s.len());
+    // Written into one allocation of the text's length (no character becomes more than one byte) rather than pushed,
+    // whose growing Kani would unroll at every step.
+    let mut out = vec![0; s.len()];
+    let mut length = 0;
     let mut at = 0;
     while at < s.len() {
-        if s[at] < 0x80 {
-            out.push(s[at]);
-            at += 1;
-            continue;
-        }
         let c = decode(s, at);
-        if is_space(c.code) {
-            out.push(b' ');
+        out[length] = if c.code < 0x80 {
+            s[at]
+        } else if is_space(c.code) {
+            b' '
         } else {
-            out.push(b'0' + decimal(c.code)?);
-        }
+            b'0' + decimal(c.code)?
+        };
+        length += 1;
         at += c.length;
     }
+    out.truncate(length);
     Some(out)
 }
 
@@ -98,17 +94,17 @@ fn strip_number(s: &[u8]) -> &[u8] {
     &s[begin..end]
 }
 
-/// Digits with single underscores between them, from `at`, appended to `out` without the underscores. False if
+/// Digits with single underscores between them, from `at`, each given to `digit` (the underscores not). False if
 /// there is no digit at `at`.
-fn digit_run(s: &[u8], at: &mut usize, out: &mut Vec<u8>) -> bool {
+fn digit_run(s: &[u8], at: &mut usize, mut digit: impl FnMut(u8)) -> bool {
     if !s.get(*at).is_some_and(u8::is_ascii_digit) {
         return false;
     }
-    out.push(s[*at]);
+    digit(s[*at]);
     *at += 1;
     while let Some(&c) = s.get(*at) {
         if c.is_ascii_digit() {
-            out.push(c);
+            digit(c);
             *at += 1;
         } else if c == b'_' && s.get(*at + 1).is_some_and(u8::is_ascii_digit) {
             *at += 1;
@@ -145,24 +141,17 @@ pub fn space_at(s: &[u8], at: usize) -> usize {
 
 /// Where the text is without whitespace at both ends, as Python's str.strip() takes it off.
 fn strip_range(s: &[u8]) -> std::ops::Range<usize> {
-    let mut begin = 0;
-    loop {
-        let length = space_at(s, begin);
-        if length == 0 {
-            break;
-        }
-        begin += length;
-    }
-    let mut end = begin; // past the last character that is not whitespace
-    let mut at = begin;
+    // In one pass, each character decoded once: from the first that is not whitespace to past the last.
+    let mut kept: Option<std::ops::Range<usize>> = None;
+    let mut at = 0;
     while at < s.len() {
-        let length = space_at(s, at);
-        at += if length > 0 { length } else { decode(s, at).length };
-        if length == 0 {
-            end = at;
+        let c = decode(s, at);
+        if !is_space(c.code) {
+            kept = Some(kept.map_or(at, |kept| kept.start)..at + c.length);
         }
+        at += c.length;
     }
-    begin..end
+    kept.unwrap_or(s.len()..s.len())
 }
 
 /// As Python's str.strip(): whitespace off both ends.
@@ -182,15 +171,13 @@ pub fn parse_int(raw: &[u8]) -> Option<i64> {
     let s = strip_number(&ascii);
     let mut at = 0;
     let negative = sign(s, &mut at);
-    let mut digits = Vec::new();
-    if !digit_run(s, &mut at, &mut digits) || at != s.len() {
+    // Accumulated as an unsigned magnitude, which also holds the most negative number; nothing once past u64.
+    let mut magnitude = Some(0u64);
+    let add = |digit: u8| magnitude = magnitude.and_then(|m| m.checked_mul(10)?.checked_add(u64::from(digit - b'0')));
+    if !digit_run(s, &mut at, add) || at != s.len() {
         return None;
     }
-    // Accumulated as an unsigned magnitude, which also holds the most negative number.
-    let mut magnitude: u64 = 0;
-    for digit in digits {
-        magnitude = magnitude.checked_mul(10)?.checked_add(u64::from(digit - b'0'))?;
-    }
+    let magnitude = magnitude?;
     if negative { 0i64.checked_sub_unsigned(magnitude) } else { i64::try_from(magnitude).ok() }
 }
 
@@ -209,12 +196,12 @@ pub fn parse_float(raw: &[u8]) -> Option<f64> {
         f64::NAN
     } else {
         let mut number = Vec::new();
-        let whole = digit_run(s, &mut at, &mut number);
+        let whole = digit_run(s, &mut at, |c| number.push(c));
         let mut fraction = false;
         if s.get(at) == Some(&b'.') {
             number.push(b'.');
             at += 1;
-            fraction = digit_run(s, &mut at, &mut number);
+            fraction = digit_run(s, &mut at, |c| number.push(c));
         }
         if !whole && !fraction {
             return None;
@@ -226,7 +213,7 @@ pub fn parse_float(raw: &[u8]) -> Option<f64> {
                 number.push(c);
                 at += 1;
             }
-            if !digit_run(s, &mut at, &mut number) {
+            if !digit_run(s, &mut at, |c| number.push(c)) {
                 return None;
             }
         }
@@ -255,7 +242,19 @@ pub fn parse_bool(raw: &[u8]) -> Option<bool> {
 
 /// Comma-separated items, each stripped, empty ones left out.
 pub fn split_list(s: &str) -> Vec<String> {
-    s.split(',').map(strip_str).filter(|item| !item.is_empty()).map(str::to_owned).collect()
+    comma_separated(s).map(strip_str).filter(|item| !item.is_empty()).map(str::to_owned).collect()
+}
+
+/// The text between commas, as it is.
+pub(crate) fn comma_separated(s: &str) -> impl Iterator<Item = &str> {
+    // The commas found byte by byte (a comma is ASCII, so each cut falls between characters) rather than by
+    // str::split, whose memchr reads a word at a time and is past what Kani proves in time.
+    let mut start = 0;
+    (0..=s.len()).filter(|&at| s.as_bytes().get(at).is_none_or(|&c| c == b',')).map(move |end| {
+        let part = &s[start..end];
+        start = end + 1;
+        part
+    })
 }
 
 /// As Python's repr(float): the shortest digits that read back as the same number, written without an exponent from
