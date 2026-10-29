@@ -24,6 +24,9 @@ pub mod envfile;
 #[doc(hidden)]
 pub mod text;
 
+#[cfg(kani)]
+mod proofs;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::ffi::{OsStr, OsString};
 use std::fmt;

@@ -9,3 +9,5 @@ rust-version.workspace = true
 toml = { version = "1.1.8", default-features = false, features = ["std", "parse", "preserve_order"] }
 nix = { version = "0.31.3", default-features = false, features = ["user"] }
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

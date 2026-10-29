@@ -1,0 +1,36 @@
+[package]
+name = "layeredconf-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+layeredconf = { path = "../crates/layeredconf" }
+
+# Not a member of the main workspace: built by cargo fuzz, on nightly.
+[workspace]
+
+[[bin]]
+name = "envfile"
+path = "fuzz_targets/envfile.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "numbers"
+path = "fuzz_targets/numbers.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "config"
+path = "fuzz_targets/config.rs"
+test = false
+doc = false
+bench = false
