@@ -509,7 +509,17 @@ impl Config {
         let old = if target.exists() { read_file(&target)? } else { Vec::new() };
         let name = OsString::from(self.variable(key));
         let text = typed.to_string();
-        replace_file(&target, &envfile::replace(&old, name.as_bytes(), &envfile::quote(text.as_bytes())))?;
+        let Some(replaced) = envfile::replace(&old, name.as_bytes(), &envfile::quote(text.as_bytes())) else {
+            return Err(Error::new(
+                ErrorKind::Io,
+                key,
+                format!(
+                    "cannot write {key} into {}: a quote in it that is never closed would take in the line",
+                    target.display()
+                ),
+            ));
+        };
+        replace_file(&target, &replaced)?;
         // Where the files stand now: a file read after the written one that sets the name still wins.
         let files = &self.options.files;
         let rank = |file: Option<&Path>| {

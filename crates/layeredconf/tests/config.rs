@@ -408,3 +408,20 @@ fn keys_in_tomllib_order() {
     let config = parse("[x.y]\nz = 1\n[a]\nq = 2\n[x]\nw = 3\n", plain(&environment));
     assert_eq!(config.keys(), ["x.y.z", "x.w", "a.q"]);
 }
+
+#[test]
+fn persist_refuses_a_line_a_quote_never_closed_would_take_in() {
+    let scratch = Scratch::new();
+    let environment = FakeEnvironment::default();
+    let source = "APP_NOTIFY_TOPIC='never closed\nAPP_SERVER_PORT=9001\n";
+    let file = scratch.write(".env.local", source);
+    let mut config =
+        parse(DEFAULTS, Options { persisted: ["server.host".to_owned()].into(), ..options(&environment, &[&file]) });
+    let error = config.persist("server.host", "it's", None).unwrap_err();
+    assert_eq!(error.kind(), ErrorKind::Io);
+    assert_eq!(Scratch::read(&file), source);
+    assert_eq!(get(&config, "server.port"), Value::Int(9001));
+    // A value without the quote is written.
+    config.persist("server.host", "localhost", None).unwrap();
+    assert_eq!(Scratch::read(&file), format!("{source}APP_SERVER_HOST=localhost\n"));
+}

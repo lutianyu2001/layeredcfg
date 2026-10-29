@@ -277,29 +277,45 @@ pub fn quote(value: &[u8]) -> Vec<u8> {
 }
 
 /// The text with NAME's first assignment (all its lines) made the line `NAME=<written>`, its later ones dropped, every
-/// other byte kept; a line added at the end when there was none.
-pub fn replace(text: &[u8], name: &[u8], written: &[u8]) -> Vec<u8> {
+/// other byte kept; a line added at the end when there was none. Nothing when the text would then be read otherwise
+/// than so, the line written as one statement and the others as before: a quote that is never closed (whose line the
+/// reader leaves out) would take in the line written, or part of it, and every line between, if what is written has
+/// that quote.
+pub fn replace(text: &[u8], name: &[u8], written: &[u8]) -> Option<Vec<u8>> {
     let line = [name, b"=", written, b"\n"].concat();
+    // The statements the text is to be read with, in order: their names, and where the line written is.
+    let mut expected = Vec::new();
     let mut out = Vec::new();
     let mut at = 0;
-    let mut done = false;
+    let mut written_at = None;
     for assignment in parse(text, &|_| None) {
         if assignment.name != name {
+            expected.push((assignment.name, None));
             continue;
         }
         out.extend_from_slice(&text[at..assignment.begin]);
-        if !done {
-            out.extend_from_slice(&line); // the first assignment is replaced, a later one dropped
+        if written_at.is_none() {
+            // the first assignment is replaced, a later one dropped
+            written_at = Some(out.len()..out.len() + line.len());
+            expected.push((assignment.name, written_at.clone()));
+            out.extend_from_slice(&line);
         }
-        done = true;
         at = assignment.end;
     }
     out.extend_from_slice(&text[at..]);
-    if !done {
+    if written_at.is_none() {
         if out.last().is_some_and(|&c| !is_newline(c)) {
             out.push(b'\n');
         }
+        expected.push((name.to_vec(), Some(out.len()..out.len() + line.len())));
         out.extend_from_slice(&line);
     }
-    out
+    let read: Vec<_> = parse(&out, &|_| None)
+        .into_iter()
+        .map(|assignment| {
+            let span = (assignment.name == name).then_some(assignment.begin..assignment.end);
+            (assignment.name, span)
+        })
+        .collect();
+    (read == expected).then_some(out)
 }

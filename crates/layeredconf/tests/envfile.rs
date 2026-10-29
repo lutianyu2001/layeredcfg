@@ -24,7 +24,7 @@ fn read(source: impl AsRef<[u8]>) -> BTreeMap<String, String> {
 }
 
 fn replaced(source: impl AsRef<[u8]>, name: &str, written: impl AsRef<[u8]>) -> String {
-    text(replace(source.as_ref(), name.as_bytes(), written.as_ref()))
+    text(replace(source.as_ref(), name.as_bytes(), written.as_ref()).expect("the line can be written"))
 }
 
 #[test]
@@ -170,4 +170,19 @@ fn replace_takes_a_quoted_value_lines_as_one_and_keeps_every_other_byte() {
         read(replaced("X=1\n", "APP_HOST", quote(b"two\nAPP_PORT=1"))),
         map(&[("X", "1"), ("APP_HOST", "two\nAPP_PORT=1")])
     );
+}
+
+#[test]
+fn a_quote_never_closed_at_the_end_is_not_given_the_line_added() {
+    // The reader leaves out the line of a quote never closed and reads the lines after it; a line added with that quote
+    // in it would close the quote and take in every line between.
+    let source = "A='\nB=2\n";
+    assert_eq!(read(source), map(&[("B", "2")]));
+    assert_eq!(replace(source.as_bytes(), b"C", b"'it''s'"), None);
+    assert_eq!(replace(source.as_bytes(), b"C", b"plain").map(text).as_deref(), Some("A='\nB=2\nC=plain\n"));
+    // Nor part of it: a value over several lines whose last line would be read as an assignment of the name.
+    assert_eq!(replace(b"FUZZ='r", b"FUZZ", b"'x\nFUZZ=\\'r'"), None);
+    // In place too.
+    assert_eq!(replace(b"A=\"\nB=2", b"B", b"'\"'"), None);
+    assert_eq!(replace(b"A=\"\nB=2", b"B", b"3").map(text).as_deref(), Some("A=\"\nB=3\n"));
 }
