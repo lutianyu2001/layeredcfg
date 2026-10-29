@@ -55,14 +55,16 @@ fn has_scope() -> bool {
         if env::var_os("RUST_XTASK_NO_SCOPE").is_some() {
             return false;
         }
+        // A scope may start and still not cap anything (cgroup v1, or no memory controller given to the user's
+        // manager): the cap must be seen from inside.
         let works = Command::new("systemd-run")
-            .args(["--user", "--scope", "--quiet", "-p", "MemoryMax=64M", "true"])
-            .stdout(Stdio::null())
+            .args(["--user", "--scope", "--quiet", "-p", "MemoryMax=64M", "--", "sh", "-c"])
+            .arg("cat /sys/fs/cgroup$(cut -d: -f3 /proc/self/cgroup)/memory.max")
             .stderr(Stdio::null())
-            .status()
-            .is_ok_and(|status| status.success());
+            .output()
+            .is_ok_and(|output| output.status.success() && output.stdout.trim_ascii() == b"67108864");
         if !works {
-            eprintln!("xtask: no systemd user scope here, so the heavy tasks run without a cap of memory");
+            eprintln!("xtask: no systemd user scope that caps memory here, so the heavy tasks run without a cap");
         }
         works
     })

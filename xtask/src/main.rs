@@ -13,7 +13,7 @@ mod tools;
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::Path;
-use std::process::ExitCode;
+use std::process::{Command, ExitCode};
 use std::thread;
 use std::time::Instant;
 
@@ -36,7 +36,7 @@ tasks:
   outdated [--vulns]        the pinned versions due an upgrade, with an advisory or a month behind a release
 
 environment:
-  RUST_XTASK_MEMORY          cap of memory of a heavy task (16G for a proof, 6G Miri, 8G coverage, 3G a fuzz target)
+  RUST_XTASK_MEMORY          cap of memory of a heavy task (16G for a proof, 6G Miri, 8G coverage, 9G the fuzzing)
   RUST_XTASK_NO_SCOPE        run the heavy tasks without a systemd scope
   RUST_XTASK_VULNS_EVERY     days between the checks for advisories the other tasks make (1)
   RUST_XTASK_RELEASES_EVERY  days between their checks for releases (7)
@@ -73,10 +73,14 @@ fn main() -> ExitCode {
             }
             true
         }),
-        "deny" | "vet" | "geiger" | "miri" | "coverage" | "kani" | "fuzz" | "all" => {
-            outdated::notice();
-            if task == "all" { Ok(all()) } else { audit(task, rest) }
-        }
+        "deny" | "vet" | "geiger" | "miri" | "coverage" | "kani" | "fuzz" | "all" => match lock() {
+            Ok(_lock) => {
+                outdated::notice();
+                if task == "all" { Ok(all()) } else { audit(task, rest) }
+            }
+            Err(error) => Err(error),
+        },
+        "fuzz-targets" => fuzz_targets(rest),
         "help" | "-h" | "--help" => {
             println!("{USAGE}");
             Ok(true)
@@ -90,6 +94,19 @@ fn main() -> ExitCode {
             eprintln!("xtask {task}: {error}");
             ExitCode::FAILURE
         }
+    }
+}
+
+/// Held while a task runs, so that two do not run at once (a proof and the fuzzing would want 25 GB together).
+fn lock() -> Result<fs::File> {
+    let path = audit_dir()?.join("lock");
+    let file = fs::OpenOptions::new().create(true).truncate(false).write(true).open(&path)?;
+    match file.try_lock() {
+        Ok(()) => Ok(file),
+        Err(fs::TryLockError::WouldBlock) => {
+            Err(format!("another task of the audit is running (it holds {})", path.display()).into())
+        }
+        Err(fs::TryLockError::Error(error)) => Err(error.into()),
     }
 }
 
@@ -160,10 +177,12 @@ fn geiger() -> Result<bool> {
     let mut command = cargo(None, &["geiger", "--locked", "--offline"]);
     command.current_dir(root().join("crates/layeredconf-python"));
     log.run(command, false)?;
-    // cargo geiger 0.14 ends in failure for files it did not scan (the README the crates include): it passed if it
-    // wrote its table.
-    let passed = log.text().contains("Metric output format");
-    Ok(outcome("geiger", passed, &log))
+    // cargo geiger 0.14 ends in failure for files it did not scan (the README the crates include): it ran if it wrote
+    // its table. A count to read, not a check that passes or fails.
+    let ran = log.text().contains("Metric output format");
+    let verdict = if ran { "counted" } else { "FAILED" };
+    record("geiger", &format!("{verdict} ({})", log.path().display()));
+    Ok(ran)
 }
 
 fn miri() -> Result<bool> {
@@ -183,7 +202,12 @@ fn coverage() -> Result<bool> {
         let mut html = cargo(Some(NIGHTLY), &["llvm-cov", "report", "--branch", "-p", CORE, "--html", "--output-dir"]);
         html.arg(&dir);
         passed = log.run(html, false)?.success();
-        println!("coverage: the lines and branches not run are marked in {}", dir.join("html/index.html").display());
+        if passed {
+            println!(
+                "coverage: the lines and branches not run are marked in {}",
+                dir.join("html/index.html").display()
+            );
+        }
     }
     Ok(outcome("coverage", passed, &log))
 }
@@ -196,7 +220,9 @@ fn harnesses() -> Result<Vec<String>> {
     for line in source.lines().map(str::trim) {
         if line == "#[kani::proof]" {
             proof = true;
-        } else if let Some(name) = line.strip_prefix("fn ").filter(|_| proof) {
+        } else if let Some(name) =
+            ["fn ", "pub fn ", "pub(crate) fn "].iter().find_map(|prefix| line.strip_prefix(prefix)).filter(|_| proof)
+        {
             harnesses.push(name.split('(').next().unwrap_or(name).to_owned());
             proof = false;
         }
@@ -206,6 +232,9 @@ fn harnesses() -> Result<Vec<String>> {
 
 fn kani(only: &[String]) -> Result<bool> {
     let every = harnesses()?;
+    if every.is_empty() {
+        return Err("no #[kani::proof] in crates/layeredconf/src/proofs.rs".into());
+    }
     if let Some(unknown) = only.iter().find(|name| !every.contains(name)) {
         return Err(format!("no harness {unknown}; there are {}", every.join(", ")).into());
     }
@@ -239,9 +268,11 @@ fn kani(only: &[String]) -> Result<bool> {
 }
 
 fn fuzz(args: &[String]) -> Result<bool> {
-    let (seconds, only) = match args.split_first() {
-        Some((seconds, rest)) if seconds.parse::<u64>().is_ok() => (seconds.parse::<u64>()?, rest),
-        _ => (FUZZ_SECONDS, args),
+    let (seconds, only) = match args.split_first().and_then(|(first, rest)| Some((first.parse::<u64>().ok()?, rest))) {
+        // libFuzzer takes 0 seconds for no limit.
+        Some((0, _)) => return Err("fuzz for 0 seconds would fuzz without end".into()),
+        Some((seconds, rest)) => (seconds, rest),
+        None => (FUZZ_SECONDS, args),
     };
     let fuzz_dir = root().join("fuzz");
     let fuzz_dir_arg = fuzz_dir.to_string_lossy().into_owned();
@@ -254,20 +285,57 @@ fn fuzz(args: &[String]) -> Result<bool> {
     }
     let listed = cargo(Some(NIGHTLY), &["fuzz", "list", "--fuzz-dir", &fuzz_dir_arg]).output()?;
     let every: Vec<String> = String::from_utf8_lossy(&listed.stdout).lines().map(str::to_owned).collect();
+    if !listed.status.success() || every.is_empty() {
+        return Err(format!("cargo fuzz list found no target ({})", listed.status).into());
+    }
     if let Some(unknown) = only.iter().find(|name| !every.contains(name)) {
         return Err(format!("no fuzz target {unknown}; there are {}", every.join(", ")).into());
     }
     let targets: Vec<&String> = every.iter().filter(|name| only.is_empty() || only.contains(name)).collect();
     let before = artifacts(&fuzz_dir);
-    println!(
-        "fuzz: {} for {seconds}s each, side by side",
-        targets.iter().map(|t| t.as_str()).collect::<Vec<_>>().join(", ")
-    );
+    let names: Vec<&str> = targets.iter().map(|target| target.as_str()).collect();
+    println!("fuzz: {} for {seconds}s each, side by side", names.join(", "));
+    // Every target in one scope, so that the cap is on the fuzzing as a whole: this program again, inside it.
+    let mut side_by_side = Command::new(std::env::current_exe()?);
+    side_by_side.arg("fuzz-targets").arg(seconds.to_string()).args(&names);
+    Log::create(dir.join("run.log"))?.run(capped(side_by_side, "9G"), false)?;
+    let found: Vec<String> = artifacts(&fuzz_dir).difference(&before).cloned().collect();
+    let mut passed = true;
+    for target in &targets {
+        let work = dir.join(target);
+        let status = fs::read_to_string(work.join("main.log"))
+            .ok()
+            .and_then(|log| log.lines().last().map(str::to_owned))
+            .unwrap_or_else(|| "[not run]".to_owned());
+        let failures: Vec<&String> = found
+            .iter()
+            .filter(|path| path.starts_with(&format!("{target}/")) && !path.contains("/slow-unit-"))
+            .collect();
+        let ok = status == "[exit status: 0]" && failures.is_empty();
+        passed &= ok;
+        let mut line = format!("{target}: {} ({} runs, {status})", if ok { "passed" } else { "FAILED" }, runs(&work));
+        for failure in failures {
+            line += "; fuzz/artifacts/";
+            line += failure;
+        }
+        record("fuzz", &line);
+    }
+    for slow in found.iter().filter(|path| path.contains("/slow-unit-")) {
+        record("fuzz", &format!("slow input fuzz/artifacts/{slow} (a busy machine makes them too)"));
+    }
+    Ok(passed)
+}
+
+/// `cargo xtask fuzz-targets <seconds> <target>…`, which `fuzz` runs inside the scope: the targets side by side, each
+/// from a directory of its own (each worker writes fuzz-N.log where it runs), its output and status in main.log.
+fn fuzz_targets(args: &[String]) -> Result<bool> {
+    let (seconds, targets) = args.split_first().ok_or("fuzz-targets <seconds> <target>…")?;
+    let fuzz_dir_arg = root().join("fuzz").to_string_lossy().into_owned();
+    let dir = audit_dir()?.join("fuzz");
     let statuses = thread::scope(|scope| {
         let running: Vec<_> = targets
             .iter()
             .map(|target| {
-                // A directory of its own: each worker writes fuzz-N.log where it runs.
                 let work = dir.join(target);
                 let fuzz_dir_arg = &fuzz_dir_arg;
                 scope.spawn(move || -> Result<_> {
@@ -281,40 +349,16 @@ fn fuzz(args: &[String]) -> Result<bool> {
                     let log = Log::create(work.join("main.log"))?;
                     let mut command = cargo(Some(NIGHTLY), &["fuzz", "run", "--fuzz-dir", fuzz_dir_arg, target, "--"]);
                     command.arg(format!("-max_total_time={seconds}")).args(FUZZ_FLAGS).current_dir(&work);
-                    log.run(capped(command, "3G"), false)
+                    log.run(command, false)
                 })
             })
             .collect();
         running
             .into_iter()
-            .map(|handle| handle.join().unwrap_or_else(|_| Err("the thread panicked".into())))
+            .map(|handle| handle.join().is_ok_and(|status| status.is_ok_and(|s| s.success())))
             .collect::<Vec<_>>()
     });
-    let found: Vec<String> = artifacts(&fuzz_dir).difference(&before).cloned().collect();
-    let mut passed = true;
-    for (target, status) in targets.iter().zip(statuses) {
-        let runs = runs(&dir.join(target));
-        let failures: Vec<&String> = found
-            .iter()
-            .filter(|path| path.starts_with(&format!("{target}/")) && !path.contains("/slow-unit-"))
-            .collect();
-        let ok = status.as_ref().is_ok_and(std::process::ExitStatus::success) && failures.is_empty();
-        passed &= ok;
-        let status = match status {
-            Ok(status) => status.to_string(),
-            Err(error) => error.to_string(),
-        };
-        let mut line = format!("{target}: {} ({runs} runs, {status})", if ok { "passed" } else { "FAILED" });
-        for failure in failures {
-            line += "; fuzz/artifacts/";
-            line += failure;
-        }
-        record("fuzz", &line);
-    }
-    for slow in found.iter().filter(|path| path.contains("/slow-unit-")) {
-        record("fuzz", &format!("slow input fuzz/artifacts/{slow} (a busy machine makes them too)"));
-    }
-    Ok(passed)
+    Ok(statuses.into_iter().all(|ok| ok))
 }
 
 /// The files under fuzz/artifacts/, as "target/name".

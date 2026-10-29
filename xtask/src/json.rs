@@ -40,7 +40,7 @@ impl Value {
 
 /// The value `text` holds, or None if it is not JSON.
 pub fn parse(text: &str) -> Option<Value> {
-    let mut parser = Parser { s: text.as_bytes(), at: 0 };
+    let mut parser = Parser { s: text.as_bytes(), at: 0, depth: 0 };
     let value = parser.value()?;
     parser.space();
     (parser.at == parser.s.len()).then_some(value)
@@ -49,7 +49,11 @@ pub fn parse(text: &str) -> Option<Value> {
 struct Parser<'a> {
     s: &'a [u8],
     at: usize,
+    /// Arrays and objects open, at most DEEPEST.
+    depth: usize,
 }
+
+const DEEPEST: usize = 64;
 
 impl Parser<'_> {
     fn space(&mut self) {
@@ -74,7 +78,22 @@ impl Parser<'_> {
 
     fn value(&mut self) -> Option<Value> {
         self.space();
-        match *self.s.get(self.at)? {
+        let first = *self.s.get(self.at)?;
+        if first == b'[' || first == b'{' {
+            self.depth += 1;
+            if self.depth > DEEPEST {
+                return None;
+            }
+        }
+        let value = self.inner(first);
+        if first == b'[' || first == b'{' {
+            self.depth -= 1;
+        }
+        value
+    }
+
+    fn inner(&mut self, first: u8) -> Option<Value> {
+        match first {
             b'n' => self.word("null", Value::Null),
             b't' => self.word("true", Value::Bool(true)),
             b'f' => self.word("false", Value::Bool(false)),
@@ -111,14 +130,36 @@ impl Parser<'_> {
                 Some(Value::Object(members))
             }
             b'-' | b'0'..=b'9' => {
+                // -?(0|[1-9][0-9]*)(.[0-9]+)?([eE][+-]?[0-9]+)?
                 let begin = self.at;
-                while self.s.get(self.at).is_some_and(|b| b"+-.eE0123456789".contains(b)) {
+                self.at += usize::from(first == b'-');
+                if self.s.get(self.at) == Some(&b'0') {
                     self.at += 1;
+                } else {
+                    self.digits()?;
+                }
+                if self.s.get(self.at) == Some(&b'.') {
+                    self.at += 1;
+                    self.digits()?;
+                }
+                if self.s.get(self.at).is_some_and(|b| b"eE".contains(b)) {
+                    self.at += 1;
+                    self.at += usize::from(self.s.get(self.at).is_some_and(|b| b"+-".contains(b)));
+                    self.digits()?;
                 }
                 Some(Value::Number(String::from_utf8_lossy(&self.s[begin..self.at]).into_owned()))
             }
             _ => None,
         }
+    }
+
+    /// One digit or more.
+    fn digits(&mut self) -> Option<()> {
+        let begin = self.at;
+        while self.s.get(self.at).is_some_and(u8::is_ascii_digit) {
+            self.at += 1;
+        }
+        (self.at > begin).then_some(())
     }
 
     fn string(&mut self) -> Option<String> {
@@ -130,6 +171,7 @@ impl Parser<'_> {
             self.at += 1;
             match byte {
                 b'"' => return String::from_utf8(bytes).ok(),
+                ..0x20 => return None, // a control character, which must be escaped
                 b'\\' => {
                     let escaped = *self.s.get(self.at)?;
                     self.at += 1;
@@ -162,9 +204,13 @@ impl Parser<'_> {
     }
 
     fn hex4(&mut self) -> Option<u16> {
-        let digits = std::str::from_utf8(self.s.get(self.at..self.at + 4)?).ok()?;
+        let digits = self.s.get(self.at..self.at + 4)?;
         self.at += 4;
-        u16::from_str_radix(digits, 16).ok()
+        // from_str_radix would take a sign
+        digits
+            .iter()
+            .all(u8::is_ascii_hexdigit)
+            .then(|| u16::from_str_radix(std::str::from_utf8(digits).ok()?, 16).ok())?
     }
 }
 
@@ -189,11 +235,33 @@ mod tests {
         assert_eq!(parse(r#""a\"\\\/\né😀""#), Some(Value::String("a\"\\/\né😀".into())));
         assert_eq!(parse("{}"), Some(Value::Object(Vec::new())));
         assert_eq!(parse(" [ ] "), Some(Value::Array(Vec::new())));
+        assert_eq!(
+            parse("[-0.5e+3, 0, 12]"),
+            Some(Value::Array(["-0.5e+3", "0", "12"].map(|n| Value::Number(n.into())).into()))
+        );
+        assert!(parse(&("[".repeat(64) + &"]".repeat(64))).is_some());
     }
 
     #[test]
     fn refuses_what_is_not_json() {
-        for text in ["", "{", r#"{"a" 1}"#, "[1,]", r#""\x""#, r#""\ud83d""#, "nul", "[1] 2"] {
+        let deep = "[".repeat(65) + &"]".repeat(65);
+        for text in [
+            "",
+            "{",
+            r#"{"a" 1}"#,
+            "[1,]",
+            r#""\x""#,
+            r#""\ud83d""#,
+            "nul",
+            "[1] 2",
+            "-",
+            "1.2.3",
+            "1e",
+            "01",
+            r#""\u+041""#,
+            "\"\n\"",
+            &deep,
+        ] {
             assert_eq!(parse(text), None, "{text}");
         }
     }

@@ -18,22 +18,20 @@ pub struct Tool {
     /// The crate that installs it.
     pub krate: &'static str,
     pub version: &'static str,
-    /// The cargo subcommand it is run as.
-    pub subcommand: &'static str,
 }
 
-pub const DENY: Tool = Tool { krate: "cargo-deny", version: "0.20.2", subcommand: "deny" };
-pub const VET: Tool = Tool { krate: "cargo-vet", version: "0.10.3", subcommand: "vet" };
-pub const GEIGER: Tool = Tool { krate: "cargo-geiger", version: "0.14.0", subcommand: "geiger" };
-pub const FUZZ: Tool = Tool { krate: "cargo-fuzz", version: "0.13.2", subcommand: "fuzz" };
-pub const LLVM_COV: Tool = Tool { krate: "cargo-llvm-cov", version: "0.9.1", subcommand: "llvm-cov" };
-pub const KANI: Tool = Tool { krate: "kani-verifier", version: "0.68.0", subcommand: "kani" };
+pub const DENY: Tool = Tool { krate: "cargo-deny", version: "0.20.2" };
+pub const VET: Tool = Tool { krate: "cargo-vet", version: "0.10.3" };
+pub const GEIGER: Tool = Tool { krate: "cargo-geiger", version: "0.14.0" };
+pub const FUZZ: Tool = Tool { krate: "cargo-fuzz", version: "0.13.2" };
+pub const LLVM_COV: Tool = Tool { krate: "cargo-llvm-cov", version: "0.9.1" };
+pub const KANI: Tool = Tool { krate: "kani-verifier", version: "0.68.0" };
 
 pub const TOOLS: [Tool; 6] = [DENY, VET, GEIGER, FUZZ, LLVM_COV, KANI];
 
-/// What a task needs: tools, and whether the nightly too.
-pub fn needs(task: &str) -> (Vec<Tool>, bool) {
-    match task {
+/// What a task needs: tools, and whether the nightly too; nothing for what is no task.
+fn needs(task: &str) -> Option<(Vec<Tool>, bool)> {
+    Some(match task {
         "deny" => (vec![DENY], false),
         "vet" => (vec![VET], false),
         "geiger" => (vec![GEIGER], false),
@@ -41,16 +39,22 @@ pub fn needs(task: &str) -> (Vec<Tool>, bool) {
         "coverage" => (vec![LLVM_COV], true),
         "kani" => (vec![KANI], false),
         "fuzz" => (vec![FUZZ], true),
-        _ => (TOOLS.to_vec(), true),
-    }
+        "all" => (TOOLS.to_vec(), true),
+        _ => return None,
+    })
 }
 
-/// The version of `tool` installed, if any.
+/// The version of `tool` cargo install has installed, if any. From cargo's list and not from the tool, which may do
+/// more than say its version (Kani sets itself up first, a large download).
 fn installed(tool: Tool) -> Option<String> {
-    let output = cargo(None, &[tool.subcommand, "--version"]).output().ok()?;
-    let text = String::from_utf8_lossy(&output.stdout);
-    // "cargo-deny 0.20.2", "Kani Rust Verifier 0.68.0 (cargo plugin)"
-    text.split_whitespace().find(|word| word.starts_with(|c: char| c.is_ascii_digit())).map(str::to_owned)
+    let output = cargo(None, &["install", "--list"]).output().ok()?;
+    // "cargo-deny v0.20.2:" for each crate, then its programs indented.
+    String::from_utf8_lossy(&output.stdout).lines().find_map(|line| {
+        let mut words = line.split_whitespace();
+        (!line.starts_with(char::is_whitespace) && words.next() == Some(tool.krate))
+            .then(|| words.next()?.trim_end_matches(':').strip_prefix('v').map(str::to_owned))
+            .flatten()
+    })
 }
 
 /// Whether Kani has set up its own toolchain and CBMC, which `cargo kani setup` does.
@@ -76,7 +80,7 @@ fn nightly_ready() -> bool {
 
 /// What is missing for `task`, as lines to show; none if it can run.
 pub fn missing(task: &str) -> Vec<String> {
-    let (tools, nightly) = needs(task);
+    let (tools, nightly) = needs(task).unwrap_or_default();
     let mut missing = Vec::new();
     for tool in tools {
         match installed(tool) {
@@ -100,7 +104,7 @@ pub fn setup(tasks: &[String]) -> Result<()> {
     let mut tools: Vec<Tool> = Vec::new();
     let mut nightly = false;
     for task in &tasks {
-        let (needed, needs_nightly) = needs(task);
+        let (needed, needs_nightly) = needs(task).ok_or_else(|| format!("no task {task}"))?;
         for tool in needed {
             if !tools.iter().any(|known| known.krate == tool.krate) {
                 tools.push(tool);
