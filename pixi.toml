@@ -26,3 +26,5 @@ wheel = { cmd = "rm -rf dist && pip wheel . --no-build-isolation --no-deps -w di
 install-wheel = { cmd = "pip install --force-reinstall --no-deps dist/layeredconf-*.whl", depends-on = ["wheel"], description = "Build the wheel and install it into this environment" }
 test-python = { cmd = "python -m pytest -q tests/python", depends-on = ["install-wheel"], description = "Build and install the wheel, then run the Python tests" }
 test = { depends-on = ["test-rust", "test-python"], description = "Run the Rust and the Python tests" }
+# The audit, apart from the tests: pixi run audit <task> (cargo xtask, which lists the tasks).
+audit = { cmd = "cargo xtask", description = "Run a task of the audit (cargo xtask)" }

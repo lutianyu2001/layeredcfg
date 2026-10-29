@@ -1,7 +1,7 @@
 //! Kani proofs: for every input up to 6 bytes, the readers of whitespace, integers, booleans and lists do not panic,
 //! do not overflow, and say what the standard library says where it says the same thing; integers are proved at the
-//! edges of 64 bits too. `parse_float`, which builds the text it gives str::parse, has no proof. `cargo kani -p
-//! layeredconf` runs them.
+//! edges of 64 bits too. `parse_float`, which builds the text it gives str::parse, has no proof. `cargo xtask kani`
+//! runs them, one at a time.
 //!
 //! Kani unrolls every loop of a harness to the one bound its `#[kani::unwind]` gives, so the code under proof is kept
 //! without loops where it can be. The Unicode lookups are matches of ranges (`tools/unicode_table.py`) and not tables
