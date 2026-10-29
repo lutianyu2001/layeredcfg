@@ -1,5 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::ffi::{OsStr, OsString};
+use std::fs;
+use std::io;
 use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::path::{Path, PathBuf};
 
@@ -438,7 +440,8 @@ impl Config {
             .map(|(key, raw)| {
                 let text = match raw {
                     Raw::Text(text) => text.clone(),
-                    raw => match convert_to(self.settings[key].ty, raw) {
+                    // A key no setting has comes only from the snapshot of another configuration.
+                    raw => match self.settings.get(key).and_then(|setting| convert_to(setting.ty, raw)) {
                         Some(value) => value.to_string().into(),
                         None => OsString::new(), // not set: `set` converted it
                     },
@@ -516,7 +519,15 @@ impl Config {
             .or_else(|| self.write_target())
             .filter(|target| !target.as_os_str().is_empty())
             .ok_or_else(|| Error::new(ErrorKind::Io, key, format!("no file to write {key} into")))?;
-        let old = if target.exists() { read_file(&target)? } else { Vec::new() };
+        // Absent is new; one that cannot be looked at (a link the system will not follow, say) is not written.
+        let old = match fs::metadata(&target) {
+            Ok(_) => read_file(&target)?,
+            Err(error) if error.kind() == io::ErrorKind::NotFound => Vec::new(),
+            Err(error) => {
+                let why = files::os_message(&error);
+                return Err(Error::new(ErrorKind::Io, key, format!("cannot read {}: {why}", target.display())));
+            }
+        };
         let name = OsString::from(self.variable(key));
         let text = typed.to_string();
         let cannot =

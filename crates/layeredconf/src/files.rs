@@ -6,7 +6,7 @@ use std::fs::{self, OpenOptions, Permissions};
 use std::hash::{BuildHasher, Hasher};
 use std::io::{self, Write};
 use std::os::unix::ffi::OsStringExt;
-use std::os::unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt};
+use std::os::unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt, fchown};
 use std::path::{Component, Path, PathBuf};
 
 use nix::unistd::{User, getuid};
@@ -62,11 +62,12 @@ fn link_target(given: &Path) -> PathBuf {
     path
 }
 
-/// Written beside the file and put in its place at once, so that a write that fails halfway leaves the old file whole;
-/// with the old file's permissions, 0600 for a new one, from the moment it is created.
+/// Written beside the file and put in its place at once, so that a write that fails halfway leaves the old file whole.
+/// It is 0600 while it is written, and then takes the old file's permissions (read, write, execute: not set-user-ID,
+/// set-group-ID or sticky) and group; when the group cannot be kept, nobody of the group the file gets may read it.
 pub(crate) fn replace_file(given: &Path, text: &[u8]) -> Result<()> {
     let path = link_target(given);
-    let mode = fs::metadata(&path).map_or(0o600, |old| old.permissions().mode() & 0o7777);
+    let old = fs::metadata(&path).ok();
     // A name of its own, created 0600, so that writers at the same time do not write into one another's.
     let (spare, mut file) = loop {
         let mut name = path.as_os_str().to_owned();
@@ -84,10 +85,14 @@ pub(crate) fn replace_file(given: &Path, text: &[u8]) -> Result<()> {
             }
         }
     };
-    let written = file
-        .set_permissions(Permissions::from_mode(mode))
-        .and_then(|()| file.write_all(text))
-        .and_then(|()| file.sync_all());
+    let written = file.write_all(text).and_then(|()| file.sync_all()).and_then(|()| {
+        let Some(old) = old else { return Ok(()) };
+        let mut mode = old.permissions().mode() & 0o777;
+        if fs::metadata(&spare)?.gid() != old.gid() && fchown(&file, None, Some(old.gid())).is_err() {
+            mode &= !0o070;
+        }
+        file.set_permissions(Permissions::from_mode(mode))
+    });
     drop(file);
     if let Err(error) = written.and_then(|()| fs::rename(&spare, &path)) {
         let _ = fs::remove_file(&spare);

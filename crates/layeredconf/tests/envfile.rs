@@ -188,3 +188,13 @@ fn a_quote_never_closed_at_the_end_is_not_given_the_line_added() {
     assert_eq!(replace(b"A=\"\nB=2", b"B", b"'\"'"), None);
     assert_eq!(replace(b"A=\"\nB=2", b"B", b"3").map(text).as_deref(), Some("A=\"\nB=3\n"));
 }
+
+#[test]
+fn what_names_put_into_values_is_bounded() {
+    // Each line doubles A: 2^40 bytes without a bound. The lines past 16 MiB in all are left out, and A keeps the last
+    // value it had; so is B, which would put 8 MiB more. C, which takes nothing, is read.
+    let source = format!("A=x\n{}B=${{A}}\nC=3\n", "A=${A}${A}\n".repeat(40));
+    let values = read(source);
+    assert_eq!(values["A"].len(), 1 << 23);
+    assert_eq!((values.get("B"), values["C"].as_str()), (None, "3"));
+}

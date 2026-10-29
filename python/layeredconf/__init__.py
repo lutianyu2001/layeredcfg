@@ -37,7 +37,7 @@ __all__ = [
 # value as given), expected (the type's name), variable (the setting's name in the environment and the files), file
 # (the name of the file written into, or of the file a problem is in), allowed and allowed_keys (the settings persist
 # may write, joined and as a list), error (a problem's invalid_value message). The raw value of a secret setting is
-# given as *** (however it is formatted).
+# given as the text *** (whose repr is *** too).
 MESSAGES: dict[str, str | Callable[..., str]] = {
     "unknown_key": "unknown setting: {key}",
     "invalid_value": "invalid value for {key}: {raw!r} (expected {expected})",
@@ -47,19 +47,14 @@ MESSAGES: dict[str, str | Callable[..., str]] = {
     "problem_file": "{error}, written in {variable} of {file}",
 }
 
-class _Masked:
-    """A secret setting's value in a message: *** however it is formatted."""
+class _Masked(str):
+    """A secret setting's value in a message: the text ***, also as its repr."""
 
     def __repr__(self) -> str:
         return "***"
 
-    __str__ = __repr__
 
-    def __format__(self, spec: str) -> str:
-        return "***"
-
-
-_MASKED = _Masked()
+_MASKED = _Masked("***")
 
 # The core's names of the types, as Python names them.
 _TYPES = {"bool": "bool", "int": "int", "float": "float", "string": "str", "list": "list"}
@@ -289,7 +284,9 @@ class Config:
                 raise OverflowError(value)
             return converted
         except (TypeError, ValueError, OverflowError):
-            raise self._invalid(key, value, kind) from None
+            pass
+        # Outside the except block: the error of the conversion may have the value in it.
+        raise self._invalid(key, value, kind)
 
     # -- errors
 
@@ -309,7 +306,10 @@ class Config:
         try:
             return function(*args, **kwargs)
         except _core.Error as exc:
-            raise self._error(*exc.args) from None
+            failed = exc.args
+        # Raised outside the except block, so that the core's error, whose args have the value (a secret's too), is not
+        # kept as its __context__.
+        raise self._error(*failed)
 
     def _error(self, kind: str, key: str, raw: Any, expected: str | None, message: str) -> ConfigError:
         if kind == "unknown_key":

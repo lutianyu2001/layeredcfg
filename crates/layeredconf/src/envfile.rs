@@ -17,6 +17,9 @@ pub struct Assignment {
 /// A variable's value by its name, for `${NAME}` (the environment).
 pub type Lookup<'a> = &'a dyn Fn(&[u8]) -> Option<Vec<u8>>;
 
+/// What `${NAME}` may put into the values of a file in all, so that a small file cannot make them huge.
+const EXPANDED_AT_MOST: usize = 16 << 20;
+
 fn is_newline(c: u8) -> bool {
     c == b'\n' || c == b'\r'
 }
@@ -49,12 +52,14 @@ struct Reader<'a> {
     /// The statements read so far, and where in them the latest of each name is, whose value `${NAME}` takes.
     statements: Vec<Assignment>,
     latest: BTreeMap<Vec<u8>, usize>,
+    /// The bytes `${NAME}` has put into values so far, up to EXPANDED_AT_MOST.
+    expanded: usize,
 }
 
 impl<'a> Reader<'a> {
     fn new(text: &'a [u8], lookup: Lookup<'a>) -> Self {
         let at = if text.starts_with(b"\xEF\xBB\xBF") { 3 } else { 0 }; // a byte order mark
-        Reader { s: text, lookup, at, statements: Vec::new(), latest: BTreeMap::new() }
+        Reader { s: text, lookup, at, statements: Vec::new(), latest: BTreeMap::new(), expanded: 0 }
     }
 
     fn peek(&self) -> Option<u8> {
@@ -110,13 +115,13 @@ impl<'a> Reader<'a> {
             Some(b'\'') => self.quoted(b'\'')?,
             Some(b'"') => {
                 let value = self.quoted(b'"')?;
-                self.expand(value)
+                self.expand(value)?
             }
             _ => {
                 self.at = value_start; // the blanks before the value count for a comment that begins it
                 let value = self.unquoted();
                 self.skip_line();
-                self.expand(value)
+                self.expand(value)?
             }
         };
         Some(Assignment { name, value, begin: 0, end: 0 })
@@ -176,9 +181,11 @@ impl<'a> Reader<'a> {
     }
 
     /// ${NAME} and ${NAME:-default}, as python-dotenv takes them: a name of anything but `}` and `:`.
-    fn expand(&self, value: Vec<u8>) -> Vec<u8> {
+    /// Nothing once the values would have more than EXPANDED_AT_MOST bytes of what it puts in: `A=${A}${A}` on line
+    /// after line doubles A each time.
+    fn expand(&mut self, value: Vec<u8>) -> Option<Vec<u8>> {
         if find(&value, b"${", 0).is_none() {
-            return value;
+            return Some(value);
         }
         let value = value.as_slice();
         let mut out = Vec::new();
@@ -203,16 +210,23 @@ impl<'a> Reader<'a> {
                 Some(colon) => (&inner[..colon], &inner[colon + 2..]),
                 None => (inner, &b""[..]),
             };
-            if let Some(&earlier) = self.latest.get(name) {
-                out.extend_from_slice(&self.statements[earlier].value);
-            } else if let Some(found) = (self.lookup)(name) {
-                out.extend_from_slice(&found);
+            let found;
+            let taken = if let Some(&earlier) = self.latest.get(name) {
+                &self.statements[earlier].value
+            } else if let Some(value) = (self.lookup)(name) {
+                found = value;
+                &found
             } else {
-                out.extend_from_slice(fallback);
+                fallback
+            };
+            self.expanded += taken.len();
+            if self.expanded > EXPANDED_AT_MOST {
+                return None;
             }
+            out.extend_from_slice(taken);
             i = close + 1;
         }
-        out
+        Some(out)
     }
 
     /// The length of the whitespace character at `at` that does not end a line (python-dotenv's [^\S\r\n]), 0 if
@@ -260,7 +274,8 @@ impl<'a> Reader<'a> {
 ///   - ${NAME} and ${NAME:-default} in unquoted and double-quoted values: the file's own earlier value of NAME, else
 ///     `lookup` (the environment), else the default, else nothing. Anything else after a `$` stays as it is.
 ///
-/// A line it cannot read is left out.
+/// A line it cannot read is left out, and so is one whose `${NAME}` would bring what they have put into the file's
+/// values past 16 MiB in all.
 pub fn parse(text: &[u8], lookup: Lookup<'_>) -> Vec<Assignment> {
     Reader::new(text, lookup).read()
 }

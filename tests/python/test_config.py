@@ -181,9 +181,16 @@ def test_a_secret_value_is_kept_out_of_the_messages(defaults):
     with pytest.raises(InvalidValue) as raised:
         config.server.port
     assert str(raised.value) == "invalid value for server.port: *** (expected int)" and raised.value.raw == "84x0"
+    # Nor is the core's error, which has it, kept as the context.
+    assert raised.value.__context__ is None and raised.value.__cause__ is None
     # Converted in Python too.
-    with pytest.raises(InvalidValue, match=r"^invalid value for server.port: \*\*\* \(expected int\)$"):
+    with pytest.raises(InvalidValue, match=r"^invalid value for server.port: \*\*\* \(expected int\)$") as raised:
         config.set("server.port", object())
+    assert raised.value.__context__ is None
+    # A message of one's own is given *** as text.
+    config = make(defaults, secret={"server.port"}, messages={"invalid_value": lambda key, raw, expected: raw.lower()})
+    with pytest.raises(InvalidValue, match=r"^\*\*\*$"):
+        config.set("server.port", "84x0")
 
 
 def test_persist_writes_the_line_keeps_the_rest_and_holds_at_once(defaults, tmp_path):

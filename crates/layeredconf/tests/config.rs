@@ -273,6 +273,41 @@ fn a_secret_value_is_kept_out_of_the_message_of_its_error() {
 }
 
 #[test]
+fn persist_keeps_the_permissions_but_not_the_special_bits_and_writes_no_file_it_cannot_look_at() {
+    let scratch = Scratch::new();
+    let environment = FakeEnvironment::default();
+    let file = scratch.write(".env", "APP_QUOTA_RATIO=0.1\n");
+    fs::set_permissions(&file, fs::Permissions::from_mode(0o4640)).unwrap();
+    let mut config = parse(DEFAULTS, options(&environment, &[&file]));
+    config.persist("quota.ratio", "0.2", None).unwrap();
+    assert_eq!(mode(&file), 0o640);
+    // Behind a directory that may not be looked into: an error, not a new file over whatever is there.
+    let locked = scratch.write("locked/.env", "APP_QUOTA_RATIO=0.1\n");
+    let directory = locked.parent().unwrap().to_path_buf();
+    fs::set_permissions(&directory, fs::Permissions::from_mode(0o000)).unwrap();
+    let root = fs::metadata(&locked).is_ok(); // who looks into any directory
+    let refused = config.persist("quota.ratio", "0.3", Some(&locked));
+    fs::set_permissions(&directory, fs::Permissions::from_mode(0o700)).unwrap();
+    if root {
+        return;
+    }
+    let error = refused.unwrap_err();
+    assert_eq!(error.kind(), ErrorKind::Io);
+    assert!(error.message().contains("cannot read"), "{}", error.message());
+    assert_eq!(Scratch::read(&locked), "APP_QUOTA_RATIO=0.1\n");
+}
+
+#[test]
+fn overrides_of_a_snapshot_of_another_configuration_are_left_out_without_a_panic() {
+    let environment = FakeEnvironment::default();
+    let mut other = parse("elsewhere = 1\n", plain(&environment));
+    other.set("elsewhere", 2_i64).unwrap();
+    let mut config = parse(DEFAULTS, plain(&environment));
+    config.restore(&other.state());
+    assert_eq!(config.overrides(), vec![("elsewhere".to_owned(), OsString::new())]);
+}
+
+#[test]
 fn the_process_environment_has_no_variable_of_a_name_none_can_have() {
     let environment = Environment::process();
     for name in ["", "A=B", "A\0B"] {
