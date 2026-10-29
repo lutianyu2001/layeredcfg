@@ -273,6 +273,25 @@ fn a_secret_value_is_kept_out_of_the_message_of_its_error() {
 }
 
 #[test]
+fn the_process_environment_has_no_variable_of_a_name_none_can_have() {
+    let environment = Environment::process();
+    for name in ["", "A=B", "A\0B"] {
+        assert_eq!(environment.get(OsStr::new(name)), None, "{name:?}");
+    }
+    assert_eq!(environment.get(OsStr::new("PATH")), std::env::var_os("PATH"));
+}
+
+#[test]
+fn files_that_are_not_there_or_are_no_files_are_passed_over() {
+    let scratch = Scratch::new();
+    let environment = FakeEnvironment::default();
+    let file = scratch.write(".env", "APP_SERVER_PORT=9000\n");
+    let files = vec![PathBuf::new(), scratch.dir.join("missing.env"), scratch.dir.clone(), file];
+    let config = parse(DEFAULTS, Options { files, ..options(&environment, &[]) });
+    assert_eq!(get(&config, "server.port"), Value::Int(9000));
+}
+
+#[test]
 fn a_path_setting_has_the_home_expanded_and_a_relative_one_joined_to_the_root() {
     let environment = FakeEnvironment::default();
     environment.set("HOME", "/home/someone/");

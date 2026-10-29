@@ -153,4 +153,8 @@ fn utf8_is_checked() {
     assert!(!valid_utf8(b"\xC0\xAF")); // overlong
     assert!(!valid_utf8(b"\xED\xA0\x80")); // a surrogate
     assert!(!valid_utf8(b"\xE4\xB8")); // cut short
+    // Bytes that are no character are no whitespace, not even an overlong form of one.
+    assert_eq!(strip(b"\xC0\xA0x\xC0\xA0"), b"\xC0\xA0x\xC0\xA0"); // U+0020 in two bytes
+    assert_eq!(strip(b"\xE0\x82\xA0x"), b"\xE0\x82\xA0x"); // U+00A0 in three
+    assert_eq!(strip(b" \xED\xA0\x80 \xF4\x90\x80\x80 "), b"\xED\xA0\x80 \xF4\x90\x80\x80"); // a surrogate, past U+10FFFF
 }
