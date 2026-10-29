@@ -5,7 +5,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A lightweight layered configuration library with a C++ core and a Python binding, that takes each setting from a TOML
+A lightweight layered configuration library with a Rust core and a Python binding, that takes each setting from a TOML
 file of defaults, env-style files, the environment or the command line, and converts it to its default's type.
 
 ## Table of Contents
@@ -43,17 +43,17 @@ dots made underscores: with the prefix `APP_`, `server.port` is `APP_SERVER_PORT
 - Env-style files read as python-dotenv reads them for the most part
 - A value written back into its file in place, every other byte kept (`persist`)
 - Secrets shown masked; settings that only the files may set
-- A C++17 library, and a Python binding whose errors are Python's kinds
+- A Rust library without unsafe code of its own, and a Python binding whose errors are Python's kinds
 
 ## Prerequisites
 
+- [rustup](https://rustup.rs), which installs the Rust version `rust-toolchain.toml` pins (1.99.1) when it is first
+  needed
 - [pixi](https://pixi.sh), which brings the rest into the environment of this directory:
-  - A C++17 compiler
-  - CMake ≥3.26
-  - [toml++](https://marzer.github.io/tomlplusplus/) ≥3.4
-  - pybind11 ≥2.13
-  - Python 3.12, which a build of the C++ library needs too: the table of Unicode digits and whitespace is written
-    from its `unicodedata` by `tools/unicode_table.py`
+  - [maturin](https://www.maturin.rs) ≥1.9
+  - Python 3.12, which a build of the Rust library needs too: the table of Unicode digits and whitespace is written
+    from its `unicodedata` by `tools/unicode_table.py` (the Python `PYO3_PYTHON` names, else `PYTHON`, else
+    `python3`)
 
 ## Installation
 
@@ -78,10 +78,8 @@ layeredconf is not published yet, so it is built from source.
    pip install dist/layeredconf-*.whl
    ```
 
-The wheel links the C++ runtime statically, so it does not depend on the build environment's.
-
-For C++, add this directory to a CMake project with `add_subdirectory` and link to the `layeredconf` target; toml++ and
-a Python interpreter must be found when it is configured.
+For Rust, depend on the crate in `crates/layeredconf` by its path or by this repository's git URL; its build needs a
+Python 3, as above.
 
 ## Usage
 
@@ -116,23 +114,29 @@ are templates a program can replace with its own words (`messages=`, see `layere
 
 The environment is `os.environ` (or the mapping given as `environ=`), read when a value is asked for: a variable set by
 Python code holds at once. The files' values are read into the configuration only, never into the process's
-environment, which every program the process starts would inherit.
+environment, which every program the process starts would inherit, and `persist` does not change the environment
+either (see [Env-Style Files](#env-style-files)).
 
-### C++
+### Rust
 
-```cpp
-#include <layeredconf/layeredconf.hpp>
+```rust
+use layeredconf::{Config, Options, Value};
 
-layeredconf::Options options;
-options.prefix = "APP_";
-options.files = {"/srv/app/.env.local"};
-auto config = layeredconf::Config::load("defaults.toml", options);
-auto port = std::get<std::int64_t>(config.get("server.port"));
+let options = Options {
+    prefix: "APP_".to_owned(),
+    files: vec!["/srv/app/.env.local".into()],
+    ..Options::default()
+};
+let mut config = Config::load("defaults.toml", options)?;
+let Value::Int(port) = config.get("server.port")? else { unreachable!() };
+config.set("server.port", "8421")?;
 ```
 
-The library is C++17; it reads TOML with [toml++](https://marzer.github.io/tomlplusplus/). Values are a
-`std::variant<bool, std::int64_t, double, std::string, std::vector<std::string>>`; failures throw
-`layeredconf::Error`, whose `kind()` says which.
+Values are a `layeredconf::Value` (`Bool`, `Int`, `Float`, `Str`, `List`); what a caller gives is a `Raw`, which text
+(`&str`, `String`, `OsString`), the other types and a `Value` convert into. Text from the environment and the files is
+an `OsString`, which need not be UTF-8. Failures are a `layeredconf::Error`, whose `kind()` says which. The environment
+is the process's unless `Options::environment` gives another (`Environment::new`), and it is only ever read. TOML is
+read with the [toml](https://crates.io/crates/toml) crate.
 
 ## What the Layers Take
 
@@ -169,15 +173,32 @@ line does nothing, and nothing says so.
 later ones of the same name, keeps every other byte as it was, and puts the file in place at once, with its permissions
 (0600 for a new one) from the moment it is written; a symbolic link stays and its target is written. Processes writing
 at the same time do not corrupt the file, but the last one's file is what stays. What the configuration reads changes
-with it, unless a file read after the written one sets the same name.
+with it, unless a file read after the written one sets the same name. Where the environment has the variable, which wins
+over the files, the configuration takes the written value instead whenever the environment has the value it had when
+`persist` wrote (set it to another value and that one is read); the environment itself is not changed, so other code in
+the process and the programs it starts still see the old value. A quote in the file that is never closed makes the
+reader leave its line out; when the value written has that quote, which would close it and take in the lines between,
+`persist` refuses with an error and leaves the file as it was.
 
 ## Testing
 
 | Command | Description |
 |---|---|
-| `pixi run test` | The C++ tests and the Python tests |
-| `pixi run test-cpp` | The C++ tests, built in `build/` |
+| `pixi run test` | The Rust tests and the Python tests |
+| `pixi run test-rust` | The Rust tests |
 | `pixi run test-python` | Builds and installs the wheel, then runs the Python tests |
+| `pixi run lint` | rustfmt and clippy |
+
+Beyond the tests (these need the nightly Rust and the tools named; see [SUPPLY_CHAIN.md](SUPPLY_CHAIN.md) for the
+checks of the dependencies):
+
+| Command | Description |
+|---|---|
+| `cargo kani -p layeredconf` | [Kani](https://model-checking.github.io/kani/) proofs that the readers of text (whitespace, numbers, booleans, lists) do not panic or overflow and read as the standard library does, for every input up to 6 bytes, and for integers at the edges of 64 bits (`crates/layeredconf/src/proofs.rs`); the reader of env-style files is left to its tests and the fuzzing |
+| `cd fuzz && cargo +nightly fuzz run <target>` | Fuzzing with [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz): `envfile`, `numbers`, `config` |
+| `cargo +nightly miri test -p layeredconf` | The Rust tests under [Miri](https://github.com/rust-lang/miri), which checks for undefined behaviour |
+
+Kani takes about an hour and up to 11 GB of memory a proof; one proof at a time is `--harness <name> --exact`.
 
 ## Compatibility
 
@@ -186,11 +207,11 @@ POSIX only for now (Linux, macOS).
 Tested on:
 
 - Ubuntu 24.04.4 LTS (x86_64)
-  - GCC 15.3.0
-  - CMake 4.4.4
+  - Rust 1.99.1
   - Python 3.12.15
-  - [toml++](https://github.com/marzer/tomlplusplus) 3.4.0
-  - [pybind11](https://github.com/pybind/pybind11) 3.1.0
+  - [maturin](https://github.com/PyO3/maturin) 1.15.0
+  - [PyO3](https://github.com/PyO3/pyo3) 0.30.1
+  - [toml](https://crates.io/crates/toml) 1.1.8
 
 ## License
 
