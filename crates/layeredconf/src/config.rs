@@ -302,7 +302,12 @@ impl Config {
         convert_to(setting.ty, raw).ok_or_else(|| Error {
             kind: ErrorKind::InvalidValue,
             key: key.to_owned(),
-            message: format!("invalid value for {key}: {} (expected {})", shown_in_message(raw), setting.ty.name()),
+            // A secret's value is kept out of the message, which is apt to be logged.
+            message: format!(
+                "invalid value for {key}: {} (expected {})",
+                if self.options.secret.contains(key) { "***".to_owned() } else { shown_in_message(raw) },
+                setting.ty.name()
+            ),
             raw: Some(raw.clone()),
             expected: Some(setting.ty),
         })

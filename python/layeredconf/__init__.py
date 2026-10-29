@@ -36,7 +36,8 @@ __all__ = [
 # The messages of the errors, each a str.format template or a callable, given the fields as keywords: key, raw (the
 # value as given), expected (the type's name), variable (the setting's name in the environment and the files), file
 # (the name of the file written into, or of the file a problem is in), allowed and allowed_keys (the settings persist
-# may write, joined and as a list), error (a problem's invalid_value message).
+# may write, joined and as a list), error (a problem's invalid_value message). The raw value of a secret setting is
+# given as *** (however it is formatted).
 MESSAGES: dict[str, str | Callable[..., str]] = {
     "unknown_key": "unknown setting: {key}",
     "invalid_value": "invalid value for {key}: {raw!r} (expected {expected})",
@@ -45,6 +46,20 @@ MESSAGES: dict[str, str | Callable[..., str]] = {
     "problem_env": "{error}, written in the environment variable {variable}",
     "problem_file": "{error}, written in {variable} of {file}",
 }
+
+class _Masked:
+    """A secret setting's value in a message: *** however it is formatted."""
+
+    def __repr__(self) -> str:
+        return "***"
+
+    __str__ = __repr__
+
+    def __format__(self, spec: str) -> str:
+        return "***"
+
+
+_MASKED = _Masked()
 
 # The core's names of the types, as Python names them.
 _TYPES = {"bool": "bool", "int": "int", "float": "float", "string": "str", "list": "list"}
@@ -107,8 +122,8 @@ class Config:
     """The settings of a program. `defaults` is the TOML file; `prefix` begins every setting's name in the environment
     and the files; `files` are env-style files (`NAME=value` lines), a later one winning; `write_file` is where `persist`
     writes (else the last of `files`); `root` is what a relative `path` is relative to. `file_only` settings cannot be
-    overridden, `persisted` ones can be written with `persist`, `secret` ones are masked by `shown`. `environ` is the
-    environment (`os.environ`); `messages` replaces messages of `MESSAGES` by kind.
+    overridden, `persisted` ones can be written with `persist`, `secret` ones are masked by `shown` and in the messages
+    of errors. `environ` is the environment (`os.environ`); `messages` replaces messages of `MESSAGES` by kind.
 
     Settings are read as attributes (`config.server.port`) or with `get`; a table's name that is also a method's (`get`,
     `path`, ...) is reached with `get` only."""
@@ -134,6 +149,7 @@ class Config:
         self._written = Path(write_file) if write_file else Path(given[-1]) if given else None
         self._persisted = sorted(persisted)
         self._file_only = set(file_only)
+        self._secret = set(secret)
         self._core = self._call(
             _core.Config,
             os.fspath(defaults),
@@ -143,7 +159,7 @@ class Config:
             root=os.fspath(root) if root else "",
             file_only=self._file_only,
             persisted=set(self._persisted),
-            secret=set(secret),
+            secret=self._secret,
             get=environment.get,
         )
 
@@ -201,7 +217,8 @@ class Config:
         written. An override is checked as it is set."""
         found = {}
         for key, source, variable, file, text, expected in self._core.problems():
-            error = self._message("invalid_value", key=key, raw=text, expected=_TYPES[expected])
+            shown = self._in_message(key, text)
+            error = self._message("invalid_value", key=key, raw=shown, expected=_TYPES[expected])
             if source == "env":
                 found[key] = self._message("problem_env", error=error, key=key, variable=variable)
             else:
@@ -272,15 +289,21 @@ class Config:
                 raise OverflowError(value)
             return converted
         except (TypeError, ValueError, OverflowError):
-            raise InvalidValue(
-                self._message("invalid_value", key=key, raw=value, expected=kind), key, value, kind
-            ) from None
+            raise self._invalid(key, value, kind) from None
 
     # -- errors
 
     def _message(self, kind: str, **fields: Any) -> str:
         message = self._messages[kind]
         return message(**fields) if callable(message) else message.format(**fields)
+
+    def _invalid(self, key: str, raw: Any, expected: str) -> InvalidValue:
+        """The error of a value that does not convert; its message has *** for a secret setting's value."""
+        message = self._message("invalid_value", key=key, raw=self._in_message(key, raw), expected=expected)
+        return InvalidValue(message, key, raw, expected)
+
+    def _in_message(self, key: str, raw: Any) -> Any:
+        return _MASKED if key in self._secret else raw
 
     def _call(self, function: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         try:
@@ -292,8 +315,7 @@ class Config:
         if kind == "unknown_key":
             return UnknownKey(self._message("unknown_key", key=key), key)
         if kind == "invalid_value":
-            name = _TYPES.get(expected or "", expected or "")
-            return InvalidValue(self._message("invalid_value", key=key, raw=raw, expected=name), key, raw, name)
+            return self._invalid(key, raw, _TYPES.get(expected or "", expected or ""))
         if kind == "file_only":
             file = self._written.name if self._written else ""
             return FileOnlyKey(self._message("file_only", key=key, variable=self.variable(key), file=file), key)

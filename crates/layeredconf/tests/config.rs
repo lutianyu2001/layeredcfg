@@ -257,6 +257,22 @@ fn secrets_are_shown_masked_when_they_have_a_value() {
 }
 
 #[test]
+fn a_secret_value_is_kept_out_of_the_message_of_its_error() {
+    let environment = FakeEnvironment::default();
+    let options = Options { secret: ["pin".to_owned()].into(), ..plain(&environment) };
+    let mut config = parse("pin = 0\nport = 0\n", options);
+    let error = config.set("pin", "12x4").unwrap_err();
+    assert_eq!(error.message(), "invalid value for pin: *** (expected int)");
+    assert_eq!(error.raw(), Some(&Raw::from("12x4")));
+    assert!(!format!("{error:?}").contains("12x4"), "{error:?}");
+    environment.set("PIN", "56y7");
+    assert_eq!(config.get("pin").unwrap_err().message(), "invalid value for pin: *** (expected int)");
+    // Any other setting's value is in it, quoted.
+    let error = config.set("port", r#"8"4\2"#).unwrap_err();
+    assert_eq!(error.message(), r#"invalid value for port: "8\"4\\2" (expected int)"#);
+}
+
+#[test]
 fn a_path_setting_has_the_home_expanded_and_a_relative_one_joined_to_the_root() {
     let environment = FakeEnvironment::default();
     environment.set("HOME", "/home/someone/");

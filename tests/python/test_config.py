@@ -172,6 +172,20 @@ def test_secrets_are_shown_masked_and_paths_expanded(defaults):
     assert config.path("log.dir") == Path("/home/someone/logs")
 
 
+def test_a_secret_value_is_kept_out_of_the_messages(defaults):
+    config = make(defaults, secret={"server.port"}, environ={"APP_SERVER_PORT": "84x0"})
+    assert config.problems() == {
+        "server.port": "invalid value for server.port: *** (expected int), written in the environment variable "
+                       "APP_SERVER_PORT",
+    }
+    with pytest.raises(InvalidValue) as raised:
+        config.server.port
+    assert str(raised.value) == "invalid value for server.port: *** (expected int)" and raised.value.raw == "84x0"
+    # Converted in Python too.
+    with pytest.raises(InvalidValue, match=r"^invalid value for server.port: \*\*\* \(expected int\)$"):
+        config.set("server.port", object())
+
+
 def test_persist_writes_the_line_keeps_the_rest_and_holds_at_once(defaults, tmp_path):
     file = tmp_path / ".env.local"
     file.write_text("# ntfy\nAPP_NOTIFY_TOPIC=secret\nexport APP_QUOTA_RATIO=0.1\n")

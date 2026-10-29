@@ -196,7 +196,7 @@ pub enum ErrorKind {
     Io,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Error {
     kind: ErrorKind,
     key: String,
@@ -223,7 +223,7 @@ impl Error {
         &self.message
     }
 
-    /// InvalidValue: the value that did not convert.
+    /// InvalidValue: the value that did not convert, also a secret setting's (whose message has *** in its place).
     pub fn raw(&self) -> Option<&Raw> {
         self.raw.as_ref()
     }
@@ -231,6 +231,18 @@ impl Error {
     /// InvalidValue: the type it should have converted to.
     pub fn expected(&self) -> Option<Type> {
         self.expected
+    }
+}
+
+/// Without the value, which may be a secret's: the message has it otherwise.
+impl fmt::Debug for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Error")
+            .field("kind", &self.kind)
+            .field("key", &self.key)
+            .field("message", &self.message)
+            .field("expected", &self.expected)
+            .finish_non_exhaustive()
     }
 }
 
@@ -341,7 +353,7 @@ pub struct Options {
     pub file_only: BTreeSet<String>,
     /// Settings persist may write into a file.
     pub persisted: BTreeSet<String>,
-    /// Settings [`Config::shown`] masks.
+    /// Settings [`Config::shown`] masks, and whose value an error's message has as `***`.
     pub secret: BTreeSet<String>,
     pub environment: Environment,
 }
