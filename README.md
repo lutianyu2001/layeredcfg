@@ -18,6 +18,7 @@ file of defaults, env-style files, the environment or the command line, and conv
 - [What the Layers Take](#what-the-layers-take)
 - [Env-Style Files](#env-style-files)
 - [Testing](#testing)
+- [Audit](#audit)
 - [Compatibility](#compatibility)
 - [License](#license)
 - [Author](#author)
@@ -189,17 +190,30 @@ reader leave its line out; when the value written has that quote, which would cl
 | `pixi run test-python` | Builds and installs the wheel, then runs the Python tests |
 | `pixi run lint` | rustfmt and clippy |
 
-Beyond the tests (these need the tools named, and the fuzzing and Miri the nightly Rust, while Kani brings the version
-it needs; see [SUPPLY_CHAIN.md](SUPPLY_CHAIN.md) for the checks of the dependencies):
+## Audit
+
+The audit is apart from the build and the tests: neither `pixi run test`, `cargo test` nor a build of the wheel runs
+any of it. `cargo xtask` runs it, with the versions of its tools and of the nightly Rust it needs pinned in
+`xtask/src/tools.rs`; [SECURITY.md](SECURITY.md) says what each check covers and what it does not,
+[SUPPLY_CHAIN.md](SUPPLY_CHAIN.md) how the dependencies are checked.
 
 | Command | Description |
 |---|---|
-| `cargo kani -p layeredconf` | [Kani](https://model-checking.github.io/kani/) proofs that the readers of text (whitespace, integers, booleans, lists) do not panic or overflow and read as the standard library does, for every input up to 6 bytes, and for integers at the edges of 64 bits (`crates/layeredconf/src/proofs.rs`); the reader of env-style files is left to its tests and the fuzzing |
-| `cd fuzz && cargo +nightly fuzz run <target>` | Fuzzing with [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz): `envfile`, `numbers`, `config` |
-| `cargo +nightly miri test -p layeredconf` | The Rust tests under [Miri](https://github.com/rust-lang/miri), which checks for undefined behaviour |
+| `cargo xtask setup [task…]` | Installs the pinned tools a task needs, all of them by default: cargo-deny, cargo-vet, cargo-geiger, cargo-fuzz, cargo-llvm-cov, Kani, and the nightly Rust with Miri and the LLVM tools |
+| `cargo xtask deny`, `vet`, `geiger` | The dependencies: known vulnerabilities, licenses and sources; audits; `unsafe` code |
+| `cargo xtask miri` | The Rust tests under [Miri](https://github.com/rust-lang/miri), which checks for undefined behaviour |
+| `cargo xtask coverage` | Branch coverage of the Rust tests, marked in `target/audit/coverage/html/` |
+| `cargo xtask kani [harness…]` | [Kani](https://model-checking.github.io/kani/) proofs that the readers of text (whitespace, integers, booleans, lists) do not panic or overflow and read as the standard library does, for every input up to 6 bytes, and for integers at the edges of 64 bits (`crates/layeredconf/src/proofs.rs`); the reader of env-style files is left to its tests and the fuzzing |
+| `cargo xtask fuzz [seconds] [target…]` | Fuzzing with [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz): `envfile`, `numbers` and `config` side by side, an hour each by default |
+| `cargo xtask all` | Each of the above in turn |
+| `cargo xtask outdated` | The pinned versions due an upgrade, and in a terminal, upgrades those agreed to: one with a known vulnerability at once, one a month older than a release, a nightly a month old (`--vulns`: the vulnerabilities only) |
+| `pixi run audit <task>` | The same, from the environment of pixi |
 
-The proofs take about an hour in all: the four at the edges of 64 bits some 13 minutes and 11 GB of memory each, the
-others seconds to a minute. One proof alone is `--harness <name> --exact`.
+Each heavy task runs alone, in a systemd user scope with a cap of memory (`RUST_XTASK_MEMORY` changes it) and no swap,
+so that one going too far is killed and not the machine; without such a scope it runs as it is. The proofs take about an
+hour in all: the four at the edges of 64 bits some 13 minutes and 11 GB of memory each, the others seconds to a
+minute. The other tasks check for a known vulnerability in a pinned tool once a day, and for releases once a week,
+and say so in a line. Every task writes its log, and a line to `summary.txt`, in `target/audit/`.
 
 ## Compatibility
 
