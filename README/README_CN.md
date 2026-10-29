@@ -159,16 +159,16 @@ config.set("server.port", "8421")?;
 | 命令 | 说明 |
 |---|---|
 | `cargo xtask setup [task…]` | 安装任务要用的、固定版本的工具，默认全部装上：cargo-deny、cargo-vet、cargo-geiger、cargo-fuzz、cargo-llvm-cov、Kani，以及带 Miri 和 LLVM 工具的 nightly 版 Rust |
-| `cargo xtask deny`、`vet`、`geiger` | 检查依赖：已知漏洞、许可证和来源；审计记录；`unsafe` 代码 |
+| `cargo xtask deny`、`vet`、`geiger` | 检查依赖：已知漏洞、许可证和来源；审计记录；`unsafe` 代码（只计数，不会失败） |
 | `cargo xtask miri` | 在 [Miri](https://github.com/rust-lang/miri) 下跑 Rust 的测试，检查未定义行为 |
 | `cargo xtask coverage` | Rust 测试的分支覆盖率，标在 `target/audit/coverage/html/` 里 |
 | `cargo xtask kani [harness…]` | 用 [Kani](https://model-checking.github.io/kani/) 证明读文字的函数（空白、整数、布尔值、列表）在 6 字节以内的任何输入下都不 panic、不溢出，读法和标准库一致，并单独证明 64 位整数边界处的读法（`crates/layeredconf/src/proofs.rs`）；env 文件的读取器靠它的测试和模糊测试检查 |
 | `cargo xtask fuzz [秒数] [target…]` | 用 [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz) 做模糊测试：`envfile`、`numbers`、`config` 同时跑，默认各一小时 |
 | `cargo xtask all` | 依次跑上面每一项 |
-| `cargo xtask outdated` | 列出该升级的固定版本，在终端里逐项询问，升级同意的那些：有已知漏洞的立即到期，比新的正式版早一个月以上的到期，nightly 满一个月到期（`--vulns` 只查漏洞） |
+| `cargo xtask outdated` | 列出该升级的固定版本，在终端里逐项询问，升级同意的那些：有已知漏洞的立即到期，比新的正式版早一个月以上的到期，nightly 满一个月到期；只升到发布满一周、没有已知漏洞的版本（`--vulns` 只查漏洞） |
 | `pixi run audit <task>` | 同上，在 pixi 的环境里跑 |
 
-每个重任务单独跑，放在限内存（用 `RUST_XTASK_MEMORY` 改上限）、不用 swap 的 systemd 用户 scope 里，超了只杀它自己，不拖垮机器；没有这种 scope 时直接跑。Kani 全部跑完约一小时：64 位边界的四个证明各要 13 分钟左右、11 GB 内存，其余的几秒到一分钟。其他任务每天查一次固定的工具有没有已知漏洞、每周查一次有没有新版本，到期就提示一行。每个任务的日志和 `summary.txt` 里的一行汇总写在 `target/audit/`。
+一次只跑一个任务（`target/audit/` 里的锁让第二个起不来），每个重任务放在限内存（用 `RUST_XTASK_MEMORY` 改上限；模糊测试的所有 target 共用一个）、不用 swap 的 systemd 用户 scope 里，超了只杀它自己，不拖垮机器；没有这种 scope 时直接跑。Kani 全部跑完约一小时：64 位边界的四个证明各要 13 分钟左右、11 GB 内存，其余的几秒到一分钟。其他任务每天查一次固定的工具有没有已知漏洞、每周查一次有没有新版本，到期就提示一行。每个任务的日志和 `summary.txt` 里的一行汇总写在 `target/audit/`。
 
 ## 兼容性
 

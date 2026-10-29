@@ -200,16 +200,17 @@ any of it. `cargo xtask` runs it, with the versions of its tools and of the nigh
 | Command | Description |
 |---|---|
 | `cargo xtask setup [task…]` | Installs the pinned tools a task needs, all of them by default: cargo-deny, cargo-vet, cargo-geiger, cargo-fuzz, cargo-llvm-cov, Kani, and the nightly Rust with Miri and the LLVM tools |
-| `cargo xtask deny`, `vet`, `geiger` | The dependencies: known vulnerabilities, licenses and sources; audits; `unsafe` code |
+| `cargo xtask deny`, `vet`, `geiger` | The dependencies: known vulnerabilities, licenses and sources; audits; `unsafe` code (counted, not a check that fails) |
 | `cargo xtask miri` | The Rust tests under [Miri](https://github.com/rust-lang/miri), which checks for undefined behaviour |
 | `cargo xtask coverage` | Branch coverage of the Rust tests, marked in `target/audit/coverage/html/` |
 | `cargo xtask kani [harness…]` | [Kani](https://model-checking.github.io/kani/) proofs that the readers of text (whitespace, integers, booleans, lists) do not panic or overflow and read as the standard library does, for every input up to 6 bytes, and for integers at the edges of 64 bits (`crates/layeredconf/src/proofs.rs`); the reader of env-style files is left to its tests and the fuzzing |
 | `cargo xtask fuzz [seconds] [target…]` | Fuzzing with [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz): `envfile`, `numbers` and `config` side by side, an hour each by default |
 | `cargo xtask all` | Each of the above in turn |
-| `cargo xtask outdated` | The pinned versions due an upgrade, and in a terminal, upgrades those agreed to: one with a known vulnerability at once, one a month older than a release, a nightly a month old (`--vulns`: the vulnerabilities only) |
+| `cargo xtask outdated` | The pinned versions due an upgrade, and in a terminal, upgrades those agreed to: one with a known vulnerability at once, one a month older than a release, a nightly a month old, each to a release at least a week old with no known vulnerability (`--vulns`: the vulnerabilities only) |
 | `pixi run audit <task>` | The same, from the environment of pixi |
 
-Each heavy task runs alone, in a systemd user scope with a cap of memory (`RUST_XTASK_MEMORY` changes it) and no swap,
+One task runs at a time (a lock in `target/audit/` keeps a second from starting), each heavy one in a systemd user
+scope with a cap of memory (`RUST_XTASK_MEMORY` changes it; the fuzzing has one for all its targets) and no swap,
 so that one going too far is killed and not the machine; without such a scope it runs as it is. The proofs take about an
 hour in all: the four at the edges of 64 bits some 13 minutes and 11 GB of memory each, the others seconds to a
 minute. The other tasks check for a known vulnerability in a pinned tool once a day, and for releases once a week,
