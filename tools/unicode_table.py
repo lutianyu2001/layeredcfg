@@ -56,6 +56,7 @@ def table() -> str:
         f"    match code {{\n{digit_arms}\n        _ => None,\n    }}\n}}\n"
     )
 
+
 if __name__ == "__main__":
     out = Path(sys.argv[1])
     out.parent.mkdir(parents=True, exist_ok=True)

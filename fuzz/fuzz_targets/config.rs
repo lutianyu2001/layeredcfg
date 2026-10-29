@@ -14,6 +14,9 @@ fuzz_target!(|data: &[u8]| {
         None => (data, &b""[..]),
     };
     let Ok(toml) = std::str::from_utf8(toml) else { return };
+    // ~name in a path is looked up in the password database, which may go over the network (LDAP, NIS): not for
+    // every run. ~ and ~/ take HOME from the environment, here the value itself.
+    let looks_up_a_user = value.first() == Some(&b'~') && value.get(1).is_some_and(|&c| c != b'/');
     let given = value.to_vec();
     let options = Options {
         prefix: "F_".to_owned(),
@@ -25,7 +28,9 @@ fuzz_target!(|data: &[u8]| {
     for key in config.keys().to_vec() {
         let _ = config.get(&key);
         let _ = config.shown(&key);
-        let _ = config.path(&key);
+        if !looks_up_a_user {
+            let _ = config.path(&key);
+        }
         let _ = config.cast(&key, Raw::Text(OsString::from_vec(value.to_vec())));
         if config.set(&key, Raw::Text(OsString::from_vec(value.to_vec()))).is_ok() {
             assert!(config.get(&key).is_ok());

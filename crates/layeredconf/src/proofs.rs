@@ -1,5 +1,7 @@
-//! Kani proofs: for every input up to a few bytes, the readers of text do not panic, do not overflow, and say what
-//! the standard library says where it says the same thing. `cargo kani -p layeredconf` runs them.
+//! Kani proofs: for every input up to 6 bytes, the readers of whitespace, integers, booleans and lists do not panic,
+//! do not overflow, and say what the standard library says where it says the same thing; integers are proved at the
+//! edges of 64 bits too. `parse_float`, which builds the text it gives str::parse, has no proof. `cargo kani -p
+//! layeredconf` runs them.
 //!
 //! Kani unrolls every loop of a harness to the one bound its `#[kani::unwind]` gives, so the code under proof is kept
 //! without loops where it can be. The Unicode lookups are matches of ranges (`tools/unicode_table.py`) and not tables
@@ -146,13 +148,17 @@ fn split_list_cuts_at_the_commas_and_nowhere_else() {
     let Ok(s) = std::str::from_utf8(&bytes[..len]) else {
         return;
     };
-    let (mut length, mut parts) = (0, 0);
+    // Each part begins where the one before ended and a comma after it, has no comma, and is followed by a comma or
+    // the end; together they are the whole text.
+    let (mut at, mut parts) = (0, 0);
     for part in text::comma_separated(s) {
+        assert!(at <= s.len() && std::ptr::eq(part.as_ptr(), s.as_bytes()[at..].as_ptr()));
         assert!(part.bytes().all(|c| c != b','));
-        length += part.len();
+        assert!(s.as_bytes().get(at + part.len()).is_none_or(|&c| c == b','));
+        at += part.len() + 1;
         parts += 1;
     }
-    assert!(length + (parts - 1) == s.len()); // the parts and a comma between each two are the whole text
+    assert!(parts >= 1 && at == s.len() + 1);
 }
 
 #[kani::proof]

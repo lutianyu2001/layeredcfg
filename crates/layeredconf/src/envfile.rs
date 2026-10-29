@@ -1,5 +1,7 @@
 //! Env-style files: `NAME=value` lines, as python-dotenv reads them for the most part.
 
+use std::collections::BTreeMap;
+
 use crate::text;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -44,14 +46,15 @@ struct Reader<'a> {
     s: &'a [u8],
     lookup: Lookup<'a>,
     at: usize,
-    /// The statements read so far, whose values `${NAME}` takes (a later one of a name over an earlier).
-    read: Vec<Assignment>,
+    /// The statements read so far, and where in them the latest of each name is, whose value `${NAME}` takes.
+    statements: Vec<Assignment>,
+    latest: BTreeMap<Vec<u8>, usize>,
 }
 
 impl<'a> Reader<'a> {
     fn new(text: &'a [u8], lookup: Lookup<'a>) -> Self {
         let at = if text.starts_with(b"\xEF\xBB\xBF") { 3 } else { 0 }; // a byte order mark
-        Reader { s: text, lookup, at, read: Vec::new() }
+        Reader { s: text, lookup, at, statements: Vec::new(), latest: BTreeMap::new() }
     }
 
     fn peek(&self) -> Option<u8> {
@@ -74,10 +77,11 @@ impl<'a> Reader<'a> {
             if let Some(mut assignment) = self.statement() {
                 assignment.begin = begin;
                 assignment.end = self.at;
-                self.read.push(assignment);
+                self.latest.insert(assignment.name.clone(), self.statements.len());
+                self.statements.push(assignment);
             }
         }
-        self.read
+        self.statements
     }
 
     /// A statement, from its name to past the end of its last line.
@@ -199,8 +203,8 @@ impl<'a> Reader<'a> {
                 Some(colon) => (&inner[..colon], &inner[colon + 2..]),
                 None => (inner, &b""[..]),
             };
-            if let Some(earlier) = self.read.iter().rev().find(|earlier| earlier.name == name) {
-                out.extend_from_slice(&earlier.value);
+            if let Some(&earlier) = self.latest.get(name) {
+                out.extend_from_slice(&self.statements[earlier].value);
             } else if let Some(found) = (self.lookup)(name) {
                 out.extend_from_slice(&found);
             } else {

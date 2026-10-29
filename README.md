@@ -189,16 +189,17 @@ reader leave its line out; when the value written has that quote, which would cl
 | `pixi run test-python` | Builds and installs the wheel, then runs the Python tests |
 | `pixi run lint` | rustfmt and clippy |
 
-Beyond the tests (these need the nightly Rust and the tools named; see [SUPPLY_CHAIN.md](SUPPLY_CHAIN.md) for the
-checks of the dependencies):
+Beyond the tests (these need the tools named, and the fuzzing and Miri the nightly Rust, while Kani brings the version
+it needs; see [SUPPLY_CHAIN.md](SUPPLY_CHAIN.md) for the checks of the dependencies):
 
 | Command | Description |
 |---|---|
-| `cargo kani -p layeredconf` | [Kani](https://model-checking.github.io/kani/) proofs that the readers of text (whitespace, numbers, booleans, lists) do not panic or overflow and read as the standard library does, for every input up to 6 bytes, and for integers at the edges of 64 bits (`crates/layeredconf/src/proofs.rs`); the reader of env-style files is left to its tests and the fuzzing |
+| `cargo kani -p layeredconf` | [Kani](https://model-checking.github.io/kani/) proofs that the readers of text (whitespace, integers, booleans, lists) do not panic or overflow and read as the standard library does, for every input up to 6 bytes, and for integers at the edges of 64 bits (`crates/layeredconf/src/proofs.rs`); the reader of env-style files is left to its tests and the fuzzing |
 | `cd fuzz && cargo +nightly fuzz run <target>` | Fuzzing with [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz): `envfile`, `numbers`, `config` |
 | `cargo +nightly miri test -p layeredconf` | The Rust tests under [Miri](https://github.com/rust-lang/miri), which checks for undefined behaviour |
 
-Kani takes about an hour and up to 11 GB of memory a proof; one proof at a time is `--harness <name> --exact`.
+The proofs take about an hour in all: the four at the edges of 64 bits some 13 minutes and 11 GB of memory each, the
+others seconds to a minute. One proof alone is `--harness <name> --exact`.
 
 ## Compatibility
 

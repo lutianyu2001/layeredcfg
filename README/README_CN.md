@@ -151,15 +151,15 @@ config.set("server.port", "8421")?;
 | `pixi run test-python` | 打出并安装 wheel，再跑 Python 的测试 |
 | `pixi run lint` | rustfmt 和 clippy |
 
-测试之外的检查（要用 nightly 版的 Rust 和表里的工具；依赖的检查见 [SUPPLY_CHAIN.md](../SUPPLY_CHAIN.md)）：
+测试之外的检查（要装表里的工具，模糊测试和 Miri 还要 nightly 版的 Rust，Kani 自带它要的版本；依赖的检查见 [SUPPLY_CHAIN.md](../SUPPLY_CHAIN.md)）：
 
 | 命令 | 说明 |
 |---|---|
-| `cargo kani -p layeredconf` | 用 [Kani](https://model-checking.github.io/kani/) 证明读文字的函数（空白、数字、布尔值、列表）在 6 字节以内的任何输入下都不 panic、不溢出，读法和标准库一致，并单独证明 64 位整数边界处的读法（`crates/layeredconf/src/proofs.rs`）；env 文件的读取器靠它的测试和模糊测试检查 |
+| `cargo kani -p layeredconf` | 用 [Kani](https://model-checking.github.io/kani/) 证明读文字的函数（空白、整数、布尔值、列表）在 6 字节以内的任何输入下都不 panic、不溢出，读法和标准库一致，并单独证明 64 位整数边界处的读法（`crates/layeredconf/src/proofs.rs`）；env 文件的读取器靠它的测试和模糊测试检查 |
 | `cd fuzz && cargo +nightly fuzz run <target>` | 用 [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz) 做模糊测试：`envfile`、`numbers`、`config` |
 | `cargo +nightly miri test -p layeredconf` | 在 [Miri](https://github.com/rust-lang/miri) 下跑 Rust 的测试，检查未定义行为 |
 
-Kani 全部跑完约一小时，单个证明最多要 11 GB 内存；只跑一个证明用 `--harness <名字> --exact`。
+Kani 全部跑完约一小时：64 位边界的四个证明各要 13 分钟左右、11 GB 内存，其余的几秒到一分钟。只跑一个证明用 `--harness <名字> --exact`。
 
 ## 兼容性
 
