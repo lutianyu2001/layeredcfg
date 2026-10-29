@@ -151,6 +151,8 @@ fn a_comment_after_the_equals_sign_a_byte_order_mark_other_line_ends_form_feeds(
     assert_eq!(read("A=1\rB=2\rC=3"), map(&[("A", "1"), ("B", "2"), ("C", "3")]));
     assert_eq!(read("\x0cA=1\n"), map(&[("A", "1")]));
     assert_eq!(read("A=${B:C}\nD=$E ${F:-x}\n"), map(&[("A", "${B:C}"), ("D", "$E x")]));
+    // ${A} is the value of the latest A above it.
+    assert_eq!(read("A=1\nA=2\nB=${A}\nA=3\n"), map(&[("A", "3"), ("B", "2")]));
 }
 
 #[test]

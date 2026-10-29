@@ -1,7 +1,5 @@
 //! Env-style files: `NAME=value` lines, as python-dotenv reads them for the most part.
 
-use std::collections::BTreeMap;
-
 use crate::text;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -26,17 +24,34 @@ fn find(hay: &[u8], needle: &[u8], from: usize) -> Option<usize> {
     hay.get(from..)?.windows(needle.len()).position(|window| window == needle).map(|at| at + from)
 }
 
+/// What `\\` and `next` stand for inside `quote`s, nothing when they are no escape (both are then taken as they are).
+fn escape(quote: u8, next: u8) -> Option<u8> {
+    match (quote, next) {
+        (b'\'', b'\\' | b'\'') => Some(next),
+        (b'"', b'\\' | b'\'' | b'"') => Some(next),
+        (b'"', b'a') => Some(b'\x07'),
+        (b'"', b'b') => Some(b'\x08'),
+        (b'"', b'f') => Some(b'\x0c'),
+        (b'"', b'n') => Some(b'\n'),
+        (b'"', b'r') => Some(b'\r'),
+        (b'"', b't') => Some(b'\t'),
+        (b'"', b'v') => Some(b'\x0b'),
+        _ => None,
+    }
+}
+
 struct Reader<'a> {
     s: &'a [u8],
     lookup: Lookup<'a>,
     at: usize,
-    known: BTreeMap<Vec<u8>, Vec<u8>>,
+    /// The statements read so far, whose values `${NAME}` takes (a later one of a name over an earlier).
+    read: Vec<Assignment>,
 }
 
 impl<'a> Reader<'a> {
     fn new(text: &'a [u8], lookup: Lookup<'a>) -> Self {
         let at = if text.starts_with(b"\xEF\xBB\xBF") { 3 } else { 0 }; // a byte order mark
-        Reader { s: text, lookup, at, known: BTreeMap::new() }
+        Reader { s: text, lookup, at, read: Vec::new() }
     }
 
     fn peek(&self) -> Option<u8> {
@@ -44,7 +59,6 @@ impl<'a> Reader<'a> {
     }
 
     fn read(mut self) -> Vec<Assignment> {
-        let mut out = Vec::new();
         while self.at < self.s.len() {
             let begin = self.at;
             self.skip_blanks();
@@ -60,11 +74,10 @@ impl<'a> Reader<'a> {
             if let Some(mut assignment) = self.statement() {
                 assignment.begin = begin;
                 assignment.end = self.at;
-                self.known.insert(assignment.name.clone(), assignment.value.clone());
-                out.push(assignment);
+                self.read.push(assignment);
             }
         }
-        out
+        self.read
     }
 
     /// A statement, from its name to past the end of its last line.
@@ -73,14 +86,14 @@ impl<'a> Reader<'a> {
             self.at += 6;
             self.skip_blanks();
         }
-        let mut name = Vec::new();
+        let name_start = self.at;
         while let Some(c) = self.peek() {
             if c == b'=' || c == b'#' || text::space_at(self.s, self.at) > 0 {
                 break;
             }
-            name.push(c);
             self.at += 1;
         }
+        let name = self.s[name_start..self.at].to_vec();
         self.skip_blanks();
         if name.is_empty() || self.peek() != Some(b'=') {
             self.skip_line(); // no name, or a name without a value
@@ -93,13 +106,13 @@ impl<'a> Reader<'a> {
             Some(b'\'') => self.quoted(b'\'')?,
             Some(b'"') => {
                 let value = self.quoted(b'"')?;
-                self.expand(&value)
+                self.expand(value)
             }
             _ => {
                 self.at = value_start; // the blanks before the value count for a comment that begins it
                 let value = self.unquoted();
                 self.skip_line();
-                self.expand(&value)
+                self.expand(value)
             }
         };
         Some(Assignment { name, value, begin: 0, end: 0 })
@@ -113,25 +126,11 @@ impl<'a> Reader<'a> {
         while let Some(c) = self.peek().filter(|&c| c != quote) {
             self.at += 1;
             if c == b'\\'
-                && let Some(next) = self.peek()
+                && let Some(escaped) = self.peek().and_then(|next| escape(quote, next))
             {
-                let escaped = match (quote, next) {
-                    (b'\'', b'\\' | b'\'') => Some(next),
-                    (b'"', b'\\' | b'\'' | b'"') => Some(next),
-                    (b'"', b'a') => Some(b'\x07'),
-                    (b'"', b'b') => Some(b'\x08'),
-                    (b'"', b'f') => Some(b'\x0c'),
-                    (b'"', b'n') => Some(b'\n'),
-                    (b'"', b'r') => Some(b'\r'),
-                    (b'"', b't') => Some(b'\t'),
-                    (b'"', b'v') => Some(b'\x0b'),
-                    _ => None,
-                };
-                if let Some(escaped) = escaped {
-                    value.push(escaped);
-                    self.at += 1;
-                    continue;
-                }
+                value.push(escaped);
+                self.at += 1;
+                continue;
             }
             value.push(c);
         }
@@ -173,7 +172,11 @@ impl<'a> Reader<'a> {
     }
 
     /// ${NAME} and ${NAME:-default}, as python-dotenv takes them: a name of anything but `}` and `:`.
-    fn expand(&self, value: &[u8]) -> Vec<u8> {
+    fn expand(&self, value: Vec<u8>) -> Vec<u8> {
+        if find(&value, b"${", 0).is_none() {
+            return value;
+        }
+        let value = value.as_slice();
         let mut out = Vec::new();
         let mut i = 0;
         while i < value.len() {
@@ -196,8 +199,8 @@ impl<'a> Reader<'a> {
                 Some(colon) => (&inner[..colon], &inner[colon + 2..]),
                 None => (inner, &b""[..]),
             };
-            if let Some(known) = self.known.get(name) {
-                out.extend_from_slice(known);
+            if let Some(earlier) = self.read.iter().rev().find(|earlier| earlier.name == name) {
+                out.extend_from_slice(&earlier.value);
             } else if let Some(found) = (self.lookup)(name) {
                 out.extend_from_slice(&found);
             } else {
