@@ -23,3 +23,5 @@ python-source = "python"
 module-name = "layeredconf._core"
 locked = true
 strip = true
+# The build script of the core writes its Unicode table with this script.
+include = [{ path = "tools/unicode_table.py", format = "sdist" }]
