@@ -48,6 +48,7 @@ pub enum Type {
 
 impl Type {
     /// "bool", "int", "float", "string", "list".
+    #[must_use]
     pub fn name(self) -> &'static str {
         match self {
             Type::Bool => "bool",
@@ -70,6 +71,7 @@ pub enum Value {
 }
 
 impl Value {
+    #[must_use]
     pub fn type_of(&self) -> Type {
         match self {
             Value::Bool(_) => Type::Bool,
@@ -170,6 +172,7 @@ pub enum Source {
 
 impl Source {
     /// "default", "file", "env", "override".
+    #[must_use]
     pub fn name(self) -> &'static str {
         match self {
             Source::Default => "default",
@@ -210,25 +213,30 @@ impl Error {
         Error { kind, key: key.into(), message: message.into(), raw: None, expected: None }
     }
 
+    #[must_use]
     pub fn kind(&self) -> ErrorKind {
         self.kind
     }
 
     /// The setting, empty when the error is no setting's.
+    #[must_use]
     pub fn key(&self) -> &str {
         &self.key
     }
 
+    #[must_use]
     pub fn message(&self) -> &str {
         &self.message
     }
 
-    /// InvalidValue: the value that did not convert, also a secret setting's (whose message has *** in its place).
+    /// `InvalidValue`: the value that did not convert, also a secret setting's (whose message has *** in its place).
+    #[must_use]
     pub fn raw(&self) -> Option<&Raw> {
         self.raw.as_ref()
     }
 
-    /// InvalidValue: the type it should have converted to.
+    /// `InvalidValue`: the type it should have converted to.
+    #[must_use]
     pub fn expected(&self) -> Option<Type> {
         self.expected
     }
@@ -268,6 +276,7 @@ type Lookup = dyn Fn(&OsStr) -> Option<OsString> + Send + Sync;
 
 impl Environment {
     /// The process's environment.
+    #[must_use]
     pub fn process() -> Self {
         Environment::new(|name| {
             // A name std::env would refuse is no variable.
@@ -283,6 +292,7 @@ impl Environment {
         Environment { get: Arc::new(get) }
     }
 
+    #[must_use]
     pub fn get(&self, name: &OsStr) -> Option<OsString> {
         (self.get)(name)
     }
@@ -304,7 +314,7 @@ impl fmt::Debug for Environment {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Problem {
     pub key: String,
-    /// Source::Env or Source::File.
+    /// `Source::Env` or `Source::File`.
     pub source: Source,
     /// Its name there.
     pub variable: String,

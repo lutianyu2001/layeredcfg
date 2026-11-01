@@ -1,5 +1,8 @@
 //! The layers, the conversions, the checks, and persist, with an environment of the test's own.
 
+// The helpers of the tests fail the test they are called from by panicking, as the tests do.
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
 use std::collections::BTreeMap;
 use std::ffi::{OsStr, OsString};
 use std::fs;
@@ -459,7 +462,7 @@ fn text_not_utf8_is_no_value_the_defaults_file_must_be_a_file_a_float_of_minus_2
     assert_eq!(config.problems().len(), 1);
     assert_eq!(config.problems()[0].text.as_bytes(), b"caf\xE9");
     assert!(Config::load(&scratch.dir, options(&environment, &[])).is_err());
-    config.set("server.port", -9223372036854775808.0).unwrap();
+    config.set("server.port", -9_223_372_036_854_775_808.0).unwrap();
     assert_eq!(get(&config, "server.port"), Value::Int(i64::MIN));
 }
 

@@ -79,6 +79,8 @@ fn convert_to(ty: Type, raw: &Raw) -> Option<Value> {
         }),
         Raw::Int(i) => Some(match ty {
             Type::Bool => Value::Bool(*i != 0),
+            // To the nearest float, as Python's float() of an int.
+            #[allow(clippy::cast_precision_loss)]
             Type::Float => Value::Float(*i as f64),
             Type::String => Value::Str(i.to_string()),
             _ => Value::Int(*i),
@@ -89,6 +91,7 @@ fn convert_to(ty: Type, raw: &Raw) -> Option<Value> {
             Type::Int => {
                 // -2**63 <= d < 2**63, truncated toward zero.
                 let fits = d.is_finite() && *d >= -9_223_372_036_854_775_808.0 && *d < 9_223_372_036_854_775_808.0;
+                #[allow(clippy::cast_possible_truncation)] // in range, as checked above
                 fits.then(|| Value::Int(d.trunc() as i64))
             }
             _ => Some(Value::Float(*d)),
@@ -199,6 +202,10 @@ impl std::fmt::Debug for Config {
 
 impl Config {
     /// The defaults from a TOML file. The files are read at once.
+    ///
+    /// # Errors
+    ///
+    /// `BadDefaults` when the TOML file cannot be read, and as `parse`.
     pub fn load(defaults: impl AsRef<Path>, options: Options) -> Result<Config> {
         let defaults = defaults.as_ref();
         let text = read_file(defaults).map_err(|error| Error::new(ErrorKind::BadDefaults, "", error.message()))?;
@@ -214,6 +221,11 @@ impl Config {
     }
 
     /// The defaults from TOML text (`origin` names it in errors). The files are read at once.
+    ///
+    /// # Errors
+    ///
+    /// `BadDefaults` when the text is no TOML, holds what is no setting, or the options name a key that is
+    /// none; `Io` when one of the files cannot be read.
     pub fn parse(toml: &str, options: Options, origin: &str) -> Result<Config> {
         let root = DeTable::parse(toml).map_err(|error| {
             let message = error.message();
@@ -251,34 +263,45 @@ impl Config {
     }
 
     /// The settings, in the order the TOML file has them.
+    #[must_use]
     pub fn keys(&self) -> &[String] {
         &self.keys
     }
 
+    #[must_use]
     pub fn has(&self, key: &str) -> bool {
         self.settings.contains_key(key)
     }
 
     /// Whether `name` is a table settings are in (`server` for `server.port`).
+    #[must_use]
     pub fn is_section(&self, name: &str) -> bool {
         self.sections.contains(name)
     }
 
+    /// # Errors
+    ///
+    /// `UnknownKey` for no such setting.
     pub fn type_of(&self, key: &str) -> Result<Type> {
         Ok(self.setting(key)?.ty)
     }
 
+    /// # Errors
+    ///
+    /// `UnknownKey` for no such setting.
     pub fn default_value(&self, key: &str) -> Result<&Value> {
         Ok(&self.setting(key)?.fallback)
     }
 
     /// The setting's name in the environment and the files: the prefix and the key upper-cased, dots made underscores.
+    #[must_use]
     pub fn variable(&self, key: &str) -> String {
         let mut name = self.options.prefix.clone();
         name.extend(key.chars().map(|c| if c == '.' { '_' } else { c.to_ascii_uppercase() }));
         name
     }
 
+    #[must_use]
     pub fn options(&self) -> &Options {
         &self.options
     }
@@ -316,11 +339,19 @@ impl Config {
     }
 
     /// A raw value converted to a setting's type, as the layers would.
+    ///
+    /// # Errors
+    ///
+    /// `UnknownKey` for no such setting, `InvalidValue` for a value that does not convert.
     pub fn cast(&self, key: &str, raw: impl Into<Raw>) -> Result<Value> {
         self.convert(key, self.setting(key)?, &raw.into())
     }
 
     /// A setting's value, from the highest layer that has one, converted to its type.
+    ///
+    /// # Errors
+    ///
+    /// `UnknownKey` for no such setting, `InvalidValue` for a value that does not convert.
     pub fn get(&self, key: &str) -> Result<Value> {
         let setting = self.setting(key)?;
         if let Some(given) = self.override_of(key) {
@@ -336,6 +367,9 @@ impl Config {
         Ok(setting.fallback.clone())
     }
 
+    /// # Errors
+    ///
+    /// `UnknownKey` for no such setting.
     pub fn source(&self, key: &str) -> Result<Source> {
         self.setting(key)?;
         if self.override_of(key).is_some() {
@@ -352,6 +386,10 @@ impl Config {
     }
 
     /// The value as it is shown: "***" for a secret setting that has a value.
+    ///
+    /// # Errors
+    ///
+    /// `UnknownKey` for no such setting, `InvalidValue` for a value that does not convert.
     pub fn shown(&self, key: &str) -> Result<Value> {
         let value = self.get(key)?;
         if self.options.secret.contains(key) && truthy(&value) {
@@ -361,6 +399,10 @@ impl Config {
     }
 
     /// A path setting: `~` expanded, a relative one joined to the root.
+    ///
+    /// # Errors
+    ///
+    /// `UnknownKey` for no such setting, `InvalidValue` for a value that does not convert.
     pub fn path(&self, key: &str) -> Result<PathBuf> {
         let text = match self.get(key)? {
             Value::Str(text) => text,
@@ -374,6 +416,7 @@ impl Config {
     }
 
     /// Every value of the environment and the files that does not convert; an override is checked when it is set.
+    #[must_use]
     pub fn problems(&self) -> Vec<Problem> {
         let mut found = Vec::new();
         for key in &self.keys {
@@ -399,6 +442,11 @@ impl Config {
 
     /// Override a setting, the highest layer. The value is converted at once, so that a mistake is reported where it
     /// is made.
+    ///
+    /// # Errors
+    ///
+    /// `UnknownKey` for no such setting, `FileOnly` for a setting only the files and the environment may change,
+    /// `InvalidValue` for a value that does not convert.
     pub fn set(&mut self, key: &str, raw: impl Into<Raw>) -> Result<()> {
         let setting = self.setting(key)?;
         if self.options.file_only.contains(key) {
@@ -417,6 +465,9 @@ impl Config {
         Ok(())
     }
 
+    /// # Errors
+    ///
+    /// `UnknownKey` for no such setting.
     pub fn unset(&mut self, key: &str) -> Result<()> {
         self.setting(key)?;
         self.overrides.retain(|(name, _)| name != key);
@@ -428,12 +479,14 @@ impl Config {
     }
 
     /// The overrides as given, in the order first set.
+    #[must_use]
     pub fn override_values(&self) -> &[(String, Raw)] {
         &self.overrides
     }
 
     /// The overrides as text that `set` takes again, in the order first set: text as it was given (a path keeps its
     /// ~), anything else as its converted value, which the type reads back (8421.0 for an integer is 8421).
+    #[must_use]
     pub fn overrides(&self) -> Vec<(String, OsString)> {
         self.overrides
             .iter()
@@ -452,6 +505,7 @@ impl Config {
     }
 
     /// What was read from the files: variable -> text.
+    #[must_use]
     pub fn file_values(&self) -> BTreeMap<OsString, OsString> {
         self.files.iter().map(|(name, value)| (name.clone(), value.text.clone())).collect()
     }
@@ -468,6 +522,10 @@ impl Config {
     }
 
     /// Read the files again.
+    ///
+    /// # Errors
+    ///
+    /// `Io` when one of the files cannot be read.
     pub fn reload_files(&mut self) -> Result<()> {
         let mut read = BTreeMap::new();
         let lookup = |name: &[u8]| self.env(OsStr::from_bytes(name)).map(OsString::into_vec);
@@ -485,14 +543,15 @@ impl Config {
     }
 
     /// The overrides, what was read from the files and what persist wrote, to be put back as they were (tests).
+    #[must_use]
     pub fn state(&self) -> State {
         State { overrides: self.overrides.clone(), files: self.files.clone(), written: self.written.clone() }
     }
 
     pub fn restore(&mut self, state: &State) {
-        self.overrides = state.overrides.clone();
-        self.files = state.files.clone();
-        self.written = state.written.clone();
+        self.overrides.clone_from(&state.overrides);
+        self.files.clone_from(&state.files);
+        self.written.clone_from(&state.written);
     }
 
     /// Write a setting of `persisted` into a file for good: its assignment replaced (an `export ` before it allowed,
@@ -504,6 +563,11 @@ impl Config {
     /// still wins.
     /// Several processes writing at once do not corrupt the file, but the last one's file is what stays. Returns the
     /// value as the setting's type.
+    ///
+    /// # Errors
+    ///
+    /// `UnknownKey` for no such setting, `NotPersisted` for a setting that is not to be written, `InvalidValue` for a
+    /// value that does not convert, `Io` when there is no file to write or it cannot be read or written.
     pub fn persist(&mut self, key: &str, raw: impl Into<Raw>, file: Option<&Path>) -> Result<Value> {
         let setting = self.setting(key)?;
         if !self.options.persisted.contains(key) {

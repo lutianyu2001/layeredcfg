@@ -32,8 +32,7 @@ fn find(hay: &[u8], needle: &[u8], from: usize) -> Option<usize> {
 /// What `\\` and `next` stand for inside `quote`s, nothing when they are no escape (both are then taken as they are).
 fn escape(quote: u8, next: u8) -> Option<u8> {
     match (quote, next) {
-        (b'\'', b'\\' | b'\'') => Some(next),
-        (b'"', b'\\' | b'\'' | b'"') => Some(next),
+        (b'\'', b'\\' | b'\'') | (b'"', b'\\' | b'\'' | b'"') => Some(next),
         (b'"', b'a') => Some(b'\x07'),
         (b'"', b'b') => Some(b'\x08'),
         (b'"', b'f') => Some(b'\x0c'),
@@ -52,7 +51,7 @@ struct Reader<'a> {
     /// The statements read so far, and where in them the latest of each name is, whose value `${NAME}` takes.
     statements: Vec<Assignment>,
     latest: BTreeMap<Vec<u8>, usize>,
-    /// The bytes `${NAME}` has put into values so far, up to EXPANDED_AT_MOST.
+    /// The bytes `${NAME}` has put into values so far, up to `EXPANDED_AT_MOST`.
     expanded: usize,
 }
 
@@ -181,7 +180,7 @@ impl<'a> Reader<'a> {
     }
 
     /// ${NAME} and ${NAME:-default}, as python-dotenv takes them: a name of anything but `}` and `:`.
-    /// Nothing once the values would have more than EXPANDED_AT_MOST bytes of what it puts in: `A=${A}${A}` on line
+    /// Nothing once the values would have more than `EXPANDED_AT_MOST` bytes of what it puts in: `A=${A}${A}` on line
     /// after line doubles A each time.
     fn expand(&mut self, value: Vec<u8>) -> Option<Vec<u8>> {
         if find(&value, b"${", 0).is_none() {
@@ -264,7 +263,7 @@ impl<'a> Reader<'a> {
 }
 
 /// The assignments of a file, in order (a later one of a name wins). What it reads:
-///   - a UTF-8 byte order mark at the start; lines ended by \n, \r\n or \r; whitespace as Python's str.isspace()
+///   - a UTF-8 byte order mark at the start; lines ended by \n, \r\n or \r; whitespace as Python's `str.isspace()`
 ///     takes it (python-dotenv's \s), U+3000 and the others beyond ASCII too;
 ///   - blank lines and lines that begin with `#`; an `export ` before a name;
 ///   - unquoted values, ending at the line's end or at a `#` after whitespace, stripped (`NAME= # note` is empty);
@@ -282,6 +281,7 @@ pub fn parse(text: &[u8], lookup: Lookup<'_>) -> Vec<Assignment> {
 
 /// `value` written so that `parse` reads it back as it is: bare when it has nothing a reader would take apart, else
 /// single-quoted.
+#[must_use]
 pub fn quote(value: &[u8]) -> Vec<u8> {
     let safe = |c: &u8| c.is_ascii_alphanumeric() || b"_.,:/@+=-%~".contains(c);
     if value.iter().all(safe) {
@@ -303,6 +303,7 @@ pub fn quote(value: &[u8]) -> Vec<u8> {
 /// than so, the line written as one statement and the others as before: a quote that is never closed (whose line the
 /// reader leaves out) would take in the line written, or part of it, and every line between, if what is written has
 /// that quote.
+#[must_use]
 pub fn replace(text: &[u8], name: &[u8], written: &[u8]) -> Option<Vec<u8>> {
     let line = [name, b"=", written, b"\n"].concat();
     // The statements the text is to be read with, in order: their names, and where the line written is.

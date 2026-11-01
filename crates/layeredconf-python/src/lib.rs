@@ -97,7 +97,7 @@ fn error_to_python(py: Python<'_>, error: &layeredconf::Error) -> PyErr {
         },
         None => py.None(),
     };
-    let expected = error.expected().map(|ty| ty.name());
+    let expected = error.expected().map(layeredconf::Type::name);
     Error::new_err((kind_name(error.kind()), error.key().to_owned(), raw, expected, error.message().to_owned()))
 }
 
@@ -144,7 +144,8 @@ impl Config {
         defaults, *, prefix = String::new(), files = Vec::new(), write_file = None, root = None,
         file_only = BTreeSet::new(), persisted = BTreeSet::new(), secret = BTreeSet::new(), get = None
     ))]
-    #[allow(clippy::too_many_arguments)]
+    // PyO3 takes the files as a list into a Vec.
+    #[allow(clippy::too_many_arguments, clippy::needless_pass_by_value)]
     fn new(
         py: Python<'_>,
         defaults: &Bound<'_, PyAny>,
@@ -190,7 +191,7 @@ impl Config {
     }
 
     fn r#type(&self, py: Python<'_>, key: &str) -> PyResult<&'static str> {
-        done(py, &self.failure, self.core.type_of(key)).map(|ty| ty.name())
+        done(py, &self.failure, self.core.type_of(key)).map(layeredconf::Type::name)
     }
 
     fn default<'py>(&self, py: Python<'py>, key: &str) -> PyResult<Bound<'py, PyAny>> {
@@ -206,7 +207,7 @@ impl Config {
     }
 
     fn source(&self, py: Python<'_>, key: &str) -> PyResult<&'static str> {
-        done(py, &self.failure, self.core.source(key)).map(|source| source.name())
+        done(py, &self.failure, self.core.source(key)).map(layeredconf::Source::name)
     }
 
     fn shown<'py>(&self, py: Python<'py>, key: &str) -> PyResult<Bound<'py, PyAny>> {

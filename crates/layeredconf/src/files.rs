@@ -39,6 +39,7 @@ fn spare_suffix() -> String {
     let mut n = hasher.finish();
     (0..6)
         .map(|_| {
+            #[allow(clippy::cast_possible_truncation)] // less than the number of letters
             let letter = LETTERS[(n % LETTERS.len() as u64) as usize];
             n /= LETTERS.len() as u64;
             char::from(letter)
@@ -75,7 +76,7 @@ pub(crate) fn replace_file(given: &Path, text: &[u8]) -> Result<()> {
         let spare = PathBuf::from(name);
         match OpenOptions::new().write(true).create_new(true).mode(0o600).open(&spare) {
             Ok(file) => break (spare, file),
-            Err(error) if error.kind() == io::ErrorKind::AlreadyExists => continue,
+            Err(error) if error.kind() == io::ErrorKind::AlreadyExists => {}
             Err(error) => {
                 return Err(Error::new(
                     ErrorKind::Io,

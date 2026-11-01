@@ -3,13 +3,15 @@
 //! Whitespace is what Python's str.isspace() takes, beyond ASCII too (U+3000, U+00A0 and the others), and digits are
 //! Unicode's decimal digits (８, ٣), both as the unicodedata of the Python the library was built with has them.
 
+use std::fmt::Write;
+
 include!(concat!(env!("OUT_DIR"), "/unicode_table.rs"));
 
 /// The code of bytes that are no UTF-8 character.
 pub(crate) const NOT_UTF8: u32 = u32::MAX;
 
 pub(crate) struct Decoded {
-    /// NOT_UTF8 when the bytes are no UTF-8 character.
+    /// `NOT_UTF8` when the bytes are no UTF-8 character.
     pub(crate) code: u32,
     /// In bytes, 1 for bytes that are no character.
     pub(crate) length: usize,
@@ -18,6 +20,7 @@ pub(crate) struct Decoded {
 /// The UTF-8 character at `at`: no overlong forms, no surrogates, nothing past U+10FFFF.
 pub(crate) fn decode(s: &[u8], at: usize) -> Decoded {
     const BAD: Decoded = Decoded { code: NOT_UTF8, length: 1 };
+    const LEAST: [u32; 5] = [0, 0, 0x80, 0x800, 0x10000];
     let Some(&c) = s.get(at) else { return BAD };
     let length = if c < 0x80 {
         1
@@ -45,8 +48,7 @@ pub(crate) fn decode(s: &[u8], at: usize) -> Decoded {
         }
         code = (code << 6) | u32::from(next & 0x3F);
     }
-    const LEAST: [u32; 5] = [0, 0, 0x80, 0x800, 0x10000];
-    if code < LEAST[length] || (0xD800..=0xDFFF).contains(&code) || code > 0x10FFFF {
+    if code < LEAST[length] || (0xD800..=0xDFFF).contains(&code) || code > 0x0010_FFFF {
         return BAD;
     }
     Decoded { code, length }
@@ -57,8 +59,8 @@ fn decimal(code: u32) -> Option<u8> {
     u8::try_from(code - digit_zero(code)?).ok()
 }
 
-/// The text as Python's int() and float() read it: a whitespace character beyond ASCII made a space and a decimal
-/// digit beyond ASCII the ASCII digit of its value (Python's _PyUnicode_TransformDecimalAndSpaceToASCII); nothing
+/// The text as Python's `int()` and `float()` read it: a whitespace character beyond ASCII made a space and a decimal
+/// digit beyond ASCII the ASCII digit of its value (Python's `_PyUnicode_TransformDecimalAndSpaceToASCII`); nothing
 /// when there is another character beyond ASCII, which neither reads.
 fn ascii_number(s: &[u8]) -> Option<Vec<u8>> {
     // Written into one allocation of the text's length (no character becomes more than one byte) rather than pushed,
@@ -82,8 +84,8 @@ fn ascii_number(s: &[u8]) -> Option<Vec<u8>> {
     Some(out)
 }
 
-/// The whitespace int() and float() take off that text (Python's Py_ISSPACE: not \x1c to \x1f, which str.isspace()
-/// takes).
+/// The whitespace `int()` and `float()` take off that text (Python's `Py_ISSPACE`: not \x1c to \x1f, which
+/// `str.isspace()` takes).
 fn is_number_space(c: u8) -> bool {
     matches!(c, b' ' | b'\t' | b'\n' | b'\r' | b'\x0c' | b'\x0b')
 }
@@ -131,6 +133,7 @@ fn sign(s: &[u8], at: &mut usize) -> bool {
 }
 
 /// The length in bytes of the whitespace character at `at`, 0 if there is none there.
+#[must_use]
 pub fn space_at(s: &[u8], at: usize) -> usize {
     if at >= s.len() {
         return 0;
@@ -139,7 +142,7 @@ pub fn space_at(s: &[u8], at: usize) -> usize {
     if is_space(c.code) { c.length } else { 0 }
 }
 
-/// Where the text is without whitespace at both ends, as Python's str.strip() takes it off.
+/// Where the text is without whitespace at both ends, as Python's `str.strip()` takes it off.
 fn strip_range(s: &[u8]) -> std::ops::Range<usize> {
     // In one pass, each character decoded once: from the first that is not whitespace to past the last.
     let mut kept: Option<std::ops::Range<usize>> = None;
@@ -154,18 +157,21 @@ fn strip_range(s: &[u8]) -> std::ops::Range<usize> {
     kept.unwrap_or(s.len()..s.len())
 }
 
-/// As Python's str.strip(): whitespace off both ends.
+/// As Python's `str.strip()`: whitespace off both ends.
+#[must_use]
 pub fn strip(s: &[u8]) -> &[u8] {
     &s[strip_range(s)]
 }
 
 /// As `strip`, for text that is UTF-8.
+#[must_use]
 pub fn strip_str(s: &str) -> &str {
     &s[strip_range(s.as_bytes())]
 }
 
-/// As Python's int(s) in base 10: whitespace around (but for \x1c to \x1f, which int() does not take), a sign, digits
+/// As Python's int(s) in base 10: whitespace around (but for \x1c to \x1f, which `int()` does not take), a sign, digits
 /// with single underscores between them. Past the range of a 64-bit integer is no value.
+#[must_use]
 pub fn parse_int(raw: &[u8]) -> Option<i64> {
     let ascii = ascii_number(raw)?;
     let s = strip_number(&ascii);
@@ -181,9 +187,10 @@ pub fn parse_int(raw: &[u8]) -> Option<i64> {
     if negative { 0i64.checked_sub_unsigned(magnitude) } else { i64::try_from(magnitude).ok() }
 }
 
-/// As Python's float(s): whitespace around (as for int()), a sign, digits with an optional point and exponent
+/// As Python's float(s): whitespace around (as for `int()`), a sign, digits with an optional point and exponent
 /// (underscores between digits), or inf, infinity, nan in any case. A number too large is infinite and one too small
 /// zero, as in Python.
+#[must_use]
 pub fn parse_float(raw: &[u8]) -> Option<f64> {
     let ascii = ascii_number(raw)?;
     let s = strip_number(&ascii);
@@ -227,11 +234,13 @@ pub fn parse_float(raw: &[u8]) -> Option<f64> {
 }
 
 /// Whether the bytes are UTF-8 (the text of every layer must be).
+#[must_use]
 pub fn valid_utf8(s: &[u8]) -> bool {
     std::str::from_utf8(s).is_ok()
 }
 
 /// 1, true, yes, on and 0, false, no, off or nothing, in any case; anything else is no boolean.
+#[must_use]
 pub fn parse_bool(raw: &[u8]) -> Option<bool> {
     match strip(raw).to_ascii_lowercase().as_slice() {
         b"1" | b"true" | b"yes" | b"on" => Some(true),
@@ -259,6 +268,7 @@ pub(crate) fn comma_separated(s: &str) -> impl Iterator<Item = &str> {
 
 /// As Python's repr(float): the shortest digits that read back as the same number, written without an exponent from
 /// 1e-4 up to 1e16 (with a ".0" when there is no point), with one (e+16, e-05) otherwise; inf, -inf, nan.
+#[must_use]
 pub fn format_float(value: f64) -> String {
     if value.is_nan() {
         return "nan".to_owned();
@@ -281,10 +291,10 @@ pub fn format_float(value: f64) -> String {
             out += &digits;
         } else if point >= count {
             out += &digits;
-            out.extend(std::iter::repeat_n('0', (point - count) as usize));
+            out.extend(std::iter::repeat_n('0', (point - count).unsigned_abs() as usize));
             out += ".0";
         } else {
-            let (whole, fraction) = digits.split_at(point as usize);
+            let (whole, fraction) = digits.split_at(point.unsigned_abs() as usize);
             out += whole;
             out += ".";
             out += fraction;
@@ -296,7 +306,8 @@ pub fn format_float(value: f64) -> String {
             out += ".";
             out += rest;
         }
-        out += &format!("e{}{:02}", if exponent < 0 { '-' } else { '+' }, exponent.unsigned_abs());
+        // Writing to a String does not fail.
+        let _ = write!(out, "e{}{:02}", if exponent < 0 { '-' } else { '+' }, exponent.unsigned_abs());
     }
     out
 }

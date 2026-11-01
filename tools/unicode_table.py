@@ -48,7 +48,7 @@ def table() -> str:
     return (
         f"// Written by tools/unicode_table.py from Python's unicodedata (Unicode {unicodedata.unidata_version}); "
         "not to be edited.\n\n"
-        "/// Whether str.isspace() takes the character for whitespace.\n"
+        "/// Whether `str.isspace()` takes the character for whitespace.\n"
         "pub(crate) fn is_space(code: u32) -> bool {\n"
         f"    matches!(\n        code,\n        {space_arms}\n    )\n}}\n\n"
         "/// The zero of the run of ten decimal digits the character is in, nothing for a character that is no digit.\n"

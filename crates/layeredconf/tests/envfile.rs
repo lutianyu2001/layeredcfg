@@ -1,5 +1,8 @@
 //! Env-style files: reading them, and replacing one name's line.
 
+// The helpers of the tests fail the test they are called from by panicking, as the tests do.
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
 use std::collections::BTreeMap;
 
 use layeredconf::envfile::{parse, quote, replace};

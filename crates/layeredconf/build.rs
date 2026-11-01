@@ -6,6 +6,8 @@ use std::env;
 use std::path::PathBuf;
 use std::process::Command;
 
+// Cargo sets both for a build script, which fails by panicking.
+#[allow(clippy::expect_used)]
 fn main() {
     let manifest = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR"));
     let script = manifest.join("../../tools/unicode_table.py");

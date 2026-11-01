@@ -1,4 +1,4 @@
-//! Text to values and back, held to what Python's int(), float() and repr() give.
+//! Text to values and back, held to what Python's `int()`, `float()` and `repr()` give.
 
 use layeredconf::text::{format_float, parse_bool, parse_float, parse_int, space_at, split_list, strip, valid_utf8};
 
@@ -16,7 +16,7 @@ fn integers_are_read_as_python_int_reads_them() {
     assert_eq!(int("  -7\n"), Some(-7));
     assert_eq!(int("+0"), Some(0));
     assert_eq!(int("007"), Some(7));
-    assert_eq!(int("1_000_000"), Some(1000000));
+    assert_eq!(int("1_000_000"), Some(1_000_000));
     assert_eq!(int("9223372036854775807"), Some(i64::MAX));
     assert_eq!(int("-9223372036854775808"), Some(i64::MIN));
     for bad in ["", " ", "4x", "84x0", "1.5", "_1", "1_", "1__0", "--1", "0x10", "1 2", "9223372036854775808"] {
@@ -63,7 +63,7 @@ fn digits_and_whitespace_beyond_ascii_are_read_as_python_reads_them() {
     assert_eq!(int("\u{A0}5\u{3000}"), Some(5)); // a no-break space and an ideographic space around
     assert_eq!(int("\u{2028}5\u{85}"), Some(5));
     assert_eq!(float("５.５"), Some(5.5));
-    assert_eq!(float("１e５"), Some(100000.0));
+    assert_eq!(float("１e５"), Some(100_000.0));
     assert_eq!(float("٣.٥"), Some(3.5));
     assert_eq!(float("\u{3000}-０.５\u{3000}"), Some(-0.5));
     // No other character beyond ASCII (full-width signs, points and letters, a superscript, zero-width and byte order

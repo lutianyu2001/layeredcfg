@@ -11,3 +11,10 @@ nix = { version = "0.31.3", default-features = false, features = ["user"] }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+unwrap_used = "warn"
+expect_used = "warn"
+# assert!(x.is_empty()) reads better than an assert_eq! with an empty array of a type spelt out.
+assert_is_empty = "allow"
