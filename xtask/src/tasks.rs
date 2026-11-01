@@ -30,8 +30,8 @@ pub const FUZZ_SECONDS: u64 = 3600;
 const MEMORY: u64 = 4 << 30;
 /// The cap of a proof without `RUST_XTASK_MEMORY`: the larger of 4G and 1.5 times the largest peak of memory.peak of a
 /// proof (scope and all), measured with `RUST_XTASK_MEMORY=16G cargo xtask kani --no-record`; to be measured again
-/// when the proofs change.
-const KANI_MEMORY: u64 = 16 << 30;
+/// when the proofs change. The largest was 10.8 GiB (`parse_int_is_exact_past_u64`, 2026-11-01), 16.2 GiB times 1.5.
+const KANI_MEMORY: u64 = 17 << 30;
 
 /// Whether `task` runs under a cap of memory.
 pub fn heavy(task: &str) -> bool {
