@@ -11,3 +11,7 @@ version = "0.1.0"
 edition = "2024"
 license = "Apache-2.0"
 rust-version = "1.99"
+
+# An integer that overflows panics, in the wheel too, instead of wrapping.
+[profile.release]
+overflow-checks = true
