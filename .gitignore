@@ -4,3 +4,10 @@
 __pycache__/
 *.egg-info/
 /target/
+# The audit's locks and the runs under way; the results in audit/ are committed.
+/audit/lock
+/audit/budget
+/audit/.running/
+# Left by cargo kani list when it stops before xtask moves it, and by fuzzing with -jobs from the root.
+/kani-list.json
+/fuzz-*.log

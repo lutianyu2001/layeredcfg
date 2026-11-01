@@ -1,423 +1,218 @@
 //! The audit of layeredconf, apart from its build and its tests: `cargo xtask <task>`.
 //!
-//! The tools and the nightly Rust the audit needs are pinned in tools.rs, so that every machine runs the same versions,
-//! and `cargo xtask setup` installs them. The heavy tasks run one at a time, each in a systemd user scope whose memory
-//! is capped, so that one going too far is killed alone and not the machine. The logs, and a line a task in
-//! summary.txt, go to target/audit/.
+//! The tools and the nightly Rust the audit needs are pinned in pins.rs, so that every machine runs the same versions,
+//! and `cargo xtask setup` installs them. The heavy tasks run in a systemd user scope whose memory is capped, so that
+//! one going too far is killed alone and not the machine; one task at a time unless asked otherwise. The latest run of
+//! each task is kept in audit/<task>/, committed with the code (see record.rs).
 
 mod json;
+mod lock;
 mod outdated;
+mod pins;
+mod record;
 mod run;
-mod tools;
+mod setup;
+mod tasks;
 
-use std::collections::BTreeSet;
-use std::fs;
-use std::path::Path;
-use std::process::{Command, ExitCode};
-use std::thread;
-use std::time::Instant;
+use std::env;
+use std::process::ExitCode;
 
-use run::{Log, Result, audit_dir, capped, cargo, record, root, timed};
-use tools::NIGHTLY;
+use record::Run;
+use run::{Result, has_scope, no_scope, root};
+use setup::TASKS;
 
 const USAGE: &str = "\
-usage: cargo xtask <task>
+usage: cargo xtask <task> [--no-record] [--if-needed]
 
-tasks:
-  setup [task…]             install the pinned tools the tasks need (of every task by default)
-  deny                      cargo deny: advisories, licenses, duplicates, sources
-  vet                       cargo vet: every dependency audited or exempted
-  geiger                    cargo geiger: the unsafe code of the dependencies
-  miri                      the tests of layeredconf under Miri
-  coverage                  branch coverage of the tests of layeredconf
-  kani [harness…]           the Kani proofs, one at a time (every one by default)
-  fuzz [seconds] [target…]  the fuzz targets side by side (every one, for an hour, by default)
-  all                       each of deny, vet, geiger, miri, coverage, kani and fuzz in turn
-  outdated [--vulns]        the pinned versions due an upgrade, with an advisory or a month behind a release
+tasks, each recorded in audit/<task>/:
+  deny                 cargo deny: advisories, licenses, duplicates, sources; of the fuzz targets too
+  vet                  cargo vet: every dependency audited or exempted
+  geiger               cargo geiger: the unsafe code of the dependencies, counted
+  miri                 the tests of layeredconf under Miri
+  coverage             branch coverage of the tests of layeredconf
+  kani [harness…]      the Kani proofs, one at a time (some only with --no-record)
+  fuzz [seconds] [target…]
+                       the fuzz targets side by side, for an hour (otherwise only with --no-record)
+  all                  deny, vet, geiger, miri, coverage, kani and fuzz in turn
+
+  --no-record          run on any working tree, into target/audit/<task>/, audit/ left as it is
+  --if-needed          skip a task whose recorded results still hold
+
+and:
+  status               the latest result of each task, and whether it still holds
+  needed <task>        why the task is to run (exit 0) or not (exit 1); 2 for an error
+  setup [task…]        install the pinned tools the tasks need (of every task by default)
+  outdated [--vulns]   the pinned versions due an upgrade: with an advisory, or a month behind a release
 
 environment:
-  RUST_XTASK_MEMORY          cap of memory of a heavy task (16G for a proof, 6G Miri, 8G coverage, 9G the fuzzing)
-  RUST_XTASK_NO_SCOPE        run the heavy tasks without a systemd scope
+  RUST_XTASK_MEMORY          cap of memory of a heavy task (4G; Kani's is in tasks.rs)
+  RUST_XTASK_FUZZ_MEMORY     cap of the fuzz targets together (1280M for each at once)
+  RUST_XTASK_JOBS            fuzz targets at once (every one)
+  RUST_XTASK_PARALLEL=1      let tasks run side by side while their caps fit in the memory
+  RUST_XTASK_NO_SCOPE=1      run the heavy tasks without a cap (in CI)
   RUST_XTASK_VULNS_EVERY     days between the checks for advisories the other tasks make (1)
-  RUST_XTASK_RELEASES_EVERY  days between their checks for releases (7)
-
-Logs and summary.txt are in target/audit/.";
-
-/// The crate the tests, proofs and coverage are of; the binding is a cdylib on the C API of Python, which Miri cannot
-/// run and which the Python tests cover.
-const CORE: &str = "layeredconf";
-/// The tests write files and read the environment.
-const MIRI_FLAGS: &str = "-Zmiri-disable-isolation";
-const KANI_TIMEOUT: &str = "1800s";
-/// For each fuzz target: workers side by side, the memory of each, and how long one input may take.
-const FUZZ_FLAGS: [&str; 4] = ["-jobs=2", "-workers=2", "-rss_limit_mb=1024", "-timeout=10"];
-const FUZZ_SECONDS: u64 = 3600;
+  RUST_XTASK_RELEASES_EVERY  days between their checks for releases (7)";
 
 fn main() -> ExitCode {
-    let args: Vec<String> = std::env::args().skip(1).collect();
-    let Some((task, rest)) = args.split_first() else {
+    if let Err(error) = env::set_current_dir(root()) {
+        eprintln!("xtask: cannot go to {}: {error}", root().display());
+        return ExitCode::FAILURE;
+    }
+    let args: Vec<String> = env::args().skip(1).collect();
+    let Some((command, rest)) = args.split_first() else {
         println!("{USAGE}");
         return ExitCode::SUCCESS;
     };
-    let ran = match task.as_str() {
-        "setup" => tools::setup(rest).map(|()| true),
-        "outdated" => match rest {
-            [] => outdated::outdated(false),
-            [vulns] if vulns == "--vulns" => outdated::outdated(true),
-            _ => Err("usage: cargo xtask outdated [--vulns]".into()),
+    let ran: Result<u8> = match command.as_str() {
+        "setup" => lock::audit(false).and_then(|_lock| setup::setup(rest)).map(|()| 0),
+        "outdated" => outdated(rest),
+        "status" => record::status(tasks::arguments).map(|()| 0),
+        "needed" => match rest {
+            [task] if TASKS.contains(&task.as_str()) => {
+                record::tree().map(|tree| match record::holds(task, &tasks::arguments(task), &tree) {
+                    Ok(why) => {
+                        println!("{task}: not needed: {why}");
+                        1
+                    }
+                    Err(why) => {
+                        println!("{task}: needed: {why}");
+                        0
+                    }
+                })
+            }
+            _ => Err(format!("usage: cargo xtask needed <task>, a task of {}", TASKS.join(", ")).into()),
         }
-        .map(|current| {
-            if !current {
-                // Nobody to ask: a failure CI shows.
-                std::process::exit(2);
-            }
-            true
+        .or_else(|error| {
+            eprintln!("xtask needed: {error}");
+            Ok(2)
         }),
-        "deny" | "vet" | "geiger" | "miri" | "coverage" | "kani" | "fuzz" | "all" => match lock() {
-            Ok(_lock) => {
-                outdated::notice();
-                if task == "all" { Ok(all()) } else { audit(task, rest) }
-            }
-            Err(error) => Err(error),
-        },
-        "fuzz-targets" => fuzz_targets(rest),
+        "__scope-probe" => run::scope_probe().map(|()| 0),
+        "__kani-harness" => tasks::kani_harness(rest).map(|code| u8::try_from(code).unwrap_or(1)),
+        "__fuzz-targets" => tasks::fuzz_targets(rest).map(|ok| u8::from(!ok)),
         "help" | "-h" | "--help" => {
             println!("{USAGE}");
-            Ok(true)
+            Ok(0)
         }
-        _ => Err(format!("no task {task}\n\n{USAGE}").into()),
+        task if task == "all" || TASKS.contains(&task) => audit(task, rest),
+        _ => Err(format!("no task {command}\n\n{USAGE}").into()),
     };
     match ran {
-        Ok(true) => ExitCode::SUCCESS,
-        Ok(false) => ExitCode::FAILURE,
+        Ok(code) => ExitCode::from(code),
         Err(error) => {
-            eprintln!("xtask {task}: {error}");
+            eprintln!("xtask {command}: {error}");
             ExitCode::FAILURE
         }
     }
 }
 
-/// Held while a task runs, so that two do not run at once (a proof and the fuzzing would want 25 GB together).
-fn lock() -> Result<fs::File> {
-    let path = audit_dir()?.join("lock");
-    let file = fs::OpenOptions::new().create(true).truncate(false).write(true).open(&path)?;
-    match file.try_lock() {
-        Ok(()) => Ok(file),
-        Err(fs::TryLockError::WouldBlock) => {
-            Err(format!("another task of the audit is running (it holds {})", path.display()).into())
+fn outdated(args: &[String]) -> Result<u8> {
+    let vulns = match args {
+        [] => false,
+        [flag] if flag == "--vulns" => true,
+        _ => return Err("usage: cargo xtask outdated [--vulns]".into()),
+    };
+    let lock = lock::audit(false)?;
+    let (code, upgraded) = outdated::outdated(vulns)?;
+    if upgraded {
+        // Let go first: setup takes the lock. Through cargo, so that xtask is built again with the versions now
+        // pinned.
+        drop(lock);
+        println!("outdated: installing the versions now pinned");
+        let status = run::cargo(None, &["xtask", "setup"]).status()?;
+        if !status.success() {
+            return Err(format!("cargo xtask setup failed: {status}").into());
         }
-        Err(fs::TryLockError::Error(error)) => Err(error.into()),
     }
+    Ok(code)
 }
 
-/// Runs a task of the audit if what it needs is installed; whether it passed.
-fn audit(task: &str, args: &[String]) -> Result<bool> {
-    let missing = tools::missing(task);
+/// A task of the audit, or all of them in turn: 0 if each succeeded or was skipped.
+fn audit(task: &str, args: &[String]) -> Result<u8> {
+    let recorded = !args.iter().any(|arg| arg == "--no-record");
+    let if_needed = args.iter().any(|arg| arg == "--if-needed");
+    let args: Vec<String> = args.iter().filter(|arg| *arg != "--no-record" && *arg != "--if-needed").cloned().collect();
+    // A word misspelled would be taken for no option at all, and a run recorded that was not to be.
+    if let Some(unknown) = args.iter().find(|arg| arg.starts_with('-')) {
+        return Err(format!("no option {unknown}").into());
+    }
+    if if_needed && !recorded {
+        return Err("--if-needed asks whether the recorded results hold, and --no-record records none".into());
+    }
+    if task == "all" && !args.is_empty() {
+        return Err("all takes no arguments".into());
+    }
+    // Held to the end, all's every task under it.
+    let _lock = lock::audit(lock::parallel())?;
+    outdated::notice();
+    if no_scope() {
+        println!("xtask: RUST_XTASK_NO_SCOPE=1: the heavy tasks run without a cap of memory");
+    }
+    let chosen: Vec<&'static str> = TASKS.iter().copied().filter(|name| task == "all" || *name == task).collect();
+    let mut ok = true;
+    for task in chosen {
+        ok &= attempt(task, &args, recorded, if_needed);
+    }
+    Ok(u8::from(!ok))
+}
+
+/// One task: skipped if its results hold and `if_needed`, refused if a check before it fails, run otherwise. Whether
+/// it succeeded or was skipped; says which in a line.
+fn attempt(task: &'static str, args: &[String], recorded: bool, if_needed: bool) -> bool {
+    let say = |what: &str| println!("xtask: {task}: {what}");
+    let refuse = |why: &str| {
+        say(&format!("refused: {why}"));
+        false
+    };
+    if if_needed {
+        match record::tree().map(|tree| record::holds(task, &tasks::arguments(task), &tree)) {
+            Ok(Ok(why)) => {
+                say(&format!("skipped: {why}"));
+                return true;
+            }
+            Ok(Err(_)) => {}
+            Err(error) => return refuse(&format!("cannot tell whether its results hold: {error}")),
+        }
+    }
+    let missing = setup::missing(task);
     if !missing.is_empty() {
-        return Err(format!("{}; cargo xtask setup {task} installs it", missing.join("; ")).into());
+        return refuse(&format!("{}; cargo xtask setup {task} installs it", missing.join("; ")));
     }
-    match task {
-        "deny" => deny(),
-        "vet" => vet(),
-        "geiger" => geiger(),
-        "miri" => miri(),
-        "coverage" => coverage(),
-        "kani" => kani(args),
-        "fuzz" => fuzz(args),
-        _ => unreachable!("main gives only tasks"),
+    match record::uncommitted() {
+        Ok(Some(why)) if recorded => return refuse(&format!("{why}; commit them, or run with --no-record")),
+        Ok(_) => {}
+        Err(error) => return refuse(&error.to_string()),
     }
-}
-
-/// Every task in turn, the next after one that fails too.
-fn all() -> bool {
-    let mut failed = Vec::new();
-    for task in ["deny", "vet", "geiger", "miri", "coverage", "kani", "fuzz"] {
-        println!("== {task}");
-        match audit(task, &[]) {
-            Ok(true) => {}
-            Ok(false) => failed.push(task),
-            Err(error) => {
-                record(task, &format!("not run: {error}"));
-                failed.push(task);
-            }
-        }
+    match record::lock_tracked() {
+        Ok(true) => {}
+        Ok(false) => return refuse("Cargo.lock is not tracked by git, and the results tell by it what was built"),
+        Err(error) => return refuse(&error.to_string()),
     }
-    record("all", &if failed.is_empty() { "passed".to_owned() } else { format!("failed: {}", failed.join(", ")) });
-    failed.is_empty()
-}
-
-/// Records how a task of one command went.
-fn outcome(task: &str, passed: bool, log: &Log) -> bool {
-    let verdict = if passed { "passed" } else { "FAILED" };
-    record(task, &format!("{verdict} ({})", log.path().display()));
-    passed
-}
-
-fn deny() -> Result<bool> {
-    let log = Log::create(audit_dir()?.join("deny.log"))?;
-    let main = log.run(cargo(None, &["deny", "--locked", "check"]), true)?;
-    // The fuzz targets are not built by a user of the library, but are built and run here; their dependencies (libFuzzer
-    // is C++ built from source) are checked before.
-    let fuzz = log.run(
-        cargo(None, &["deny", "--locked", "--manifest-path", "fuzz/Cargo.toml", "check", "advisories", "sources"]),
-        true,
-    )?;
-    Ok(outcome("deny", main.success() && fuzz.success(), &log))
-}
-
-fn vet() -> Result<bool> {
-    let log = Log::create(audit_dir()?.join("vet.log"))?;
-    let status = log.run(cargo(None, &["vet", "--locked"]), true)?;
-    Ok(outcome("vet", status.success(), &log))
-}
-
-fn geiger() -> Result<bool> {
-    let log = Log::create(audit_dir()?.join("geiger.log"))?;
-    // From the binding, whose dependencies are all those of the library and more.
-    let mut command = cargo(None, &["geiger", "--locked", "--offline"]);
-    command.current_dir(root().join("crates/layeredconf-python"));
-    log.run(command, false)?;
-    // cargo geiger 0.14 ends in failure for files it did not scan (the README the crates include): it ran if it wrote
-    // its table. A count to read, not a check that passes or fails.
-    let ran = log.text().contains("Metric output format");
-    let verdict = if ran { "counted" } else { "FAILED" };
-    record("geiger", &format!("{verdict} ({})", log.path().display()));
-    Ok(ran)
-}
-
-fn miri() -> Result<bool> {
-    let log = Log::create(audit_dir()?.join("miri.log"))?;
-    let mut command = cargo(Some(NIGHTLY), &["miri", "test", "--locked", "-p", CORE]);
-    command.env("MIRIFLAGS", MIRI_FLAGS);
-    let status = log.run(capped(command, "6G"), true)?;
-    Ok(outcome("miri", status.success(), &log))
-}
-
-fn coverage() -> Result<bool> {
-    let dir = audit_dir()?.join("coverage");
-    let log = Log::create(audit_dir()?.join("coverage.log"))?;
-    let test = cargo(Some(NIGHTLY), &["llvm-cov", "--branch", "--locked", "-p", CORE, "--summary-only"]);
-    let mut passed = log.run(capped(test, "8G"), true)?.success();
-    if passed {
-        let mut html = cargo(Some(NIGHTLY), &["llvm-cov", "report", "--branch", "-p", CORE, "--html", "--output-dir"]);
-        html.arg(&dir);
-        passed = log.run(html, false)?.success();
-        if passed {
-            println!(
-                "coverage: the lines and branches not run are marked in {}",
-                dir.join("html/index.html").display()
-            );
-        }
-    }
-    Ok(outcome("coverage", passed, &log))
-}
-
-/// The harnesses of the proofs, from the source.
-fn harnesses() -> Result<Vec<String>> {
-    let source = fs::read_to_string(root().join("crates/layeredconf/src/proofs.rs"))?;
-    let mut harnesses = Vec::new();
-    let mut proof = false;
-    for line in source.lines().map(str::trim) {
-        if line == "#[kani::proof]" {
-            proof = true;
-        } else if let Some(name) =
-            ["fn ", "pub fn ", "pub(crate) fn "].iter().find_map(|prefix| line.strip_prefix(prefix)).filter(|_| proof)
-        {
-            harnesses.push(name.split('(').next().unwrap_or(name).to_owned());
-            proof = false;
-        }
-    }
-    Ok(harnesses)
-}
-
-fn kani(only: &[String]) -> Result<bool> {
-    let every = harnesses()?;
-    if every.is_empty() {
-        return Err("no #[kani::proof] in crates/layeredconf/src/proofs.rs".into());
-    }
-    if let Some(unknown) = only.iter().find(|name| !every.contains(name)) {
-        return Err(format!("no harness {unknown}; there are {}", every.join(", ")).into());
-    }
-    let dir = audit_dir()?.join("kani");
-    fs::create_dir_all(&dir)?;
-    let mut failed = 0;
-    let chosen: Vec<&String> = every.iter().filter(|name| only.is_empty() || only.contains(name)).collect();
-    for harness in &chosen {
-        let log = Log::create(dir.join(format!("{harness}.log")))?;
-        let full = format!("proofs::{harness}");
-        let mut command = cargo(None, &["kani", "-p", CORE, "--harness", &full, "--exact", "--output-format", "terse"]);
-        command.args(["-Z", "unstable-options", "--harness-timeout", KANI_TIMEOUT]);
-        let started = Instant::now();
-        let status = log.run(capped(timed(command), "16G"), false)?;
-        let text = log.text();
-        let verdict = if status.success() && text.contains("VERIFICATION:- SUCCESSFUL") {
-            "proved"
-        } else if text.contains("timed out") {
-            "TIMED OUT"
-        } else if text.contains("Command terminated by signal") || status.code().is_none() {
-            "KILLED (past the cap of memory?)"
-        } else {
-            "FAILED"
-        };
-        failed += usize::from(verdict != "proved");
-        let memory = run::peak_memory(&text).map(|peak| format!(", {peak}")).unwrap_or_default();
-        record("kani", &format!("{full}: {verdict} in {}s{memory}", started.elapsed().as_secs()));
-    }
-    record("kani", &format!("{} of {} proved ({})", chosen.len() - failed, chosen.len(), dir.display()));
-    Ok(failed == 0)
-}
-
-fn fuzz(args: &[String]) -> Result<bool> {
-    let (seconds, only) = match args.split_first().and_then(|(first, rest)| Some((first.parse::<u64>().ok()?, rest))) {
-        // libFuzzer takes 0 seconds for no limit.
-        Some((0, _)) => return Err("fuzz for 0 seconds would fuzz without end".into()),
-        Some((seconds, rest)) => (seconds, rest),
-        None => (FUZZ_SECONDS, args),
-    };
-    let fuzz_dir = root().join("fuzz");
-    let fuzz_dir_arg = fuzz_dir.to_string_lossy().into_owned();
-    warn_if_locks_differ(&root().join("Cargo.lock"), &fuzz_dir.join("Cargo.lock"));
-    let dir = audit_dir()?.join("fuzz");
-    fs::create_dir_all(&dir)?;
-    let build = Log::create(dir.join("build.log"))?;
-    if !build.run(cargo(Some(NIGHTLY), &["fuzz", "build", "--fuzz-dir", &fuzz_dir_arg]), true)?.success() {
-        return Ok(outcome("fuzz", false, &build));
-    }
-    let listed = cargo(Some(NIGHTLY), &["fuzz", "list", "--fuzz-dir", &fuzz_dir_arg]).output()?;
-    let every: Vec<String> = String::from_utf8_lossy(&listed.stdout).lines().map(str::to_owned).collect();
-    if !listed.status.success() || every.is_empty() {
-        return Err(format!("cargo fuzz list found no target ({})", listed.status).into());
-    }
-    if let Some(unknown) = only.iter().find(|name| !every.contains(name)) {
-        return Err(format!("no fuzz target {unknown}; there are {}", every.join(", ")).into());
-    }
-    let targets: Vec<&String> = every.iter().filter(|name| only.is_empty() || only.contains(name)).collect();
-    let before = artifacts(&fuzz_dir);
-    let names: Vec<&str> = targets.iter().map(|target| target.as_str()).collect();
-    println!("fuzz: {} for {seconds}s each, side by side", names.join(", "));
-    // Every target in one scope, so that the cap is on the fuzzing as a whole: this program again, inside it.
-    let mut side_by_side = Command::new(std::env::current_exe()?);
-    side_by_side.arg("fuzz-targets").arg(seconds.to_string()).args(&names);
-    Log::create(dir.join("run.log"))?.run(capped(side_by_side, "9G"), false)?;
-    let found: Vec<String> = artifacts(&fuzz_dir).difference(&before).cloned().collect();
-    let mut passed = true;
-    for target in &targets {
-        let work = dir.join(target);
-        let status = fs::read_to_string(work.join("main.log"))
-            .ok()
-            .and_then(|log| log.lines().last().map(str::to_owned))
-            .unwrap_or_else(|| "[not run]".to_owned());
-        let failures: Vec<&String> = found
-            .iter()
-            .filter(|path| path.starts_with(&format!("{target}/")) && !path.contains("/slow-unit-"))
-            .collect();
-        let ok = status == "[exit status: 0]" && failures.is_empty();
-        passed &= ok;
-        let mut line = format!("{target}: {} ({} runs, {status})", if ok { "passed" } else { "FAILED" }, runs(&work));
-        for failure in failures {
-            line += "; fuzz/artifacts/";
-            line += failure;
-        }
-        record("fuzz", &line);
-    }
-    for slow in found.iter().filter(|path| path.contains("/slow-unit-")) {
-        record("fuzz", &format!("slow input fuzz/artifacts/{slow} (a busy machine makes them too)"));
-    }
-    Ok(passed)
-}
-
-/// `cargo xtask fuzz-targets <seconds> <target>…`, which `fuzz` runs inside the scope: the targets side by side, each
-/// from a directory of its own (each worker writes fuzz-N.log where it runs), its output and status in main.log.
-fn fuzz_targets(args: &[String]) -> Result<bool> {
-    let (seconds, targets) = args.split_first().ok_or("fuzz-targets <seconds> <target>…")?;
-    let fuzz_dir_arg = root().join("fuzz").to_string_lossy().into_owned();
-    let dir = audit_dir()?.join("fuzz");
-    let statuses = thread::scope(|scope| {
-        let running: Vec<_> = targets
-            .iter()
-            .map(|target| {
-                let work = dir.join(target);
-                let fuzz_dir_arg = &fuzz_dir_arg;
-                scope.spawn(move || -> Result<_> {
-                    fs::create_dir_all(&work)?;
-                    for old in fs::read_dir(&work)?
-                        .flatten()
-                        .filter(|entry| entry.file_name().to_string_lossy().starts_with("fuzz-"))
-                    {
-                        fs::remove_file(old.path())?;
-                    }
-                    let log = Log::create(work.join("main.log"))?;
-                    let mut command = cargo(Some(NIGHTLY), &["fuzz", "run", "--fuzz-dir", fuzz_dir_arg, target, "--"]);
-                    command.arg(format!("-max_total_time={seconds}")).args(FUZZ_FLAGS).current_dir(&work);
-                    log.run(command, false)
-                })
-            })
-            .collect();
-        running
-            .into_iter()
-            .map(|handle| handle.join().is_ok_and(|status| status.is_ok_and(|s| s.success())))
-            .collect::<Vec<_>>()
-    });
-    Ok(statuses.into_iter().all(|ok| ok))
-}
-
-/// The files under fuzz/artifacts/, as "target/name".
-fn artifacts(fuzz_dir: &Path) -> BTreeSet<String> {
-    let mut found = BTreeSet::new();
-    for target in fs::read_dir(fuzz_dir.join("artifacts")).into_iter().flatten().flatten() {
-        for file in fs::read_dir(target.path()).into_iter().flatten().flatten() {
-            found.insert(format!("{}/{}", target.file_name().to_string_lossy(), file.file_name().to_string_lossy()));
-        }
-    }
-    found
-}
-
-/// The inputs the workers of a target ran, from their "Done N runs" lines.
-fn runs(work: &Path) -> u64 {
-    let logs = fs::read_dir(work)
-        .into_iter()
-        .flatten()
-        .flatten()
-        .filter(|entry| entry.file_name().to_string_lossy().starts_with("fuzz-"));
-    logs.filter_map(|entry| fs::read_to_string(entry.path()).ok())
-        .flat_map(|text| {
-            text.lines()
-                .filter_map(|line| line.strip_prefix("Done ")?.split(' ').next()?.parse::<u64>().ok())
-                .collect::<Vec<_>>()
-        })
-        .sum()
-}
-
-/// The fuzz workspace has a lock of its own, started from the main one so that the crates both have are those a user
-/// builds; says so when they differ.
-fn warn_if_locks_differ(main: &Path, fuzz: &Path) {
-    let packages = |path: &Path| -> BTreeSet<(String, String)> {
-        let text = fs::read_to_string(path).unwrap_or_default();
-        let mut found = BTreeSet::new();
-        let mut name = None;
-        for line in text.lines() {
-            if let Some(value) = line.strip_prefix("name = ") {
-                name = Some(value.trim_matches('"').to_owned());
-            } else if let (Some(value), Some(named)) = (line.strip_prefix("version = "), name.take()) {
-                found.insert((named, value.trim_matches('"').to_owned()));
-            }
-        }
-        found
-    };
-    let (main, fuzz) = (packages(main), packages(fuzz));
-    let differ: Vec<String> = fuzz
-        .iter()
-        .filter(|(name, version)| {
-            main.iter().any(|(other, at)| other == name && at != version)
-                && !main.contains(&(name.clone(), version.clone()))
-        })
-        .map(|(name, version)| format!("{name} {version}"))
-        .collect();
-    if !differ.is_empty() {
-        println!(
-            "fuzz: fuzz/Cargo.lock has {} at other versions than Cargo.lock; to align it: \
-             cp Cargo.lock fuzz/ && (cd fuzz && cargo metadata --offline > /dev/null)",
-            differ.join(", ")
+    if tasks::heavy(task) && !no_scope() && !has_scope() {
+        return refuse(
+            "no usable memory-limited scope (systemd user scope with MemoryMax); RUST_XTASK_NO_SCOPE=1 runs without one",
         );
     }
+    let plan = match tasks::plan(task, args, recorded) {
+        Ok(Ok(plan)) => plan,
+        Ok(Err(why)) => return refuse(&why),
+        Err(error) => return refuse(&error.to_string()),
+    };
+    let _held = match lock::task(task, plan.cap) {
+        Ok(Ok(held)) => held,
+        Ok(Err(why)) => return refuse(&why),
+        Err(error) => return refuse(&error.to_string()),
+    };
+    let run = match Run::start(task, plan.arguments(), recorded) {
+        Ok(run) => run,
+        Err(error) => return refuse(&format!("cannot start a run: {error}")),
+    };
+    let outcome = tasks::run(&plan, &run);
+    match run.finish(&outcome) {
+        Ok(line) => say(&line),
+        Err(error) => {
+            say(&format!("failed: cannot record the run: {error}"));
+            return false;
+        }
+    }
+    outcome.is_ok()
 }

@@ -7,12 +7,13 @@ this is a library, and `Cargo.lock` (committed) pins every crate's version and c
 
 | Command | What it checks | Configuration |
 |---|---|---|
-| `cargo xtask deny` | `cargo deny check`: known vulnerabilities and unmaintained or yanked crates (RustSec), licenses, duplicate crates, sources; and for the fuzz workspace, vulnerabilities and sources | `deny.toml` |
+| `cargo xtask deny` | `cargo deny --workspace check` (xtask too): known vulnerabilities and unmaintained or yanked crates (RustSec), licenses, duplicate crates, sources; and for the fuzz workspace, vulnerabilities and sources | `deny.toml` |
 | `cargo xtask vet` | `cargo vet`: that every crate is audited, by an audit of this project or one imported from another organisation, or exempted | `supply-chain/` |
 | `cargo xtask geiger` | `cargo geiger` in `crates/layeredconf-python`: how much `unsafe` code each crate has and uses | none |
 
-`cargo xtask setup` installs these tools at the versions `xtask/src/tools.rs` pins, and `cargo xtask outdated` says
-when one is due an upgrade (a known vulnerability in it, or a release a month later than it). `xtask/` is a member of
+`cargo xtask setup` installs these tools at the versions `xtask/src/pins.rs` pins, and `cargo xtask outdated` says
+when one is due an upgrade (a known vulnerability in it, or a latest release that came out a month or more after it,
+with a release a week old to upgrade to). `xtask/` is a member of
 the workspace with no dependency but the standard library, so it adds no crate to `Cargo.lock`; it is not a default
 member, so that `cargo build` and `cargo test` do not build it, and it is not in the package. It asks crates.io and
 [OSV](https://osv.dev) about the versions through `curl`.

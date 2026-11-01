@@ -1,7 +1,7 @@
-//! Running the tools: from where, under what cap of memory, with their output kept, and the date.
+//! Running the tools: from where, under what cap of memory, with their output kept; and the time.
 
 use std::env;
-use std::fs::{self, File, OpenOptions};
+use std::fs::{self, File};
 use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus, Stdio};
@@ -11,24 +11,25 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
-/// The root of the repository.
+/// The root of the workspace, which is that of the repository too; xtask works from it.
 pub fn root() -> &'static Path {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().expect("xtask is a directory of the repository")
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap_or(Path::new("/"))
 }
 
-/// target/audit/, where the logs go.
-pub fn audit_dir() -> Result<PathBuf> {
-    let dir = root().join("target/audit");
+/// The directory `path` names under the root, made if it is not there.
+pub fn dir(path: &str) -> Result<PathBuf> {
+    let dir = root().join(path);
     fs::create_dir_all(&dir)?;
     Ok(dir)
 }
 
-/// cargo, run from the root, with the toolchain given (the one rust-toolchain.toml pins if None).
+/// cargo, with the toolchain given (the one rust-toolchain.toml pins if None).
 pub fn cargo(toolchain: Option<&str>, args: &[&str]) -> Command {
     let mut command = Command::new("cargo");
-    // The rustup proxy, not the cargo that runs xtask (CARGO), so that +toolchain works; and without the toolchain
-    // rustup may have set for xtask.
-    command.env_remove("RUSTUP_TOOLCHAIN").current_dir(root());
+    // The rustup proxy runs xtask with the toolchain rust-toolchain.toml pins in these, which come before that file
+    // and so would pin every cargo run from here, of another directory too, and every tool cargo install builds.
+    // +toolchain comes before them.
+    command.env_remove("RUSTUP_TOOLCHAIN").env_remove("RUSTUP_TOOLCHAIN_SOURCE");
     if let Some(toolchain) = toolchain {
         command.arg(format!("+{toolchain}"));
     }
@@ -36,123 +37,175 @@ pub fn cargo(toolchain: Option<&str>, args: &[&str]) -> Command {
     command
 }
 
-/// `command` in a systemd user scope whose memory is capped at `memory` (or `RUST_XTASK_MEMORY`), without swap, so that
-/// going past it kills the command alone; as it is where there is no such scope.
-pub fn capped(command: Command, memory: &str) -> Command {
-    if !has_scope() {
-        return command;
-    }
-    let memory = env::var("RUST_XTASK_MEMORY").unwrap_or_else(|_| memory.to_owned());
-    let mut scope = Command::new("systemd-run");
-    scope.args(["--user", "--scope", "--quiet", "-p"]).arg(format!("MemoryMax={memory}"));
-    scope.args(["-p", "MemorySwapMax=0", "--"]);
-    around(scope, &command)
+/// Whether the heavy tasks run without a cap, as `RUST_XTASK_NO_SCOPE=1` asks (in CI, where a runner is a machine of
+/// its own).
+pub fn no_scope() -> bool {
+    env::var("RUST_XTASK_NO_SCOPE").is_ok_and(|value| value == "1")
 }
 
-fn has_scope() -> bool {
+/// This program, to run again inside a scope: as /proc/<pid>/exe, which is the program this process runs while it
+/// lives, though cargo builds xtask anew meanwhile (any `cargo xtask` after a change of its source does), which
+/// deletes the file it was started from and makes `current_exe()` a path to nothing.
+pub fn this() -> PathBuf {
+    PathBuf::from(format!("/proc/{}/exe", std::process::id()))
+}
+
+/// What the cap of a scope is set to, to see from inside that it caps.
+const PROBE: u64 = 1 << 30;
+
+/// Whether there is a systemd user scope that caps memory.
+pub fn has_scope() -> bool {
     static HAS: OnceLock<bool> = OnceLock::new();
     *HAS.get_or_init(|| {
-        if env::var_os("RUST_XTASK_NO_SCOPE").is_some() {
-            return false;
-        }
         // A scope may start and still not cap anything (cgroup v1, or no memory controller given to the user's
-        // manager): the cap must be seen from inside.
-        let works = Command::new("systemd-run")
-            .args(["--user", "--scope", "--quiet", "-p", "MemoryMax=64M", "--", "sh", "-c"])
-            .arg("cat /sys/fs/cgroup$(cut -d: -f3 /proc/self/cgroup)/memory.max")
+        // manager): the cap must be seen from inside, which this program reads there.
+        let mut probe = Command::new(this());
+        probe.arg("__scope-probe");
+        scoped(&probe, PROBE, false)
             .stderr(Stdio::null())
             .output()
-            .is_ok_and(|output| output.status.success() && output.stdout.trim_ascii() == b"67108864");
-        if !works {
-            eprintln!("xtask: no systemd user scope that caps memory here, so the heavy tasks run without a cap");
-        }
-        works
+            .is_ok_and(|output| output.status.success() && output.stdout.trim_ascii() == PROBE.to_string().as_bytes())
     })
 }
 
-/// `/usr/bin/time -v command`, to have the peak of memory in the log, if there is such a program.
-pub fn timed(command: Command) -> Command {
-    let time = Path::new("/usr/bin/time");
-    if !time.exists() {
-        return command;
-    }
-    let mut timed = Command::new(time);
-    timed.arg("-v");
-    around(timed, &command)
+/// `cargo xtask __scope-probe`, run in a scope: prints the cap of memory of the cgroup it is in.
+pub fn scope_probe() -> Result<()> {
+    println!("{}", fs::read_to_string(cgroup()?.join("memory.max"))?.trim());
+    Ok(())
 }
 
-/// `outer` running `command`, in the environment and the directory of `command`.
-fn around(mut outer: Command, command: &Command) -> Command {
-    outer.arg(command.get_program()).args(command.get_args());
+/// The directory of the cgroup (v2) this process is in.
+pub fn cgroup() -> Result<PathBuf> {
+    let line = fs::read_to_string("/proc/self/cgroup")?;
+    // "0::/user.slice/…/run-r1234.scope"
+    let path = line.lines().find_map(|line| line.strip_prefix("0::")).ok_or("no cgroup v2 in /proc/self/cgroup")?;
+    Ok(Path::new("/sys/fs/cgroup").join(path.trim_start_matches('/')))
+}
+
+/// `command` in a systemd user scope whose memory is capped at `bytes`, without swap, so that going past it kills the
+/// command alone; as it is when `RUST_XTASK_NO_SCOPE=1`. With `oom_continue`, an OOM kills the largest process alone
+/// (systemd's default stops the whole scope), so that what is left may say how far the memory went.
+pub fn capped(command: Command, bytes: u64, oom_continue: bool) -> Command {
+    if no_scope() { command } else { scoped(&command, bytes, oom_continue) }
+}
+
+fn scoped(command: &Command, bytes: u64, oom_continue: bool) -> Command {
+    let mut scope = Command::new("systemd-run");
+    scope.args(["--user", "--scope", "--quiet", "-p"]).arg(format!("MemoryMax={bytes}"));
+    scope.args(["-p", "MemorySwapMax=0"]);
+    if oom_continue {
+        scope.args(["-p", "OOMPolicy=continue"]);
+    }
+    scope.arg("--");
+    scope.arg(command.get_program()).args(command.get_args());
     for (name, value) in command.get_envs() {
         match value {
-            Some(value) => outer.env(name, value),
-            None => outer.env_remove(name),
+            Some(value) => scope.env(name, value),
+            None => scope.env_remove(name),
         };
     }
     if let Some(dir) = command.get_current_dir() {
-        outer.current_dir(dir);
+        scope.current_dir(dir);
     }
-    outer
+    scope
 }
 
-/// The peak of memory `/usr/bin/time -v` wrote into `log`, as "2.1 GB".
-pub fn peak_memory(log: &str) -> Option<String> {
-    let kilobytes: u64 =
-        log.lines().find_map(|line| line.trim().strip_prefix("Maximum resident set size (kbytes): "))?.parse().ok()?;
-    #[allow(clippy::cast_precision_loss)] // as a figure to read
-    Some(format!("{:.1} GB", kilobytes as f64 / 1_048_576.0))
+/// Bytes from a size written as systemd writes it: "4G", "1536M", "800K", or bytes; powers of 1024.
+pub fn bytes(size: &str) -> Option<u64> {
+    let size = size.trim();
+    let (number, shift) = match size.as_bytes().last()? {
+        b'K' => (&size[..size.len() - 1], 10),
+        b'M' => (&size[..size.len() - 1], 20),
+        b'G' => (&size[..size.len() - 1], 30),
+        b'T' => (&size[..size.len() - 1], 40),
+        _ => (size, 0),
+    };
+    if number.is_empty() || !number.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    number.parse::<u64>().ok()?.checked_mul(1 << shift)
+}
+
+/// `bytes` to read: "4.0 GiB", "84 MiB".
+pub fn size(bytes: u64) -> String {
+    #[allow(clippy::cast_precision_loss)] // a figure to read
+    let mib = bytes as f64 / 1_048_576.0;
+    if mib >= 1024.0 { format!("{:.1} GiB", mib / 1024.0) } else { format!("{mib:.0} MiB") }
+}
+
+/// The cap a task has from `RUST_XTASK_MEMORY`, else `default`.
+pub fn memory(default: u64) -> Result<u64> {
+    match env::var("RUST_XTASK_MEMORY") {
+        Ok(value) => Ok(bytes(&value).ok_or_else(|| format!("RUST_XTASK_MEMORY={value} is no size (4G, 1536M)"))?),
+        Err(_) => Ok(default),
+    }
 }
 
 /// A log file, which every command run with it writes its output into.
 pub struct Log {
-    path: PathBuf,
     file: Arc<Mutex<File>>,
+    echo: bool,
 }
 
 impl Log {
-    /// The log at `path`, emptied.
-    pub fn create(path: PathBuf) -> Result<Log> {
-        let file = Arc::new(Mutex::new(File::create(&path)?));
-        Ok(Log { path, file })
+    /// The log at `path`, emptied; what is run with it goes onto the terminal as well if `echo`.
+    pub fn create(path: &Path, echo: bool) -> Result<Log> {
+        Ok(Log { file: Arc::new(Mutex::new(File::create(path)?)), echo })
     }
 
-    pub fn path(&self) -> &Path {
-        &self.path
+    /// Writes a line into the log, and onto the terminal.
+    pub fn say(&self, line: &str) {
+        println!("{line}");
+        let _ = writeln!(lock(&self.file), "{line}");
     }
 
-    pub fn text(&self) -> String {
-        fs::read_to_string(&self.path).unwrap_or_default()
+    /// Runs `command` until it ends, its output going into the log.
+    pub fn run(&self, command: Command) -> Result<ExitStatus> {
+        Ok(self.capture(command, false)?.0)
     }
 
-    /// Runs `command` until it ends, its output going into the log and, if `echo`, onto the terminal as well.
-    pub fn run(&self, mut command: Command, echo: bool) -> Result<ExitStatus> {
+    /// Runs `command` until it ends, its output going into the log, and its standard output into `out` as well.
+    pub fn run_into(&self, command: Command, out: &Path) -> Result<ExitStatus> {
+        let (status, stdout) = self.capture(command, true)?;
+        fs::write(out, stdout)?;
+        Ok(status)
+    }
+
+    fn capture(&self, mut command: Command, keep: bool) -> Result<(ExitStatus, Vec<u8>)> {
         writeln!(lock(&self.file), "$ {}", shown(&command))?;
         let mut child = command.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn()?;
-        let out = child.stdout.take().map(|from| self.copy(from, echo.then(|| Box::new(io::stdout()) as Box<_>)));
-        let err = child.stderr.take().map(|from| self.copy(from, echo.then(|| Box::new(io::stderr()) as Box<_>)));
+        let echo = self.echo;
+        let out = child.stdout.take().map(|from| self.copy(from, echo.then(|| Box::new(io::stdout()) as _), keep));
+        let err = child.stderr.take().map(|from| self.copy(from, echo.then(|| Box::new(io::stderr()) as _), false));
         let status = child.wait()?;
+        let mut kept = Vec::new();
         for copying in [out, err].into_iter().flatten() {
-            let _ = copying.join();
+            kept.extend(copying.join().unwrap_or_default());
         }
         writeln!(lock(&self.file), "[{status}]")?;
-        Ok(status)
+        Ok((status, kept))
     }
 
     fn copy(
         &self,
         mut from: impl Read + Send + 'static,
         mut echo: Option<Box<dyn Write + Send>>,
-    ) -> thread::JoinHandle<()> {
+        keep: bool,
+    ) -> thread::JoinHandle<Vec<u8>> {
         let file = Arc::clone(&self.file);
         thread::spawn(move || {
+            let mut kept = Vec::new();
             let mut buffer = [0; 8192];
             while let Ok(n @ 1..) = from.read(&mut buffer) {
                 let _ = lock(&file).write_all(&buffer[..n]);
                 if let Some(echo) = echo.as_mut() {
                     let _ = echo.write_all(&buffer[..n]).and_then(|()| echo.flush());
                 }
+                if keep {
+                    kept.extend_from_slice(&buffer[..n]);
+                }
             }
+            kept
         })
     }
 }
@@ -167,17 +220,9 @@ fn shown(command: &Command) -> String {
     words.join(" ")
 }
 
-/// Says how a task went, and adds it to target/audit/summary.txt.
-pub fn record(task: &str, outcome: &str) {
-    println!("{task}: {outcome}");
-    let line = format!("{} {task}: {outcome}\n", now());
-    let written = audit_dir().and_then(|dir| {
-        let mut summary = OpenOptions::new().create(true).append(true).open(dir.join("summary.txt"))?;
-        Ok(summary.write_all(line.as_bytes())?)
-    });
-    if let Err(error) = written {
-        eprintln!("xtask: cannot add to the summary: {error}");
-    }
+/// Seconds since 1970-01-01 00:00 UTC.
+pub fn seconds() -> i64 {
+    SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |since| i64::try_from(since.as_secs()).unwrap_or(0))
 }
 
 /// Days since 1970-01-01, in UTC.
@@ -185,14 +230,18 @@ pub fn today() -> i64 {
     seconds() / 86_400
 }
 
-fn seconds() -> i64 {
-    SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |since| i64::try_from(since.as_secs()).unwrap_or(0))
+/// A time as "2026-10-29 14:05:09 UTC".
+pub fn time(seconds: i64) -> String {
+    let (day, second) = (seconds.div_euclid(86_400), seconds.rem_euclid(86_400));
+    format!("{} {:02}:{:02}:{:02} UTC", date(day), second / 3600, second % 3600 / 60, second % 60)
 }
 
-/// The time now, as "2026-10-29 14:05 UTC".
-pub fn now() -> String {
-    let seconds = seconds();
-    format!("{} {:02}:{:02} UTC", date(seconds / 86_400), seconds % 86_400 / 3600, seconds % 3600 / 60)
+/// The seconds since 1970 of a time `time` wrote.
+pub fn parse_time(text: &str) -> Option<i64> {
+    let clock = text.get(11..19)?;
+    let mut fields = clock.split(':').map(|field| field.parse::<i64>().ok());
+    let (hour, minute, second) = (fields.next()??, fields.next()??, fields.next()??);
+    Some(day(text)? * 86_400 + hour * 3600 + minute * 60 + second)
 }
 
 /// "YYYY-MM-DD" of a day since 1970-01-01.
@@ -240,11 +289,20 @@ mod tests {
         }
         assert_eq!(day("2026-13-01"), None);
         assert_eq!(day("nightly"), None);
+        let now = seconds();
+        assert_eq!(parse_time(&time(now)), Some(now));
+        assert_eq!(time(86_399), "1970-01-01 23:59:59 UTC");
     }
 
     #[test]
-    fn peak_memory_reads_time() {
-        assert_eq!(peak_memory("\tMaximum resident set size (kbytes): 2179252\n").as_deref(), Some("2.1 GB"));
-        assert_eq!(peak_memory("nothing"), None);
+    fn sizes_as_systemd_writes_them() {
+        assert_eq!(bytes("4G"), Some(4 << 30));
+        assert_eq!(bytes("1536M"), Some(1536 << 20));
+        assert_eq!(bytes("1024"), Some(1024));
+        for wrong in ["", "G", "4g", "-1G", "1.5G", "99999999999999999999T"] {
+            assert_eq!(bytes(wrong), None, "{wrong}");
+        }
+        assert_eq!(size(84 << 20), "84 MiB");
+        assert_eq!(size(16 << 30), "16.0 GiB");
     }
 }

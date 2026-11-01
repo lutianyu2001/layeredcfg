@@ -1,5 +1,5 @@
-//! When a pinned version is due an upgrade: one with a known vulnerability at once, one a month older than a release of
-//! its tool, a nightly a month old.
+//! When a pinned version is due an upgrade: one with a known vulnerability at once; one when the latest release of its
+//! tool came out a month or more after it, and there is a release to upgrade to; a nightly a month old.
 
 use std::env;
 use std::fs;
@@ -10,21 +10,25 @@ use std::thread;
 use std::time::Duration;
 
 use crate::json::{self, Value};
+use crate::pins::{NIGHTLY, TOOLS, Tool};
 use crate::run::{self, Result, date, day, today};
-use crate::tools::{self, NIGHTLY, TOOLS, Tool};
+use crate::setup;
 
 /// Who asks, as crates.io wants to know: the project, without an address of mail.
 const USER_AGENT: &str = "layeredconf-xtask (https://github.com/lutianyu2001/layeredconf)";
-/// How much older than a release, or how old for a nightly, a pinned version may be.
+/// How much later than the pinned version the latest release must have come out, or how old a nightly must be, for
+/// it to be due.
 const MONTH: i64 = 30;
-/// How old a release must be to be upgraded to.
+/// How old a release must be to be upgraded to (one to be withdrawn, or a crate taken over, is mostly found out by
+/// then), and how old the nightly upgraded to is (a nightly's regressions are mostly mended by then).
 const WEEK: i64 = 7;
 
+/// A pinned version due an upgrade.
 struct Due {
     /// The crate, or "Rust" for the nightly.
     what: String,
     from: String,
-    /// What to upgrade to, if there is something.
+    /// What to upgrade to, if there is something; there is for all but a version with a vulnerability.
     to: Option<String>,
     why: String,
 }
@@ -33,36 +37,49 @@ impl Due {
     fn line(&self) -> String {
         match &self.to {
             Some(to) => format!("{} {} → {to}: {}", self.what, self.from, self.why),
-            None => format!("{} {}: {} (no release to upgrade to yet)", self.what, self.from, self.why),
+            None => format!("{} {}: {}, and no release to upgrade to yet", self.what, self.from, self.why),
         }
     }
 }
 
-/// `cargo xtask outdated [--vulns]`: says what is due and, in a terminal, upgrades what the user agrees to. Ok(false)
-/// when something is due that was not upgraded since nobody could be asked.
-pub fn outdated(vulns_only: bool) -> Result<bool> {
-    let mut due = Vec::new();
+/// What the checks found: the versions due, and lines about those that are not due though there is a newer release.
+#[derive(Default)]
+struct Found {
+    due: Vec<Due>,
+    notes: Vec<String>,
+}
+
+/// `cargo xtask outdated [--vulns]`: says what is due and, in a terminal, upgrades what the user agrees to, writing it
+/// into pins.rs. The exit code, and whether something was upgraded (for setup to install). Exit 2 for what is due and
+/// was not asked about, nobody being there, or has a vulnerability and nothing to upgrade to.
+pub fn outdated(vulns_only: bool) -> Result<(u8, bool)> {
+    let mut found = Found::default();
     for tool in TOOLS {
-        due.extend(check(tool, !vulns_only)?);
+        check(tool, !vulns_only, &mut found)?;
     }
     stamp("vulns");
     if !vulns_only {
-        due.extend(nightly_due());
+        found.due.extend(nightly_due());
         stamp("releases");
     }
-    if due.is_empty() {
+    for note in &found.notes {
+        println!("outdated: {note}");
+    }
+    if found.due.is_empty() {
         println!("outdated: no pinned version is due an upgrade");
-        return Ok(true);
+        return Ok((0, false));
     }
-    for due in &due {
-        println!("{}", due.line());
+    for due in &found.due {
+        println!("outdated: {}", due.line());
     }
+    // Nothing to upgrade to: CI is to stay red until there is.
+    let stuck = found.due.iter().any(|due| due.to.is_none());
     if !io::stdin().is_terminal() {
-        return Ok(false);
+        return Ok((2, false));
     }
-    let path = run::root().join("xtask/src/tools.rs");
+    let path = run::root().join("xtask/src/pins.rs");
     let mut upgraded = false;
-    for due in &due {
+    for due in &found.due {
         let Some(to) = &due.to else { continue };
         let source = fs::read_to_string(&path)?;
         let pinned = if due.what == "Rust" {
@@ -78,12 +95,15 @@ pub fn outdated(vulns_only: bool) -> Result<bool> {
             continue;
         }
         let new = if due.what == "Rust" {
-            // A nightly may lack a component (Miri breaks now and then): then the one of a day before.
-            let Some(toolchain) = (1..=7)
+            // Installed before it is written: a nightly may lack a component (Miri breaks now and then), and then the
+            // one of a day before is tried, up to a week before.
+            let Some(toolchain) = (WEEK..=2 * WEEK)
                 .map(|back| format!("nightly-{}", date(today() - back)))
-                .find(|toolchain| tools::install_nightly(toolchain))
+                .find(|toolchain| setup::install_nightly(toolchain))
             else {
-                eprintln!("outdated: no nightly of the past week installs with the components needed; {NIGHTLY} stays");
+                eprintln!(
+                    "outdated: no nightly from {to} to a week before installs with the components needed; {NIGHTLY} stays"
+                );
                 continue;
             };
             format!("NIGHTLY: &str = \"{toolchain}\"")
@@ -92,22 +112,15 @@ pub fn outdated(vulns_only: bool) -> Result<bool> {
         };
         // Written at once, so that an upgrade agreed to stays when a later one goes wrong.
         fs::write(&path, source.replace(&pinned, &new))?;
+        println!("outdated: {} now pins {}", path.display(), new);
         upgraded = true;
     }
-    if upgraded {
-        println!("outdated: {} rewritten; installing the versions now pinned", path.display());
-        // A new xtask, built with the new constants.
-        let status = run::cargo(None, &["xtask", "setup"]).status()?;
-        if !status.success() {
-            return Err(format!("cargo xtask setup failed: {status}").into());
-        }
-    }
-    Ok(true)
+    Ok((if stuck { 2 } else { 0 }, upgraded))
 }
 
-/// For the tasks other than outdated: when the last check is older than `RUST_XTASK_VULNS_EVERY` days (1 by default) for
-/// vulnerabilities, or `RUST_XTASK_RELEASES_EVERY` days (7) for releases, checks again and says in a line what is due.
-/// Silent when it cannot reach crates.io or OSV.
+/// For the tasks other than outdated: when the last check is older than `RUST_XTASK_VULNS_EVERY` days (1 by default)
+/// for vulnerabilities, or `RUST_XTASK_RELEASES_EVERY` days (7) for releases, checks again and says in a line what is
+/// due. Silent when it cannot reach crates.io or OSV.
 pub fn notice() {
     let vulns = stale("vulns", "RUST_XTASK_VULNS_EVERY", 1);
     let releases = stale("releases", "RUST_XTASK_RELEASES_EVERY", 7);
@@ -119,55 +132,73 @@ pub fn notice() {
     if releases {
         stamp("releases");
     }
-    let mut due = Vec::new();
+    let mut found = Found::default();
     for tool in TOOLS {
-        match check(tool, releases) {
-            Ok(found) => due.extend(found),
-            Err(_) => return,
+        if check(tool, releases, &mut found).is_err() {
+            return;
         }
     }
     if releases {
-        due.extend(nightly_due());
+        found.due.extend(nightly_due());
     }
-    for due in due {
+    for due in found.due {
         println!("xtask: {}; cargo xtask outdated to upgrade", due.line());
     }
 }
 
-/// Whether `tool` is due: a vulnerability always, if `releases` a release of a month later than the pinned one too.
-fn check(tool: Tool, releases: bool) -> Result<Option<Due>> {
+/// Whether `tool` is due: with a vulnerability always; if `releases`, when its latest release came out a month after
+/// it and there is a release to upgrade to (a note otherwise).
+fn check(tool: Tool, releases: bool, found: &mut Found) -> Result<()> {
     let vulns = vulnerabilities(tool.krate, tool.version)?;
     if vulns.is_empty() && !releases {
-        return Ok(None);
+        return Ok(());
     }
     let all = released(tool.krate)?;
-    let pinned = all.iter().find(|release| release.version == tool.version);
-    let newer = upgrade(tool, &all)?;
-    let due = |why: String| Due {
-        what: tool.krate.to_owned(),
-        from: tool.version.to_owned(),
-        to: newer.map(|release| release.version.clone()),
-        why,
-    };
+    let to = upgrade(tool, &all)?.map(|release| release.version.clone());
+    let due =
+        |why: String, to: Option<String>| Due { what: tool.krate.to_owned(), from: tool.version.to_owned(), to, why };
     if !vulns.is_empty() {
-        return Ok(Some(due(format!("known vulnerabilities {}", vulns.join(", ")))));
+        found.due.push(due(format!("known vulnerabilities {}", vulns.join(", ")), to));
+        return Ok(());
     }
-    Ok(match (pinned, newer) {
-        (Some(pinned), _) if pinned.yanked => Some(due("yanked".to_owned())),
-        (Some(pinned), Some(newer)) if newer.day - pinned.day >= MONTH => Some(due(format!(
-            "{} came out on {}, {} days after {}",
-            newer.version,
-            date(newer.day),
-            newer.day - pinned.day,
-            tool.version
-        ))),
-        _ => None,
-    })
+    let Some(pinned) = all.iter().find(|release| release.version == tool.version) else { return Ok(()) };
+    if pinned.yanked {
+        match to {
+            Some(to) => found.due.push(due("yanked".to_owned(), Some(to))),
+            None => {
+                found.notes.push(format!("{} {}: yanked, and no release to upgrade to yet", tool.krate, tool.version));
+            }
+        }
+        return Ok(());
+    }
+    // Of the releases: no pre-release, nothing yanked.
+    let latest = all
+        .iter()
+        .filter(|release| !release.yanked)
+        .filter_map(|release| Some((stable(&release.version)?, release)))
+        .max_by(|a, b| a.0.cmp(&b.0))
+        .map(|(_, release)| release);
+    let Some(latest) = latest.filter(|latest| latest.day - pinned.day >= MONTH) else { return Ok(()) };
+    let why = format!(
+        "{} came out on {}, {} days after {}",
+        latest.version,
+        date(latest.day),
+        latest.day - pinned.day,
+        tool.version
+    );
+    match to {
+        Some(to) => found.due.push(due(why, Some(to))),
+        None => found.notes.push(format!(
+            "{} {}: {why}, and there is no release to upgrade to yet: none newer is a week old, not yanked, x.y.z \
+             and without a known vulnerability",
+            tool.krate, tool.version
+        )),
+    }
+    Ok(())
 }
 
-/// The release to upgrade `tool` to: the latest one later than the pinned one that is at least a week old (a release
-/// that is to be withdrawn, or a crate taken over, is mostly found out by then), not yanked, a plain x.y.z, and with no
-/// vulnerability known.
+/// The release to upgrade `tool` to: the latest one later than the pinned one that is at least a week old, not
+/// yanked, a plain x.y.z, and with no vulnerability known.
 fn upgrade(tool: Tool, all: &[Release]) -> Result<Option<&Release>> {
     let Some(pinned) = stable(tool.version) else { return Ok(None) };
     let mut candidates: Vec<(Vec<u64>, &Release)> = all
@@ -185,18 +216,19 @@ fn upgrade(tool: Tool, all: &[Release]) -> Result<Option<&Release>> {
     Ok(None)
 }
 
-/// Whether a version is digits and two dots only, as it may be written into tools.rs.
+/// Whether a version is digits and two dots only, as it may be written into pins.rs.
 fn plain(version: &str) -> bool {
     let parts: Vec<&str> = version.split('.').collect();
     parts.len() == 3 && parts.iter().all(|part| !part.is_empty() && part.bytes().all(|b| b.is_ascii_digit()))
 }
 
+/// The nightly, if it is a month old: due an upgrade to the one of a week before today. Nothing is installed to tell.
 fn nightly_due() -> Option<Due> {
     let age = today() - day(NIGHTLY.strip_prefix("nightly-")?)?;
     (age >= MONTH).then(|| Due {
         what: "Rust".to_owned(),
         from: NIGHTLY.to_owned(),
-        to: Some(format!("nightly-{}", date(today() - 1))),
+        to: Some(format!("nightly-{}", date(today() - WEEK))),
         why: format!("{age} days old"),
     })
 }
@@ -249,7 +281,7 @@ fn vulnerabilities(krate: &str, version: &str) -> Result<Vec<String>> {
     Ok(vulns.iter().filter_map(|vuln| vuln.get("id").and_then(Value::as_str)).map(str::to_owned).collect())
 }
 
-/// The JSON at `url`, posting `body` if there is one, with curl.
+/// The JSON at `url`, posting `body` if there is one, with curl (no crate of the dependencies does HTTPS).
 fn fetch(url: &str, body: Option<&str>) -> Result<Value> {
     let mut command = Command::new("curl");
     command.args(["--silent", "--show-error", "--fail", "--location", "--proto", "=https", "--proto-redir", "=https"]);
@@ -276,8 +308,9 @@ fn ask(question: &str) -> Result<bool> {
     Ok(matches!(answer.trim(), "y" | "Y" | "yes"))
 }
 
+/// target/audit/checked-<kind>: losing it costs a check more.
 fn stamp_path(kind: &str) -> Option<PathBuf> {
-    run::audit_dir().ok().map(|dir| dir.join(format!("checked-{kind}")))
+    run::dir("target/audit").ok().map(|dir| dir.join(format!("checked-{kind}")))
 }
 
 /// Whether the last check of `kind` is older than the days `variable` says, or than `days`.
@@ -291,7 +324,7 @@ fn stale(kind: &str, variable: &str, days: u64) -> bool {
 
 fn stamp(kind: &str) {
     if let Some(path) = stamp_path(kind) {
-        let _ = fs::write(path, run::now());
+        let _ = fs::write(path, run::time(run::seconds()));
     }
 }
 
@@ -305,5 +338,6 @@ mod tests {
         assert_eq!(stable("1.1.8+spec-1.1.0"), Some(vec![1, 1, 8]));
         assert_eq!(stable("0.21.0-rc.1"), None);
         assert!(stable("0.10.0") > stable("0.9.12"));
+        assert!(plain("0.20.2") && !plain("0.20") && !plain("0.20.2+x") && !plain("1.2.3\""));
     }
 }
