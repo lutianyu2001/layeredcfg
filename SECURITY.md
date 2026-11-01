@@ -29,8 +29,9 @@ What it does not hold against is under [Design Decisions](#design-decisions).
 
 ## Checks
 
-The audit runs apart from the build and the tests, with `cargo xtask` (see the README); `target/audit/` keeps the
-logs. The versions of its tools are pinned in `xtask/src/tools.rs`.
+The audit runs apart from the build and the tests, with `cargo xtask` (see the README). The versions of its tools are
+pinned in `xtask/src/pins.rs`; the latest run of each check is committed in `audit/<task>/`, with the commit it ran at
+and whether it succeeded, and `cargo xtask status` says whether it still holds for the code as it is.
 
 | Check | What it covers | Command |
 |---|---|---|
