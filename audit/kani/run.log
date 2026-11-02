@@ -1,0 +1,656 @@
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani list --format json
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:41:20
+   |
+41 |         Some(c) => assert!(decoded.code == u32::from(c) && decoded.length == c.len_utf8()),
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:42:17
+   |
+42 |         None => assert!(decoded.code == NOT_UTF8 && decoded.length == 1),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (1)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:41:20
+   |
+41 |         Some(c) => assert!(decoded.code == u32::from(c) && decoded.length == c.len_utf8()),
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:42:17
+   |
+42 |         None => assert!(decoded.code == NOT_UTF8 && decoded.length == 1),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
+Wrote list results to ./kani-list.json
+[exit status: 0]
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::decode_past_the_end_is_no_character --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:41:20
+   |
+41 |         Some(c) => assert!(decoded.code == u32::from(c) && decoded.length == c.len_utf8()),
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:42:17
+   |
+42 |         None => assert!(decoded.code == NOT_UTF8 && decoded.length == 1),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (1)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
+[exit status: 0]
+kani: proofs::decode_past_the_end_is_no_character: succeeded, 1s, 81 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::decode_reads_utf8_as_the_standard_library_does --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:41:20
+   |
+41 |         Some(c) => assert!(decoded.code == u32::from(c) && decoded.length == c.len_utf8()),
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:42:17
+   |
+42 |         None => assert!(decoded.code == NOT_UTF8 && decoded.length == 1),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (1)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
+[exit status: 0]
+kani: proofs::decode_reads_utf8_as_the_standard_library_does: succeeded, 39s, 1.4 GiB
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::parse_bool_does_not_panic --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:41:20
+   |
+41 |         Some(c) => assert!(decoded.code == u32::from(c) && decoded.length == c.len_utf8()),
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:42:17
+   |
+42 |         None => assert!(decoded.code == NOT_UTF8 && decoded.length == 1),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (2)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
+[exit status: 0]
+kani: proofs::parse_bool_does_not_panic: succeeded, 16s, 661 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::parse_int_does_not_panic_or_overflow --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:41:20
+   |
+41 |         Some(c) => assert!(decoded.code == u32::from(c) && decoded.length == c.len_utf8()),
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:42:17
+   |
+42 |         None => assert!(decoded.code == NOT_UTF8 && decoded.length == 1),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (2)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
+[exit status: 0]
+kani: proofs::parse_int_does_not_panic_or_overflow: succeeded, 40s, 1.7 GiB
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::parse_int_is_exact_at_the_largest_i64 --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:41:20
+   |
+41 |         Some(c) => assert!(decoded.code == u32::from(c) && decoded.length == c.len_utf8()),
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:42:17
+   |
+42 |         None => assert!(decoded.code == NOT_UTF8 && decoded.length == 1),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (2)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
+[exit status: 0]
+kani: proofs::parse_int_is_exact_at_the_largest_i64: succeeded, 820s, 9.7 GiB
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::parse_int_is_exact_at_the_smallest_i64 --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:41:20
+   |
+41 |         Some(c) => assert!(decoded.code == u32::from(c) && decoded.length == c.len_utf8()),
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:42:17
+   |
+42 |         None => assert!(decoded.code == NOT_UTF8 && decoded.length == 1),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (2)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
+[exit status: 0]
+kani: proofs::parse_int_is_exact_at_the_smallest_i64: succeeded, 1404s, 9.7 GiB
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::parse_int_is_exact_past_u64 --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:41:20
+   |
+41 |         Some(c) => assert!(decoded.code == u32::from(c) && decoded.length == c.len_utf8()),
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:42:17
+   |
+42 |         None => assert!(decoded.code == NOT_UTF8 && decoded.length == 1),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (2)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
+[exit status: 0]
+kani: proofs::parse_int_is_exact_past_u64: succeeded, 1217s, 10.8 GiB
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::parse_int_is_exact_past_u64_negative --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:41:20
+   |
+41 |         Some(c) => assert!(decoded.code == u32::from(c) && decoded.length == c.len_utf8()),
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:42:17
+   |
+42 |         None => assert!(decoded.code == NOT_UTF8 && decoded.length == 1),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (2)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
+[exit status: 0]
+kani: proofs::parse_int_is_exact_past_u64_negative: succeeded, 1358s, 10.2 GiB
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::parse_int_reads_plain_numbers_as_the_standard_library_does --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:41:20
+   |
+41 |         Some(c) => assert!(decoded.code == u32::from(c) && decoded.length == c.len_utf8()),
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:42:17
+   |
+42 |         None => assert!(decoded.code == NOT_UTF8 && decoded.length == 1),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (2)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
+[exit status: 0]
+kani: proofs::parse_int_reads_plain_numbers_as_the_standard_library_does: succeeded, 145s, 2.5 GiB
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::space_at_stays_in_the_text --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:41:20
+   |
+41 |         Some(c) => assert!(decoded.code == u32::from(c) && decoded.length == c.len_utf8()),
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:42:17
+   |
+42 |         None => assert!(decoded.code == NOT_UTF8 && decoded.length == 1),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (1)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
+[exit status: 0]
+kani: proofs::space_at_stays_in_the_text: succeeded, 4s, 94 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::split_list_cuts_at_the_commas_and_nowhere_else --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:41:20
+   |
+41 |         Some(c) => assert!(decoded.code == u32::from(c) && decoded.length == c.len_utf8()),
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:42:17
+   |
+42 |         None => assert!(decoded.code == NOT_UTF8 && decoded.length == 1),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (1)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
+[exit status: 0]
+kani: proofs::split_list_cuts_at_the_commas_and_nowhere_else: succeeded, 103s, 2.1 GiB
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::strip_str_cuts_at_the_boundaries_of_characters --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:41:20
+   |
+41 |         Some(c) => assert!(decoded.code == u32::from(c) && decoded.length == c.len_utf8()),
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:42:17
+   |
+42 |         None => assert!(decoded.code == NOT_UTF8 && decoded.length == 1),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (1)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
+[exit status: 0]
+kani: proofs::strip_str_cuts_at_the_boundaries_of_characters: succeeded, 38s, 1.1 GiB
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::strip_takes_whitespace_off_once_and_for_all --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:41:20
+   |
+41 |         Some(c) => assert!(decoded.code == u32::from(c) && decoded.length == c.len_utf8()),
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> crates/layeredconf/src/proofs.rs:42:17
+   |
+42 |         None => assert!(decoded.code == NOT_UTF8 && decoded.length == 1),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (1)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
+[exit status: 0]
+kani: proofs::strip_takes_whitespace_off_once_and_for_all: succeeded, 52s, 907 MiB

@@ -1,0 +1,6 @@
+$ cargo deny --locked --workspace check
+advisories ok, bans ok, licenses ok, sources ok
+[exit status: 0]
+$ cargo deny --locked --manifest-path fuzz/Cargo.toml check advisories sources
+advisories ok, sources ok
+[exit status: 0]

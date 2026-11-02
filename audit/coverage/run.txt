@@ -1,0 +1,6 @@
+started: 2026-11-01 23:50:20 UTC
+took: 1s
+commit: 9de6f4abc78afcd80fe39602d4c58a7bb89b4328
+arguments:
+tools: cargo-llvm-cov 0.9.1, nightly-2026-10-28
+result: succeeded

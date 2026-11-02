@@ -1,0 +1,17 @@
+5ae5e13e80b0a5604ad7aa6592404668409bec74 .cargo/config.toml
+ac75cbaef0ef4b32d0717966703c8a42f57b8baa Cargo.lock
+352efbc2fdaf43f0949b4f452e3dcd46a4e511ef Cargo.toml
+e2f565626a25175dc9c2d12eccb4d134d3109f66 crates/layeredconf-python/Cargo.toml
+96f61f1345a6beed1eb7a714f405b967bd575fe7 crates/layeredconf/Cargo.toml
+9ec55b3b621dbc75fc68817cd51b96e407d3c94c rust-toolchain.toml
+2772ccb21f3b87f003ba51035a8ccee603c019aa supply-chain/audits.toml
+2a1993c864cccebb2bb877d9b3e80cf030d43288 supply-chain/config.toml
+6b0e2401c585702d274adb3a5e6fb827c40120d3 supply-chain/imports.lock
+c0b0423edafcab373212969ef9fb4256f61e9100 xtask/Cargo.toml
+acef3e5b5d07e880da05e372c08041401b43fcc2 xtask/src/json.rs
+8b35e4bc18359df56809aac960bb0180d488b5bf xtask/src/lock.rs
+f8e60ab8f36d8c10f513c9d8ef815769dc719347 xtask/src/main.rs
+44110318967f2241de31500f42ca09ceaa826b65 xtask/src/outdated.rs
+e703866ef3de84b7fd41557fb16c1e536ae28586 xtask/src/run.rs
+88310020b9b74806e65a7dd6782f7e2f0bf4e260 xtask/src/setup.rs
+aa21002bf889e89131f068d897db77ccb0c40b24 xtask/src/tasks.rs

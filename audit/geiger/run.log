@@ -1,0 +1,254 @@
+$ cargo fetch --locked
+[exit status: 0]
+$ systemd-run --user --scope --quiet -p MemoryMax=4294967296 -p MemorySwapMax=0 -- cargo geiger --locked --offline
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.1.3+spec-1.1.0 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
+     Removed 925 files, 248.3MiB total
+   Compiling target-lexicon v0.13.5
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling libc v0.2.191
+   Compiling cfg_aliases v0.2.2
+   Compiling pyo3-macros-backend v0.30.1
+    Checking equivalent v1.0.3
+    Checking winnow v1.0.4
+   Compiling heck v0.5.0
+    Checking hashbrown v0.17.1
+    Checking toml_datetime v1.1.2+spec-1.1.0
+   Compiling layeredconf v0.1.0 (./crates/layeredconf)
+    Checking bitflags v2.13.2
+    Checking cfg-if v1.0.5
+    Checking serde_spanned v1.1.2
+    Checking once_cell v1.21.4
+{"$message_type":"artifact","artifact":"./target/debug/deps/cfg_aliases-a16aca7df7f3ef5f.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/equivalent-be54af99fdf4f2bf.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/build/quote-cb66644ea05edbd9/build_script_build-cb66644ea05edbd9.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libcfg_aliases-a16aca7df7f3ef5f.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/unicode_ident-81bfb0f85f6a8742.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/build/proc-macro2-a2eac87d1420dec5/build_script_build-a2eac87d1420dec5.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libcfg_aliases-a16aca7df7f3ef5f.rlib","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/build/pyo3-macros-backend-aba94ee4c8b2163c/build_script_build-aba94ee4c8b2163c.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libequivalent-be54af99fdf4f2bf.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/heck-c4dbf551d3f1e684.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/cfg_if-67a0d44d19132074.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/build/libc-848495e269c9a0a5/build_script_build-848495e269c9a0a5.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libcfg_if-67a0d44d19132074.rmeta","emit":"metadata"}
+   Compiling nix v0.31.3
+{"$message_type":"artifact","artifact":"./target/debug/build/layeredconf-066522ca2297e4c6/build_script_build-066522ca2297e4c6.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/bitflags-523c7805787e01d1.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/serde_spanned-62e107cb8600a309.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/toml_datetime-f631253e44af8551.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/once_cell-66f857127c66fbb0.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/build/target-lexicon-747cbd95e22dd4ba/build_script_build-747cbd95e22dd4ba.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libunicode_ident-81bfb0f85f6a8742.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libserde_spanned-62e107cb8600a309.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libunicode_ident-81bfb0f85f6a8742.rlib","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/build/nix-95908eb474d4b5f7/build_script_build-95908eb474d4b5f7.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/winnow-52d6b94579369c19.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libbitflags-523c7805787e01d1.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libheck-c4dbf551d3f1e684.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libtoml_datetime-f631253e44af8551.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/hashbrown-ebef52111897676a.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libonce_cell-66f857127c66fbb0.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/build/pyo3-macros-backend-aba94ee4c8b2163c/build_script_build-aba94ee4c8b2163c","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/build/layeredconf-066522ca2297e4c6/build_script_build-066522ca2297e4c6","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/build/quote-cb66644ea05edbd9/build_script_build-cb66644ea05edbd9","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libheck-c4dbf551d3f1e684.rlib","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/build/proc-macro2-a2eac87d1420dec5/build_script_build-a2eac87d1420dec5","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/build/libc-848495e269c9a0a5/build_script_build-848495e269c9a0a5","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/build/nix-95908eb474d4b5f7/build_script_build-95908eb474d4b5f7","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libwinnow-52d6b94579369c19.rmeta","emit":"metadata"}
+    Checking toml_parser v1.1.5+spec-1.1.0
+{"$message_type":"artifact","artifact":"./target/debug/build/target-lexicon-747cbd95e22dd4ba/build_script_build-747cbd95e22dd4ba","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/proc_macro2-9c88067a247391ad.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/toml_parser-b2d815c555e46f3d.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/target_lexicon-56b568b9a6b3a98d.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libhashbrown-ebef52111897676a.rmeta","emit":"metadata"}
+    Checking indexmap v2.14.2
+{"$message_type":"artifact","artifact":"./target/debug/deps/libtarget_lexicon-56b568b9a6b3a98d.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libtarget_lexicon-56b568b9a6b3a98d.rlib","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/indexmap-054ff31577770d53.d","emit":"dep-info"}
+   Compiling pyo3-build-config v0.30.1
+{"$message_type":"artifact","artifact":"./target/debug/deps/libtoml_parser-b2d815c555e46f3d.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libc-f530465ce4b19a3b.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/pyo3_build_config-8a1f6b815f347113.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libproc_macro2-9c88067a247391ad.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libproc_macro2-9c88067a247391ad.rlib","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/quote-28a53d4f3fad2fe1.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libquote-28a53d4f3fad2fe1.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libquote-28a53d4f3fad2fe1.rlib","emit":"link"}
+   Compiling syn v3.0.9
+{"$message_type":"artifact","artifact":"./target/debug/deps/libpyo3_build_config-8a1f6b815f347113.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libindexmap-054ff31577770d53.rmeta","emit":"metadata"}
+    Checking toml v1.1.8+spec-1.1.0
+{"$message_type":"artifact","artifact":"./target/debug/deps/toml-98dbfbea82281d93.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libpyo3_build_config-8a1f6b815f347113.rlib","emit":"link"}
+   Compiling pyo3-ffi v0.30.1
+   Compiling pyo3 v0.30.1
+{"$message_type":"artifact","artifact":"./target/debug/build/pyo3-cff9ef098fefed5a/build_script_build-cff9ef098fefed5a.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/build/pyo3-ffi-f078ba4acc1783ac/build_script_build-f078ba4acc1783ac.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/syn-d5baaeeeb2f9f060.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libtoml-98dbfbea82281d93.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/build/pyo3-cff9ef098fefed5a/build_script_build-cff9ef098fefed5a","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/build/pyo3-ffi-f078ba4acc1783ac/build_script_build-f078ba4acc1783ac","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/liblibc-f530465ce4b19a3b.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/nix-af8e072d1b9f46c2.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libnix-af8e072d1b9f46c2.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/pyo3_ffi-86fdb6a340ff1eb0.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/layeredconf-28f91cb02c93ac9e.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libpyo3_ffi-86fdb6a340ff1eb0.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/liblayeredconf-28f91cb02c93ac9e.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libsyn-d5baaeeeb2f9f060.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libsyn-d5baaeeeb2f9f060.rlib","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/pyo3_macros_backend-597e726583b8cf7f.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libpyo3_macros_backend-597e726583b8cf7f.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libpyo3_macros_backend-597e726583b8cf7f.rlib","emit":"link"}
+   Compiling pyo3-macros v0.30.1
+{"$message_type":"artifact","artifact":"./target/debug/deps/pyo3_macros-65b174d557d2b8a6.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libpyo3_macros-65b174d557d2b8a6.so","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/pyo3-f745dd4ffb9c1abd.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libpyo3-f745dd4ffb9c1abd.rmeta","emit":"metadata"}
+    Checking layeredconf-python v0.1.0 (./crates/layeredconf-python)
+{"$message_type":"artifact","artifact":"./target/debug/deps/_core-2d447dab4a77b63a.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/lib_core-2d447dab4a77b63a.rmeta","emit":"metadata"}
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.72s
+    Scanning done
+WARNING: Dependency file was never scanned: ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-0.30.1/guide/pyclass-parameters.md
+WARNING: Dependency file was never scanned: ./target/debug/build/target-lexicon-abf64f4c9dbced98/out/host.rs
+WARNING: Dependency file was never scanned: ./target/debug/build/layeredconf-7f898ea98c7a0ca2/out/unicode_table.rs
+
+Metric output format: x/y
+    x = unsafe code used by the build
+    y = total unsafe code found in the crate
+
+Symbols:
+    :) = No `unsafe` usage found, declares #![forbid(unsafe_code)]
+    ?  = No `unsafe` usage found, missing #![forbid(unsafe_code)]
+    !  = `unsafe` usage found
+
+Functions  Expressions  Impls  Traits  Methods  Dependency
+
+0/0        0/0          0/0    0/0     0/0      :) layeredconf-python 0.1.0
+0/0        0/0          0/0    0/0     0/0      :) ├── layeredconf 0.1.0
+0/16       57/2054      0/6    0/1     0/33     !  │   ├── nix 0.31.3
+0/0        0/0          0/0    0/0     0/0      ?  │   │   ├── bitflags 2.13.2
+0/0        0/0          0/0    0/0     0/0      ?  │   │   ├── cfg-if 1.0.5
+0/93       76/859       2/10   0/0     21/142   !  │   │   └── libc 0.2.191
+0/0        0/0          0/0    0/0     0/0      :) │   └── toml 1.1.8+spec-1.1.0
+0/0        80/85        0/0    0/0     0/0      !  │       ├── indexmap 2.14.2
+0/0        0/0          0/0    0/0     0/0      ?  │       │   ├── equivalent 1.0.3
+1/1        1343/1612    18/23  1/1     86/99    !  │       │   └── hashbrown 0.17.1
+0/0        0/0          0/0    0/0     0/0      ?  │       │       └── equivalent 1.0.3
+0/0        0/0          0/0    0/0     0/0      :) │       ├── serde_spanned 1.1.2
+0/0        0/0          0/0    0/0     0/0      :) │       ├── toml_datetime 1.1.2+spec-1.1.0
+0/0        66/66        0/0    0/0     8/8      !  │       ├── toml_parser 1.1.5+spec-1.1.0
+0/0        66/70        0/0    0/0     16/18    !  │       │   └── winnow 1.0.4
+0/0        66/70        0/0    0/0     16/18    !  │       └── winnow 1.0.4
+50/53      3179/3525    44/52  6/6     94/99    !  └── pyo3 0.30.1
+1/1        1343/1612    18/23  1/1     86/99    !      ├── hashbrown 0.17.1
+0/0        80/85        0/0    0/0     0/0      !      ├── indexmap 2.14.2
+0/93       76/859       2/10   0/0     21/142   !      ├── libc 0.2.191
+0/0        81/128       5/9    0/0     3/5      !      ├── once_cell 1.21.4
+0/85       0/622        0/1    0/0     0/1      ?      │   └── portable-atomic 1.15.0
+246/246    1319/1319    1/1    0/0     24/24    !      ├── pyo3-ffi 0.30.1
+0/93       76/859       2/10   0/0     21/142   !      │   └── libc 0.2.191
+0/0        0/0          0/0    0/0     0/0      ?      └── pyo3-macros 0.30.1
+0/0        14/14        0/0    0/0     3/3      !          ├── proc-macro2 1.0.107
+0/0        4/4          0/0    0/0     0/0      !          │   └── unicode-ident 1.0.27
+0/0        23/23        0/0    0/0     1/1      !          ├── pyo3-macros-backend 0.30.1
+0/0        0/0          0/0    0/0     0/0      :)         │   ├── heck 0.5.0
+0/0        14/14        0/0    0/0     3/3      !          │   ├── proc-macro2 1.0.107
+0/0        0/0          0/0    0/0     0/0      ?          │   ├── quote 1.0.47
+0/0        14/14        0/0    0/0     3/3      !          │   │   └── proc-macro2 1.0.107
+0/0        88/88        3/3    0/0     2/2      !          │   └── syn 3.0.9
+0/0        14/14        0/0    0/0     3/3      !          │       ├── proc-macro2 1.0.107
+0/0        0/0          0/0    0/0     0/0      ?          │       ├── quote 1.0.47
+0/0        4/4          0/0    0/0     0/0      !          │       └── unicode-ident 1.0.27
+0/0        0/0          0/0    0/0     0/0      ?          ├── quote 1.0.47
+0/0        88/88        3/3    0/0     2/2      !          └── syn 3.0.9
+
+297/494    6396/10469   73/105 7/8     258/435
+
+error: Found 3 warnings
+[exit status: 1]

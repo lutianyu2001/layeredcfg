@@ -1,0 +1,3 @@
+$ cargo vet --locked
+Vetting Succeeded (3 fully audited, 26 exempted)
+[exit status: 0]

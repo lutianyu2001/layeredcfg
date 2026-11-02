@@ -1,0 +1,28 @@
+{
+  "kani-version": "0.68.0",
+  "file-version": "0.1",
+  "standard-harnesses": {
+    "crates/layeredconf/src/proofs.rs": [
+      "proofs::decode_past_the_end_is_no_character",
+      "proofs::decode_reads_utf8_as_the_standard_library_does",
+      "proofs::parse_bool_does_not_panic",
+      "proofs::parse_int_does_not_panic_or_overflow",
+      "proofs::parse_int_is_exact_at_the_largest_i64",
+      "proofs::parse_int_is_exact_at_the_smallest_i64",
+      "proofs::parse_int_is_exact_past_u64",
+      "proofs::parse_int_is_exact_past_u64_negative",
+      "proofs::parse_int_reads_plain_numbers_as_the_standard_library_does",
+      "proofs::space_at_stays_in_the_text",
+      "proofs::split_list_cuts_at_the_commas_and_nowhere_else",
+      "proofs::strip_str_cuts_at_the_boundaries_of_characters",
+      "proofs::strip_takes_whitespace_off_once_and_for_all"
+    ]
+  },
+  "contract-harnesses": {},
+  "contracts": [],
+  "totals": {
+    "standard-harnesses": 13,
+    "contract-harnesses": 0,
+    "functions-under-contract": 0
+  }
+}
