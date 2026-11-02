@@ -18,9 +18,28 @@ use std::time::Instant;
 use crate::run::{Log, Result, dir, parse_time, root, seconds, time};
 use crate::setup::{TASKS, versions};
 
-/// The files the tasks read but that are no input of theirs: what records the results and says whether they hold,
-/// and the pinned versions, which run.txt keeps for each task.
-const NOT_INPUTS: [&str; 2] = ["xtask/src/record.rs", "xtask/src/pins.rs"];
+/// The modules of xtask that change neither how a task runs nor what it finds: what records the results and says
+/// whether they hold, the pinned versions (which run.txt keeps for each task), the locks, the installing of the tools
+/// and the looking for their releases.
+const NOT_INPUTS: [&str; 5] =
+    ["xtask/src/record.rs", "xtask/src/pins.rs", "xtask/src/lock.rs", "xtask/src/setup.rs", "xtask/src/outdated.rs"];
+/// The modules of xtask only some tasks use, and those tasks.
+const USED_BY: [(&str, &[&str]); 1] = [("xtask/src/json.rs", &["kani"])];
+
+/// Whether `path`, a file of xtask, is an input of `task`: each task's module of tasks/ of that task only, a module
+/// some tasks use of those, and the rest (a file added too) of every task.
+fn xtask_input(task: &str, path: &str) -> bool {
+    if NOT_INPUTS.contains(&path) {
+        return false;
+    }
+    if let Some((_, tasks)) = USED_BY.iter().find(|(file, _)| *file == path) {
+        return tasks.contains(&task);
+    }
+    match path.strip_prefix("xtask/src/tasks/").and_then(|file| file.strip_suffix(".rs")) {
+        Some(owner) if TASKS.contains(&owner) => owner == task,
+        _ => true,
+    }
+}
 
 /// Whether `task` reads `path` (relative to the root, with "/"), so that its results stop holding when it changes.
 pub fn affects(task: &str, path: &str) -> bool {
@@ -30,7 +49,7 @@ pub fn affects(task: &str, path: &str) -> bool {
         || (path.rsplit('/').next() == Some("Cargo.toml") && !under("fuzz"))
         || under(".cargo")
         || path == "rust-toolchain.toml"
-        || (under("xtask") && !NOT_INPUTS.contains(&path));
+        || (under("xtask") && xtask_input(task, path));
     if every {
         return true;
     }
@@ -390,6 +409,15 @@ mod tests {
         assert!(!affects("miri", "fuzz/fuzz_targets/envfile.rs") && !affects("kani", "fuzz/Cargo.lock"));
         assert!(affects("coverage", "tests/python/test_config.py") && !affects("kani", "tests/python/test_config.py"));
         assert!(!affects("geiger", "SECURITY.md") && !affects("fuzz", ".gitignore"));
+        for path in ["xtask/src/lock.rs", "xtask/src/setup.rs", "xtask/src/outdated.rs"] {
+            assert!(TASKS.iter().all(|task| !affects(task, path)), "{path}");
+        }
+        for path in ["xtask/Cargo.toml", "xtask/src/main.rs", "xtask/src/tasks/mod.rs", "xtask/src/tasks/new.rs"] {
+            assert!(TASKS.iter().all(|task| affects(task, path)), "{path}");
+        }
+        assert!(affects("kani", "xtask/src/tasks/kani.rs") && !affects("fuzz", "xtask/src/tasks/kani.rs"));
+        assert!(affects("miri", "xtask/src/tasks/miri.rs") && !affects("coverage", "xtask/src/tasks/miri.rs"));
+        assert!(affects("kani", "xtask/src/json.rs") && !affects("deny", "xtask/src/json.rs"));
     }
 
     #[test]

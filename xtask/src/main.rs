@@ -45,7 +45,7 @@ and:
   outdated [--vulns]   the pinned versions due an upgrade: with an advisory, or a month behind a release
 
 environment:
-  RUST_XTASK_MEMORY          cap of memory of a heavy task (4G; Kani's is in tasks.rs)
+  RUST_XTASK_MEMORY          cap of memory of a heavy task (4G; Kani's is in tasks/kani.rs)
   RUST_XTASK_FUZZ_MEMORY     cap of the fuzz targets together (1280M for each at once)
   RUST_XTASK_JOBS            fuzz targets at once (every one)
   RUST_XTASK_PARALLEL=1      let tasks run side by side while their caps fit in the memory
@@ -87,8 +87,8 @@ fn main() -> ExitCode {
             Ok(2)
         }),
         "__scope-probe" => run::scope_probe().map(|()| 0),
-        "__kani-harness" => tasks::kani_harness(rest).map(|code| u8::try_from(code).unwrap_or(1)),
-        "__fuzz-targets" => tasks::fuzz_targets(rest).map(|ok| u8::from(!ok)),
+        "__kani-harness" => tasks::kani::harness(rest).map(|code| u8::try_from(code).unwrap_or(1)),
+        "__fuzz-targets" => tasks::fuzz::targets(rest).map(|ok| u8::from(!ok)),
         "help" | "-h" | "--help" => {
             println!("{USAGE}");
             Ok(0)
