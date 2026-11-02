@@ -174,23 +174,23 @@ config.set("server.port", "8421")?;
 
 一次只跑一个任务（`audit/lock` 让第二个起不来；设了 `RUST_XTASK_PARALLEL=1` 时，各任务的内存上限加起来放得下就可以同时跑，Kani 和模糊测试永远不同时跑），每个重任务放在限内存、不用 swap 的 systemd 用户 scope 里，超了只杀它自己，不拖垮机器。上限是 4 GB（用 `RUST_XTASK_MEMORY` 改），证明是 17 GB，模糊测试按同时跑的 target 数每个 1.25 GB（`RUST_XTASK_FUZZ_MEMORY`；同时跑几个用 `RUST_XTASK_JOBS`）。没有能限住内存的 scope 时重任务不跑，除非设了 `RUST_XTASK_NO_SCOPE=1`。其他任务每天查一次固定的工具有没有已知漏洞、每周查一次有没有新版本，到期就提示一行。
 
-2026-11-01 在 7621d20 上跑的证明（`audit/kani/harnesses.txt`），每个单独跑、事先编译好，机器是 AMD Ryzen 9 5950X、32 GB 内存：
+2026-11-02 在 0f7f1b5 上跑的证明（`audit/kani/harnesses.txt`），每个单独跑、事先编译好，机器是 AMD Ryzen 9 5950X、32 GB 内存：
 
 | 证明 | 耗时 | 内存 |
 |---|---|---|
 | `decode_past_the_end_is_no_character` | 1 秒 | 81 MiB |
-| `decode_reads_utf8_as_the_standard_library_does` | 39 秒 | 1.4 GiB |
-| `parse_bool_does_not_panic` | 16 秒 | 661 MiB |
-| `parse_int_does_not_panic_or_overflow` | 40 秒 | 1.7 GiB |
-| `parse_int_is_exact_at_the_largest_i64` | 13 分 40 秒 | 9.7 GiB |
-| `parse_int_is_exact_at_the_smallest_i64` | 23 分 24 秒 | 9.7 GiB |
-| `parse_int_is_exact_past_u64` | 20 分 17 秒 | 10.8 GiB |
-| `parse_int_is_exact_past_u64_negative` | 22 分 38 秒 | 10.2 GiB |
-| `parse_int_reads_plain_numbers_as_the_standard_library_does` | 2 分 25 秒 | 2.5 GiB |
-| `space_at_stays_in_the_text` | 4 秒 | 94 MiB |
-| `split_list_cuts_at_the_commas_and_nowhere_else` | 1 分 43 秒 | 2.1 GiB |
-| `strip_str_cuts_at_the_boundaries_of_characters` | 38 秒 | 1.1 GiB |
-| `strip_takes_whitespace_off_once_and_for_all` | 52 秒 | 907 MiB |
+| `decode_reads_utf8_as_the_standard_library_does` | 42 秒 | 1.3 GiB |
+| `parse_bool_does_not_panic` | 16 秒 | 650 MiB |
+| `parse_int_does_not_panic_or_overflow` | 42 秒 | 1.7 GiB |
+| `parse_int_is_exact_at_the_largest_i64` | 15 分 11 秒 | 9.7 GiB |
+| `parse_int_is_exact_at_the_smallest_i64` | 15 分 41 秒 | 9.7 GiB |
+| `parse_int_is_exact_past_u64` | 16 分 25 秒 | 10.8 GiB |
+| `parse_int_is_exact_past_u64_negative` | 14 分 24 秒 | 10.2 GiB |
+| `parse_int_reads_plain_numbers_as_the_standard_library_does` | 1 分 27 秒 | 2.5 GiB |
+| `space_at_stays_in_the_text` | 1 秒 | 99 MiB |
+| `split_list_cuts_at_the_commas_and_nowhere_else` | 54 秒 | 2.1 GiB |
+| `strip_str_cuts_at_the_boundaries_of_characters` | 24 秒 | 1.1 GiB |
+| `strip_takes_whitespace_off_once_and_for_all` | 27 秒 | 906 MiB |
 
 ## 兼容性
 
