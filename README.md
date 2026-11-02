@@ -229,6 +229,25 @@ with a cap of memory and no swap, so that one going too far is killed and not th
 run, unless `RUST_XTASK_NO_SCOPE=1`. The other tasks check for a known vulnerability in a pinned tool once a
 day, and for releases once a week, and say so in a line.
 
+The proofs as run on 2026-11-01 at 7621d20 (`audit/kani/harnesses.txt`), each alone and compiled before, on an
+AMD Ryzen 9 5950X with 32 GB:
+
+| Proof | Time | Memory |
+|---|---|---|
+| `decode_past_the_end_is_no_character` | 1 s | 81 MiB |
+| `decode_reads_utf8_as_the_standard_library_does` | 39 s | 1.4 GiB |
+| `parse_bool_does_not_panic` | 16 s | 661 MiB |
+| `parse_int_does_not_panic_or_overflow` | 40 s | 1.7 GiB |
+| `parse_int_is_exact_at_the_largest_i64` | 13 min 40 s | 9.7 GiB |
+| `parse_int_is_exact_at_the_smallest_i64` | 23 min 24 s | 9.7 GiB |
+| `parse_int_is_exact_past_u64` | 20 min 17 s | 10.8 GiB |
+| `parse_int_is_exact_past_u64_negative` | 22 min 38 s | 10.2 GiB |
+| `parse_int_reads_plain_numbers_as_the_standard_library_does` | 2 min 25 s | 2.5 GiB |
+| `space_at_stays_in_the_text` | 4 s | 94 MiB |
+| `split_list_cuts_at_the_commas_and_nowhere_else` | 1 min 43 s | 2.1 GiB |
+| `strip_str_cuts_at_the_boundaries_of_characters` | 38 s | 1.1 GiB |
+| `strip_takes_whitespace_off_once_and_for_all` | 52 s | 907 MiB |
+
 ## Compatibility
 
 POSIX only for now (Linux, macOS).
