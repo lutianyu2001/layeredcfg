@@ -1,14 +1,14 @@
 proofs::decode_past_the_end_is_no_character: succeeded, 1s, 81 MiB
-proofs::decode_reads_utf8_as_the_standard_library_does: succeeded, 39s, 1.4 GiB
-proofs::parse_bool_does_not_panic: succeeded, 16s, 661 MiB
-proofs::parse_int_does_not_panic_or_overflow: succeeded, 40s, 1.7 GiB
-proofs::parse_int_is_exact_at_the_largest_i64: succeeded, 820s, 9.7 GiB
-proofs::parse_int_is_exact_at_the_smallest_i64: succeeded, 1404s, 9.7 GiB
-proofs::parse_int_is_exact_past_u64: succeeded, 1217s, 10.8 GiB
-proofs::parse_int_is_exact_past_u64_negative: succeeded, 1358s, 10.2 GiB
-proofs::parse_int_reads_plain_numbers_as_the_standard_library_does: succeeded, 145s, 2.5 GiB
-proofs::space_at_stays_in_the_text: succeeded, 4s, 94 MiB
-proofs::split_list_cuts_at_the_commas_and_nowhere_else: succeeded, 103s, 2.1 GiB
-proofs::strip_str_cuts_at_the_boundaries_of_characters: succeeded, 38s, 1.1 GiB
-proofs::strip_takes_whitespace_off_once_and_for_all: succeeded, 52s, 907 MiB
+proofs::decode_reads_utf8_as_the_standard_library_does: succeeded, 42s, 1.3 GiB
+proofs::parse_bool_does_not_panic: succeeded, 16s, 650 MiB
+proofs::parse_int_does_not_panic_or_overflow: succeeded, 42s, 1.7 GiB
+proofs::parse_int_is_exact_at_the_largest_i64: succeeded, 911s, 9.7 GiB
+proofs::parse_int_is_exact_at_the_smallest_i64: succeeded, 941s, 9.7 GiB
+proofs::parse_int_is_exact_past_u64: succeeded, 985s, 10.8 GiB
+proofs::parse_int_is_exact_past_u64_negative: succeeded, 864s, 10.2 GiB
+proofs::parse_int_reads_plain_numbers_as_the_standard_library_does: succeeded, 87s, 2.5 GiB
+proofs::space_at_stays_in_the_text: succeeded, 1s, 99 MiB
+proofs::split_list_cuts_at_the_commas_and_nowhere_else: succeeded, 54s, 2.1 GiB
+proofs::strip_str_cuts_at_the_boundaries_of_characters: succeeded, 24s, 1.1 GiB
+proofs::strip_takes_whitespace_off_once_and_for_all: succeeded, 27s, 906 MiB
 cap of memory: 17.0 GiB; the time and memory of the proof alone, compiled before

@@ -1,4 +1,4 @@
-$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2260492/exe __kani-harness cargo kani -p layeredconf --harness proofs::strip_str_cuts_at_the_boundaries_of_characters --exact --output-format terse -Z unstable-options --harness-timeout 1800s
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2418555/exe __kani-harness cargo kani -p layeredconf --harness proofs::strip_str_cuts_at_the_boundaries_of_characters --exact --output-format terse -Z unstable-options --harness-timeout 1800s
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
 warning: trailing semicolon in macro used in expression position
@@ -46,9 +46,9 @@ VERIFICATION RESULT:
  ** 0 of 302 failed (7 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 36.720734s
+Verification Time: 23.443274s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-memory.peak: 1162293248
+memory.peak: 1167990784
 [exit status: 0]

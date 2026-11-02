@@ -1,4 +1,4 @@
-$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2260492/exe __kani-harness cargo kani -p layeredconf --harness proofs::space_at_stays_in_the_text --exact --output-format terse -Z unstable-options --harness-timeout 1800s
+$ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2418555/exe __kani-harness cargo kani -p layeredconf --harness proofs::space_at_stays_in_the_text --exact --output-format terse -Z unstable-options --harness-timeout 1800s
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
 warning: trailing semicolon in macro used in expression position
@@ -37,7 +37,7 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
 Checking harness proofs::space_at_stays_in_the_text...
@@ -46,9 +46,9 @@ VERIFICATION RESULT:
  ** 0 of 158 failed (1 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 2.0769107s
+Verification Time: 0.9384899s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-memory.peak: 98611200
+memory.peak: 103604224
 [exit status: 0]

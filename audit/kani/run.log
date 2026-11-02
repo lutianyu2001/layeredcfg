@@ -169,7 +169,7 @@ warning: Found the following unsupported constructs:
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
 [exit status: 0]
-kani: proofs::decode_reads_utf8_as_the_standard_library_does: succeeded, 39s, 1.4 GiB
+kani: proofs::decode_reads_utf8_as_the_standard_library_does: succeeded, 42s, 1.3 GiB
 $ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::parse_bool_does_not_panic --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
@@ -213,7 +213,7 @@ warning: Found the following unsupported constructs:
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
 [exit status: 0]
-kani: proofs::parse_bool_does_not_panic: succeeded, 16s, 661 MiB
+kani: proofs::parse_bool_does_not_panic: succeeded, 16s, 650 MiB
 $ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::parse_int_does_not_panic_or_overflow --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
@@ -257,7 +257,7 @@ warning: Found the following unsupported constructs:
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
 [exit status: 0]
-kani: proofs::parse_int_does_not_panic_or_overflow: succeeded, 40s, 1.7 GiB
+kani: proofs::parse_int_does_not_panic_or_overflow: succeeded, 42s, 1.7 GiB
 $ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::parse_int_is_exact_at_the_largest_i64 --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
@@ -301,7 +301,7 @@ warning: Found the following unsupported constructs:
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
 [exit status: 0]
-kani: proofs::parse_int_is_exact_at_the_largest_i64: succeeded, 820s, 9.7 GiB
+kani: proofs::parse_int_is_exact_at_the_largest_i64: succeeded, 911s, 9.7 GiB
 $ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::parse_int_is_exact_at_the_smallest_i64 --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
@@ -345,7 +345,7 @@ warning: Found the following unsupported constructs:
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
 [exit status: 0]
-kani: proofs::parse_int_is_exact_at_the_smallest_i64: succeeded, 1404s, 9.7 GiB
+kani: proofs::parse_int_is_exact_at_the_smallest_i64: succeeded, 941s, 9.7 GiB
 $ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::parse_int_is_exact_past_u64 --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
@@ -389,7 +389,7 @@ warning: Found the following unsupported constructs:
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
 [exit status: 0]
-kani: proofs::parse_int_is_exact_past_u64: succeeded, 1217s, 10.8 GiB
+kani: proofs::parse_int_is_exact_past_u64: succeeded, 985s, 10.8 GiB
 $ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::parse_int_is_exact_past_u64_negative --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
@@ -429,11 +429,11 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
 [exit status: 0]
-kani: proofs::parse_int_is_exact_past_u64_negative: succeeded, 1358s, 10.2 GiB
+kani: proofs::parse_int_is_exact_past_u64_negative: succeeded, 864s, 10.2 GiB
 $ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::parse_int_reads_plain_numbers_as_the_standard_library_does --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
@@ -473,11 +473,11 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
 [exit status: 0]
-kani: proofs::parse_int_reads_plain_numbers_as_the_standard_library_does: succeeded, 145s, 2.5 GiB
+kani: proofs::parse_int_reads_plain_numbers_as_the_standard_library_does: succeeded, 87s, 2.5 GiB
 $ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::space_at_stays_in_the_text --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
@@ -517,11 +517,11 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
 [exit status: 0]
-kani: proofs::space_at_stays_in_the_text: succeeded, 4s, 94 MiB
+kani: proofs::space_at_stays_in_the_text: succeeded, 1s, 99 MiB
 $ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::split_list_cuts_at_the_commas_and_nowhere_else --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
@@ -561,11 +561,11 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
 [exit status: 0]
-kani: proofs::split_list_cuts_at_the_commas_and_nowhere_else: succeeded, 103s, 2.1 GiB
+kani: proofs::split_list_cuts_at_the_commas_and_nowhere_else: succeeded, 54s, 2.1 GiB
 $ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::strip_str_cuts_at_the_boundaries_of_characters --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
@@ -609,7 +609,7 @@ warning: Found the following unsupported constructs:
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
 [exit status: 0]
-kani: proofs::strip_str_cuts_at_the_boundaries_of_characters: succeeded, 38s, 1.1 GiB
+kani: proofs::strip_str_cuts_at_the_boundaries_of_characters: succeeded, 24s, 1.1 GiB
 $ systemd-run --user --scope --quiet -p MemoryMax=18253611008 -p MemorySwapMax=0 -- cargo kani -p layeredconf --harness proofs::strip_takes_whitespace_off_once_and_for_all --exact --output-format terse -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
@@ -653,4 +653,4 @@ warning: Found the following unsupported constructs:
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredconf v0.1.0 (./crates/layeredconf)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
 [exit status: 0]
-kani: proofs::strip_takes_whitespace_off_once_and_for_all: succeeded, 52s, 907 MiB
+kani: proofs::strip_takes_whitespace_off_once_and_for_all: succeeded, 27s, 906 MiB

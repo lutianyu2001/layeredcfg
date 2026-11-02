@@ -1,17 +1,15 @@
 $ systemd-run --user --scope --quiet -p MemoryMax=4294967296 -p MemorySwapMax=0 -- cargo +nightly-2026-10-28 fuzz build --fuzz-dir fuzz
-   Compiling layeredconf v0.1.0 (./crates/layeredconf)
-   Compiling layeredconf-fuzz v0.0.0 (./fuzz)
-    Finished `release` profile [optimized + debuginfo] target(s) in 7.97s
+    Finished `release` profile [optimized + debuginfo] target(s) in 0.06s
 [exit status: 0]
 fuzz: config, envfile, numbers for 3600s each, 3 at once, capped at 3.8 GiB together
-$ systemd-run --user --scope --quiet -p MemoryMax=4026531840 -p MemorySwapMax=0 -- /proc/2260492/exe __fuzz-targets 3600 3 ./audit/.running/fuzz config envfile numbers
-fuzz: envfile started
+$ systemd-run --user --scope --quiet -p MemoryMax=4026531840 -p MemorySwapMax=0 -- /proc/2418555/exe __fuzz-targets 3600 3 ./audit/.running/fuzz config envfile numbers
 fuzz: config started
+fuzz: envfile started
 fuzz: numbers started
 fuzz: numbers ended: exit status: 0
-fuzz: config ended: exit status: 0
 fuzz: envfile ended: exit status: 0
+fuzz: config ended: exit status: 0
 [exit status: 0]
-fuzz: config: succeeded, 14973922 runs ([exit status: 0])
-fuzz: envfile: succeeded, 14197657 runs ([exit status: 0])
-fuzz: numbers: succeeded, 113711569 runs ([exit status: 0])
+fuzz: config: succeeded, 19869881 runs ([exit status: 0])
+fuzz: envfile: succeeded, 19548147 runs ([exit status: 0])
+fuzz: numbers: succeeded, 127718587 runs ([exit status: 0])

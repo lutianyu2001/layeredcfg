@@ -83,56 +83,56 @@ Failed to match (ignoring source) package: registry+https://github.com/rust-lang
 Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
 Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
 Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
-     Removed 925 files, 248.3MiB total
+     Removed 815 files, 236.9MiB total
    Compiling target-lexicon v0.13.5
    Compiling proc-macro2 v1.0.107
-   Compiling quote v1.0.47
    Compiling unicode-ident v1.0.27
    Compiling libc v0.2.191
+   Compiling quote v1.0.47
    Compiling cfg_aliases v0.2.2
    Compiling pyo3-macros-backend v0.30.1
-    Checking equivalent v1.0.3
-    Checking winnow v1.0.4
    Compiling heck v0.5.0
+    Checking winnow v1.0.4
     Checking hashbrown v0.17.1
-    Checking toml_datetime v1.1.2+spec-1.1.0
-   Compiling layeredconf v0.1.0 (./crates/layeredconf)
+    Checking equivalent v1.0.3
+    Checking serde_spanned v1.1.2
     Checking bitflags v2.13.2
     Checking cfg-if v1.0.5
-    Checking serde_spanned v1.1.2
+    Checking toml_datetime v1.1.2+spec-1.1.0
+   Compiling layeredconf v0.1.0 (./crates/layeredconf)
     Checking once_cell v1.21.4
-{"$message_type":"artifact","artifact":"./target/debug/deps/cfg_aliases-a16aca7df7f3ef5f.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/equivalent-be54af99fdf4f2bf.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/debug/build/quote-cb66644ea05edbd9/build_script_build-cb66644ea05edbd9.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/debug/deps/libcfg_aliases-a16aca7df7f3ef5f.rmeta","emit":"metadata"}
-{"$message_type":"artifact","artifact":"./target/debug/deps/unicode_ident-81bfb0f85f6a8742.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/debug/build/proc-macro2-a2eac87d1420dec5/build_script_build-a2eac87d1420dec5.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/debug/deps/libcfg_aliases-a16aca7df7f3ef5f.rlib","emit":"link"}
-{"$message_type":"artifact","artifact":"./target/debug/build/pyo3-macros-backend-aba94ee4c8b2163c/build_script_build-aba94ee4c8b2163c.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/debug/deps/libequivalent-be54af99fdf4f2bf.rmeta","emit":"metadata"}
-{"$message_type":"artifact","artifact":"./target/debug/deps/heck-c4dbf551d3f1e684.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/cfg_aliases-a16aca7df7f3ef5f.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/cfg_if-67a0d44d19132074.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/debug/build/libc-848495e269c9a0a5/build_script_build-848495e269c9a0a5.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/build/quote-cb66644ea05edbd9/build_script_build-cb66644ea05edbd9.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/unicode_ident-81bfb0f85f6a8742.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/libcfg_if-67a0d44d19132074.rmeta","emit":"metadata"}
-   Compiling nix v0.31.3
-{"$message_type":"artifact","artifact":"./target/debug/build/layeredconf-066522ca2297e4c6/build_script_build-066522ca2297e4c6.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/debug/deps/bitflags-523c7805787e01d1.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libcfg_aliases-a16aca7df7f3ef5f.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/build/pyo3-macros-backend-aba94ee4c8b2163c/build_script_build-aba94ee4c8b2163c.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/build/proc-macro2-a2eac87d1420dec5/build_script_build-a2eac87d1420dec5.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/heck-c4dbf551d3f1e684.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libequivalent-be54af99fdf4f2bf.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libcfg_aliases-a16aca7df7f3ef5f.rlib","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/build/libc-848495e269c9a0a5/build_script_build-848495e269c9a0a5.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/serde_spanned-62e107cb8600a309.d","emit":"dep-info"}
+   Compiling nix v0.31.3
+{"$message_type":"artifact","artifact":"./target/debug/deps/bitflags-523c7805787e01d1.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/toml_datetime-f631253e44af8551.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/debug/deps/once_cell-66f857127c66fbb0.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/build/target-lexicon-747cbd95e22dd4ba/build_script_build-747cbd95e22dd4ba.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/debug/deps/libunicode_ident-81bfb0f85f6a8742.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/build/layeredconf-066522ca2297e4c6/build_script_build-066522ca2297e4c6.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/once_cell-66f857127c66fbb0.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/libserde_spanned-62e107cb8600a309.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libunicode_ident-81bfb0f85f6a8742.rmeta","emit":"metadata"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/libunicode_ident-81bfb0f85f6a8742.rlib","emit":"link"}
-{"$message_type":"artifact","artifact":"./target/debug/build/nix-95908eb474d4b5f7/build_script_build-95908eb474d4b5f7.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/winnow-52d6b94579369c19.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/build/nix-95908eb474d4b5f7/build_script_build-95908eb474d4b5f7.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/hashbrown-ebef52111897676a.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/libbitflags-523c7805787e01d1.rmeta","emit":"metadata"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/libheck-c4dbf551d3f1e684.rmeta","emit":"metadata"}
-{"$message_type":"artifact","artifact":"./target/debug/deps/libtoml_datetime-f631253e44af8551.rmeta","emit":"metadata"}
-{"$message_type":"artifact","artifact":"./target/debug/deps/hashbrown-ebef52111897676a.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/libonce_cell-66f857127c66fbb0.rmeta","emit":"metadata"}
 {"$message_type":"artifact","artifact":"./target/debug/build/pyo3-macros-backend-aba94ee4c8b2163c/build_script_build-aba94ee4c8b2163c","emit":"link"}
 {"$message_type":"artifact","artifact":"./target/debug/build/layeredconf-066522ca2297e4c6/build_script_build-066522ca2297e4c6","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/libtoml_datetime-f631253e44af8551.rmeta","emit":"metadata"}
 {"$message_type":"artifact","artifact":"./target/debug/build/quote-cb66644ea05edbd9/build_script_build-cb66644ea05edbd9","emit":"link"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/libheck-c4dbf551d3f1e684.rlib","emit":"link"}
 {"$message_type":"artifact","artifact":"./target/debug/build/proc-macro2-a2eac87d1420dec5/build_script_build-a2eac87d1420dec5","emit":"link"}
@@ -141,16 +141,16 @@ Failed to match (ignoring source) package: registry+https://github.com/rust-lang
 {"$message_type":"artifact","artifact":"./target/debug/deps/libwinnow-52d6b94579369c19.rmeta","emit":"metadata"}
     Checking toml_parser v1.1.5+spec-1.1.0
 {"$message_type":"artifact","artifact":"./target/debug/build/target-lexicon-747cbd95e22dd4ba/build_script_build-747cbd95e22dd4ba","emit":"link"}
-{"$message_type":"artifact","artifact":"./target/debug/deps/proc_macro2-9c88067a247391ad.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/toml_parser-b2d815c555e46f3d.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/proc_macro2-9c88067a247391ad.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/target_lexicon-56b568b9a6b3a98d.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/libhashbrown-ebef52111897676a.rmeta","emit":"metadata"}
     Checking indexmap v2.14.2
 {"$message_type":"artifact","artifact":"./target/debug/deps/libtarget_lexicon-56b568b9a6b3a98d.rmeta","emit":"metadata"}
-{"$message_type":"artifact","artifact":"./target/debug/deps/libtarget_lexicon-56b568b9a6b3a98d.rlib","emit":"link"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/indexmap-054ff31577770d53.d","emit":"dep-info"}
-   Compiling pyo3-build-config v0.30.1
+{"$message_type":"artifact","artifact":"./target/debug/deps/libtarget_lexicon-56b568b9a6b3a98d.rlib","emit":"link"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/libtoml_parser-b2d815c555e46f3d.rmeta","emit":"metadata"}
+   Compiling pyo3-build-config v0.30.1
 {"$message_type":"artifact","artifact":"./target/debug/deps/libc-f530465ce4b19a3b.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/pyo3_build_config-8a1f6b815f347113.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/libproc_macro2-9c88067a247391ad.rmeta","emit":"metadata"}
@@ -168,8 +168,8 @@ Failed to match (ignoring source) package: registry+https://github.com/rust-lang
    Compiling pyo3 v0.30.1
 {"$message_type":"artifact","artifact":"./target/debug/build/pyo3-cff9ef098fefed5a/build_script_build-cff9ef098fefed5a.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/build/pyo3-ffi-f078ba4acc1783ac/build_script_build-f078ba4acc1783ac.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/debug/deps/syn-d5baaeeeb2f9f060.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/libtoml-98dbfbea82281d93.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/debug/deps/syn-d5baaeeeb2f9f060.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/build/pyo3-cff9ef098fefed5a/build_script_build-cff9ef098fefed5a","emit":"link"}
 {"$message_type":"artifact","artifact":"./target/debug/build/pyo3-ffi-f078ba4acc1783ac/build_script_build-f078ba4acc1783ac","emit":"link"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/liblibc-f530465ce4b19a3b.rmeta","emit":"metadata"}
@@ -192,11 +192,11 @@ Failed to match (ignoring source) package: registry+https://github.com/rust-lang
     Checking layeredconf-python v0.1.0 (./crates/layeredconf-python)
 {"$message_type":"artifact","artifact":"./target/debug/deps/_core-2d447dab4a77b63a.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/debug/deps/lib_core-2d447dab4a77b63a.rmeta","emit":"metadata"}
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.72s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.73s
     Scanning done
-WARNING: Dependency file was never scanned: ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-0.30.1/guide/pyclass-parameters.md
 WARNING: Dependency file was never scanned: ./target/debug/build/target-lexicon-abf64f4c9dbced98/out/host.rs
 WARNING: Dependency file was never scanned: ./target/debug/build/layeredconf-7f898ea98c7a0ca2/out/unicode_table.rs
+WARNING: Dependency file was never scanned: ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-0.30.1/guide/pyclass-parameters.md
 
 Metric output format: x/y
     x = unsafe code used by the build
