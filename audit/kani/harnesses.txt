@@ -1,14 +1,13 @@
-proofs::decode_past_the_end_is_no_character: succeeded, 1s, 81 MiB
-proofs::decode_reads_utf8_as_the_standard_library_does: succeeded, 42s, 1.3 GiB
-proofs::parse_bool_does_not_panic: succeeded, 16s, 650 MiB
-proofs::parse_int_does_not_panic_or_overflow: succeeded, 42s, 1.7 GiB
-proofs::parse_int_is_exact_at_the_largest_i64: succeeded, 911s, 9.7 GiB
-proofs::parse_int_is_exact_at_the_smallest_i64: succeeded, 941s, 9.7 GiB
-proofs::parse_int_is_exact_past_u64: succeeded, 985s, 10.8 GiB
-proofs::parse_int_is_exact_past_u64_negative: succeeded, 864s, 10.2 GiB
-proofs::parse_int_reads_plain_numbers_as_the_standard_library_does: succeeded, 87s, 2.5 GiB
-proofs::space_at_stays_in_the_text: succeeded, 1s, 99 MiB
-proofs::split_list_cuts_at_the_commas_and_nowhere_else: succeeded, 54s, 2.1 GiB
-proofs::strip_str_cuts_at_the_boundaries_of_characters: succeeded, 24s, 1.1 GiB
-proofs::strip_takes_whitespace_off_once_and_for_all: succeeded, 27s, 906 MiB
-cap of memory: 17.0 GiB; the time and memory of the proof alone, compiled before
+proofs::decode_past_the_end_is_no_character: succeeded, 1 s, peak memory 96 MiB
+proofs::decode_reads_utf8_as_the_standard_library_does: succeeded, 55 s, peak memory 1368 MiB
+proofs::parse_bool_does_not_panic: succeeded, 20 s, peak memory 669 MiB
+proofs::parse_int_does_not_panic_or_overflow: succeeded, 50 s, peak memory 1725 MiB
+proofs::parse_int_is_exact_at_the_largest_i64: succeeded, 1018 s, peak memory 9935 MiB
+proofs::parse_int_is_exact_at_the_smallest_i64: succeeded, 936 s, peak memory 9930 MiB
+proofs::parse_int_is_exact_past_u64: succeeded, 940 s, peak memory 11054 MiB
+proofs::parse_int_is_exact_past_u64_negative: succeeded, 845 s, peak memory 10507 MiB
+proofs::parse_int_reads_plain_numbers_as_the_standard_library_does: succeeded, 84 s, peak memory 2590 MiB
+proofs::space_at_stays_in_the_text: succeeded, 1 s, peak memory 100 MiB
+proofs::split_list_cuts_at_the_commas_and_nowhere_else: succeeded, 54 s, peak memory 2125 MiB
+proofs::strip_str_cuts_at_the_boundaries_of_characters: succeeded, 24 s, peak memory 1118 MiB
+proofs::strip_takes_whitespace_off_once_and_for_all: succeeded, 26 s, peak memory 907 MiB
