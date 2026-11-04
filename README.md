@@ -5,6 +5,9 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
+[![audit](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Faudit.json)](SECURITY.md#ci)
+[![pins](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fpins.json)](xtask/src/pins.rs)
+
 A lightweight layered configuration library with a Rust core and a Python binding, that takes each setting from a TOML
 file of defaults, env-style files, the environment or the command line, and converts it to its default's type.
 
@@ -12,13 +15,13 @@ file of defaults, env-style files, the environment or the command line, and conv
 
 - [Overview](#overview)
 - [Features](#features)
+- [Security Audit](#security-audit)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
 - [What the Layers Take](#what-the-layers-take)
 - [Env-Style Files](#env-style-files)
 - [Testing](#testing)
-- [Audit](#audit)
 - [Compatibility](#compatibility)
 - [License](#license)
 - [Author](#author)
@@ -28,7 +31,7 @@ file of defaults, env-style files, the environment or the command line, and conv
 A TOML file of defaults says which settings there are and the type of each: the type of its default. A setting's
 value is taken from the highest layer that has one,
 
-```
+```text
 defaults (the TOML file)  <  env-style files  <  the environment  <  overrides (the command line)
 ```
 
@@ -45,6 +48,60 @@ dots made underscores: with the prefix `APP_`, `server.port` is `APP_SERVER_PORT
 - A value written back into its file in place, every other byte kept (`persist`)
 - Secrets shown masked; settings that only the files may set
 - A Rust library without unsafe code of its own, and a Python binding whose errors are Python's kinds
+
+## Security Audit
+
+[![deny](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fdeny.json)](https://github.com/lutianyu2001/layeredconf/actions/workflows/advisories.yml)
+[![vet](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fvet.json)](audit/vet)
+[![geiger](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fgeiger.json)](audit/geiger)
+[![miri](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fmiri.json)](audit/miri)
+[![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fcoverage.json)](audit/coverage)
+[![kani](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fkani.json)](audit/kani)
+[![fuzz](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Ffuzz.json)](audit/fuzz)
+
+The maintainer's own security audit of the code, not one by a third party: it says what was checked and how, not that
+nothing is wrong. The latest results of each check are committed in [`audit/`](audit) with the commit they ran at, and
+the badges above say whether each still holds for the code on `main`. The checks whose length is known beforehand
+(deny, vet, geiger, coverage and the fuzzing) run again on GitHub at each release; Kani and Miri are run by hand. How
+to run them, and what each covers, is in [SECURITY.md](SECURITY.md); the dependencies are in
+[SUPPLY_CHAIN.md](SUPPLY_CHAIN.md).
+
+- **Review against a threat model.** Text in every layer, from any bytes; secrets in what is shown, in the messages of
+  errors and in Python's exceptions; `persist` writing files that other users of the machine can reach (permissions,
+  links, a file half written) and several writers at once; `${NAME}` making a small file's values huge. What was found
+  is fixed, or written down with what it leaves open, in SECURITY.md.
+- **`unsafe` code.** None in either crate of this project, which `#![forbid(unsafe_code)]`; the dependencies' is
+  counted by cargo geiger, and PyO3, which calls Python's C API, has most of it.
+- **Dependencies.** 29 crates, from crates.io only, checked by cargo deny for known vulnerabilities, unmaintained or
+  yanked crates, licenses and sources. In cargo vet, 3 are covered by audits imported from other organisations, none
+  by an audit of this project's, and 26 are exempted, still to be audited. They are not vendored: this is a library,
+  and `Cargo.lock` pins every version and checksum.
+- **Miri.** The 44 tests of the Rust library (the layers, persist, env-style files, the readers of text) run under Miri
+  without undefined behaviour; not the binding, which calls Python's C API.
+- **Fuzzing.** Three targets, an hour each on a workstation and four hours each at a release: `envfile` (statements in
+  order inside the text, values written by `persist` read back the same), `numbers` (integers and floats written so
+  that they read back the same, `strip` idempotent, list items without commas or whitespace around them) and `config`
+  (reading defaults and every setting's `get`, `shown`, `path` and `set` without a panic).
+- **Kani.** 13 proofs: for every input up to 6 bytes, UTF-8 is decoded as the standard library does, whitespace is
+  stripped once and for all and only between characters, integers are read without panic or overflow and as
+  `str::parse` reads them, booleans without panic, and lists are cut at their commas and nowhere else; and integers of
+  21 bytes are read exactly at the edges of 64 bits. Each proof ran alone, compiled before, on KANI_DATE at KANI_COMMIT,
+  on an AMD Ryzen 9 5950X with 32 GB:
+
+  | Proof | Time | Peak memory |
+  |---|---|---|
+KANI_ROWS
+- **Branch coverage.** COV_BRANCHES of the branches of the Rust code are taken by its Rust tests (the binding's by the
+  Python tests instead), as `audit/coverage/summary.txt` has it.
+- **Two reviews.** Every change went through a code review, and the most sensitive code (the reader of env-style files,
+  `persist`, the masking of secrets) was read whole by separate reviewers who were given the threat model, not the
+  findings.
+
+What this shows: this project's own code has no memory errors, being Rust without `unsafe` (unless the compiler or a
+dependency's `unsafe` code is wrong), and none of the checks above found a panic, an overflow or undefined behaviour. What it does not: Rust does not rule out mistakes
+of logic; the dependencies' `unsafe` code is left to them and their audits; Kani proves only the inputs within its
+bounds, and fuzzing tries only some. Not proved, and covered by the tests and the fuzzing alone: `parse_float`, the
+reader of env-style files, and what is above the readers of text (the layers, `persist`).
 
 ## Prerequisites
 
@@ -120,17 +177,21 @@ either (see [Env-Style Files](#env-style-files)).
 
 ### Rust
 
-```rust
+```rust,no_run
 use layeredconf::{Config, Options, Value};
 
-let options = Options {
-    prefix: "APP_".to_owned(),
-    files: vec!["/srv/app/.env.local".into()],
-    ..Options::default()
-};
-let mut config = Config::load("defaults.toml", options)?;
-let Value::Int(port) = config.get("server.port")? else { unreachable!() };
-config.set("server.port", "8421")?;
+fn main() -> Result<(), layeredconf::Error> {
+    let options = Options {
+        prefix: "APP_".to_owned(),
+        files: vec!["/srv/app/.env.local".into()],
+        ..Options::default()
+    };
+    let mut config = Config::load("defaults.toml", options)?;
+    let Value::Int(port) = config.get("server.port")? else { unreachable!() };
+    config.set("server.port", "8421")?;
+    println!("{port}");
+    Ok(())
+}
 ```
 
 Values are a `layeredconf::Value` (`Bool`, `Int`, `Float`, `Str`, `List`); what a caller gives is a `Raw`, which text
@@ -190,64 +251,6 @@ reader leave its line out; when the value written has that quote, which would cl
 | `pixi run test-python` | Builds and installs the wheel, then runs the Python tests |
 | `pixi run lint` | rustfmt and clippy |
 
-## Audit
-
-The audit is apart from the build and the tests: neither `pixi run test`, `cargo test` nor a build of the wheel runs
-any of it. `cargo xtask` runs it, with the versions of its tools and of the nightly Rust it needs pinned in
-`xtask/src/pins.rs`; [SECURITY.md](SECURITY.md) says what each check covers and what it does not,
-[SUPPLY_CHAIN.md](SUPPLY_CHAIN.md) how the dependencies are checked.
-
-| Command | Description |
-|---|---|
-| `cargo xtask setup [task…]` | Installs the pinned tools a task needs, all of them by default: cargo-deny, cargo-vet, cargo-geiger, cargo-fuzz, cargo-llvm-cov, Kani, and the nightly Rust with Miri and the LLVM tools |
-| `cargo xtask deny`, `vet`, `geiger` | The dependencies: known vulnerabilities, licenses and sources; audits; `unsafe` code (counted, not a check that fails) |
-| `cargo xtask miri` | The Rust tests under [Miri](https://github.com/rust-lang/miri), which checks for undefined behaviour |
-| `cargo xtask coverage` | Branch coverage of the Rust tests: a table a file in `audit/coverage/summary.txt`, the lines and branches not run marked in `target/llvm-cov/html/` |
-| `cargo xtask kani` | [Kani](https://model-checking.github.io/kani/) proofs that the readers of text (whitespace, integers, booleans, lists) do not panic or overflow and read as the standard library does, for every input up to 6 bytes, and for integers at the edges of 64 bits (`crates/layeredconf/src/proofs.rs`); the reader of env-style files is left to its tests and the fuzzing |
-| `cargo xtask fuzz` | Fuzzing with [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz): `envfile`, `numbers` and `config` side by side, an hour each |
-| `cargo xtask all` | Each of the above in turn, the next after one that fails too |
-| `cargo xtask status` | The latest result of each task, when and at what commit it ran, and whether it still holds |
-| `cargo xtask needed <task>` | Whether the task is to run again, and why: exit 0 if it is, 1 if its results hold |
-| `cargo xtask outdated` | The pinned versions due an upgrade, and in a terminal, upgrades those agreed to: one with a known vulnerability at once, one whose tool's latest release came out a month or more after it, a nightly a month old; each to a release at least a week old with no known vulnerability (`--vulns`: the vulnerabilities only) |
-| `pixi run audit <task>` | The same, from the environment of pixi |
-
-The latest run of each task is committed in `audit/<task>/`: `run.txt` (when it started, how long it took, the commit
-it ran at, the tools and how it went), `run.log` (all it wrote) and what the task makes, such as the proofs' table
-`audit/kani/harnesses.txt` and the fuzz targets' logs. When the latest run failed, the last that succeeded is kept in
-`audit/<task>/last_succeeded/`. A run is recorded only from a working tree with everything committed, so that it is
-of a commit; `inputs.txt` has the git blob of every file the task reads, and the results hold as long as none of
-those changed, the pinned tools and the task's arguments are the same, and, for `deny`, whose advisories change
-every day, for a day. `--if-needed` (`cargo xtask all --if-needed`) skips the tasks whose results hold; `--no-record`
-runs a task on any working tree, into `target/audit/<task>/`, with `audit/` left as it is (and `kani <harness…>` or
-`fuzz <seconds> [target…]` run only so). To record: commit the code, run, then commit `audit/`.
-
-One task runs at a time (`audit/lock` keeps a second from starting; with `RUST_XTASK_PARALLEL=1` they may run side by
-side while their caps fit in the memory, Kani and the fuzzing never together), each heavy one in a systemd user scope
-with a cap of memory and no swap, so that one going too far is killed and not the machine. The caps are 4 GB
-(`RUST_XTASK_MEMORY` changes them), 17 GB for a proof, and 1.25 GB for each fuzz target at once
-(`RUST_XTASK_FUZZ_MEMORY`, `RUST_XTASK_JOBS` for how many at once). Without a scope that caps, the heavy tasks do not
-run, unless `RUST_XTASK_NO_SCOPE=1`. The other tasks check for a known vulnerability in a pinned tool once a
-day, and for releases once a week, and say so in a line.
-
-The proofs as run on 2026-11-02 at 0f7f1b5 (`audit/kani/harnesses.txt`), each alone and compiled before, on an
-AMD Ryzen 9 5950X with 32 GB:
-
-| Proof | Time | Memory |
-|---|---|---|
-| `decode_past_the_end_is_no_character` | 1 s | 81 MiB |
-| `decode_reads_utf8_as_the_standard_library_does` | 42 s | 1.3 GiB |
-| `parse_bool_does_not_panic` | 16 s | 650 MiB |
-| `parse_int_does_not_panic_or_overflow` | 42 s | 1.7 GiB |
-| `parse_int_is_exact_at_the_largest_i64` | 15 min 11 s | 9.7 GiB |
-| `parse_int_is_exact_at_the_smallest_i64` | 15 min 41 s | 9.7 GiB |
-| `parse_int_is_exact_past_u64` | 16 min 25 s | 10.8 GiB |
-| `parse_int_is_exact_past_u64_negative` | 14 min 24 s | 10.2 GiB |
-| `parse_int_reads_plain_numbers_as_the_standard_library_does` | 1 min 27 s | 2.5 GiB |
-| `space_at_stays_in_the_text` | 1 s | 99 MiB |
-| `split_list_cuts_at_the_commas_and_nowhere_else` | 54 s | 2.1 GiB |
-| `strip_str_cuts_at_the_boundaries_of_characters` | 24 s | 1.1 GiB |
-| `strip_takes_whitespace_off_once_and_for_all` | 27 s | 906 MiB |
-
 ## Compatibility
 
 POSIX only for now (Linux, macOS).
@@ -269,7 +272,9 @@ The entire repository is licensed under the Apache License, Version 2.0
 (the "License"); you may not use any file in this repository except in 
 compliance with the License. You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+```plaintext
+http://www.apache.org/licenses/LICENSE-2.0
+```
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,

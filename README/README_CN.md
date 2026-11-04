@@ -5,19 +5,22 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
+[![audit](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Faudit.json)](../SECURITY.md#ci)
+[![pins](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fpins.json)](../xtask/src/pins.rs)
+
 一个轻量的分层配置库，核心是 Rust，带 Python 绑定：每个配置项的值取自 TOML 默认值文件、环境变量写法的文件、环境变量或命令行，并转换成默认值的类型。
 
 ## 目录
 
 - [概述](#概述)
 - [功能特性](#功能特性)
+- [安全审计](#安全审计)
 - [前置要求](#前置要求)
 - [安装](#安装)
 - [用法](#用法)
 - [各层的写法](#各层的写法)
 - [环境变量写法的文件](#环境变量写法的文件)
 - [测试](#测试)
-- [审计](#审计)
 - [兼容性](#兼容性)
 - [许可证](#许可证)
 - [作者](#作者)
@@ -26,7 +29,7 @@
 
 一个 TOML 默认值文件说明有哪些配置项，每一项是什么类型：就是它默认值的类型。一个配置项的值取自有它的最高一层，
 
-```
+```text
 默认值（TOML 文件）  <  环境变量写法的文件  <  环境变量  <  覆盖（命令行）
 ```
 
@@ -41,6 +44,33 @@
 - 把值原地写回文件，别的字节原样保留（`persist`）
 - 密钥显示时打码；可以规定某些配置项只能由文件设置
 - Rust 库，自己的代码里没有 unsafe，加上 Python 绑定，出错时是 Python 惯用的异常
+
+## 安全审计
+
+[![deny](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fdeny.json)](https://github.com/lutianyu2001/layeredconf/actions/workflows/advisories.yml)
+[![vet](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fvet.json)](../audit/vet)
+[![geiger](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fgeiger.json)](../audit/geiger)
+[![miri](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fmiri.json)](../audit/miri)
+[![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fcoverage.json)](../audit/coverage)
+[![kani](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fkani.json)](../audit/kani)
+[![fuzz](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Ffuzz.json)](../audit/fuzz)
+
+这是项目维护者自己对代码做的安全审计，不是第三方的审计：它说明查了什么、怎么查的，不保证没有问题。每项检查最近一次的结果和代码一起提交在 [`audit/`](../audit)，记着是在哪个提交上跑的；上面的徽章显示每项结果对 `main` 上现在的代码是否仍然有效。耗时开跑前就能知道的检查（deny、vet、geiger、覆盖率和模糊测试）在每次发版时由 GitHub 重跑；Kani 和 Miri 手动跑。怎么跑、每项覆盖什么，见 [SECURITY.md](../SECURITY.md)；依赖见 [SUPPLY_CHAIN.md](../SUPPLY_CHAIN.md)。
+
+- **按威胁模型审查。** 每一层里的文字，任何字节都算；密钥会不会出现在显示的值、错误信息和 Python 的异常里；`persist` 写的文件同一台机器上的其他用户能不能碰到（权限、符号链接、写了一半的文件），几个进程同时写；`${NAME}` 能不能把一个小文件的值撑得很大。发现的问题都修了，没修的写明留下了什么风险，见 SECURITY.md。
+- **`unsafe` 代码。** 本项目的两个 crate 都没有（`#![forbid(unsafe_code)]`）；依赖里的由 cargo geiger 计数，大部分在调用 Python C API 的 PyO3 里。
+- **依赖。** 29 个 crate，只来自 crates.io，由 cargo deny 检查已知漏洞、无人维护或被撤回的 crate、许可证和来源。cargo vet 里，3 个有其他组织的审计记录（导入的），本项目自己写的审计记录没有，26 个是豁免，还没人审。依赖没有本地化（vendor）：这是一个库，`Cargo.lock` 固定了每个版本和校验和。
+- **Miri。** Rust 库的 44 个测试（各层、persist、环境变量写法的文件、读文字的函数）在 Miri 下跑过，没有未定义行为；绑定层调用 Python 的 C API，不在其内。
+- **模糊测试。** 三个 target，在工作站上每个跑一小时，发版时每个跑四小时：`envfile`（读出的语句按顺序落在原文以内，`persist` 写进去的值读回来不变）、`numbers`（整数和浮点数写出来再读回来不变，`strip` 幂等，列表的每项不含逗号、首尾没有空白）、`config`（读默认值，以及对每个配置项 `get`、`shown`、`path`、`set` 都不 panic）。
+- **Kani。** 13 个证明：在 6 字节以内的任何输入下，UTF-8 的解码和标准库一致，空白一次去干净、只在字符之间切，整数读取不 panic、不溢出，结果和 `str::parse` 一致，布尔值读取不 panic，列表只在逗号处切开；另外 21 字节的整数在 64 位边界处读得准确。每个证明单独跑、事先编译好，KANI_DATE 在 KANI_COMMIT 上跑，机器是 AMD Ryzen 9 5950X、32 GB 内存：
+
+  | 证明 | 耗时 | 峰值内存 |
+  |---|---|---|
+KANI_ROWS
+- **分支覆盖率。** COV_BRANCHES，见 `audit/coverage/summary.txt`。
+- **两路评审。** 每次改动都经过代码评审；最敏感的代码（环境变量写法的文件的读取器、`persist`、密钥打码）另由几位评审从头到尾读过，给他们的只有威胁模型，没有已有的结论。
+
+这些说明了什么：本项目自己的代码是没有 `unsafe` 的 Rust，没有内存错误（除非编译器或依赖里的 `unsafe` 代码有错），上面的检查也没有发现 panic、溢出或未定义行为。没有说明什么：Rust 不排除逻辑错误；依赖里的 `unsafe` 代码靠它们自己和它们的审计记录；Kani 只证明界限以内的输入，模糊测试只是抽样。没有证明、只靠测试和模糊测试覆盖的：`parse_float`、环境变量写法的文件的读取器，以及读文字的函数之上的部分（各层、`persist`）。
 
 ## 前置要求
 
@@ -108,17 +138,21 @@ config.persist("subagent.timeout_minutes", 45)  # written into the file for good
 
 ### Rust
 
-```rust
+```rust,no_run
 use layeredconf::{Config, Options, Value};
 
-let options = Options {
-    prefix: "APP_".to_owned(),
-    files: vec!["/srv/app/.env.local".into()],
-    ..Options::default()
-};
-let mut config = Config::load("defaults.toml", options)?;
-let Value::Int(port) = config.get("server.port")? else { unreachable!() };
-config.set("server.port", "8421")?;
+fn main() -> Result<(), layeredconf::Error> {
+    let options = Options {
+        prefix: "APP_".to_owned(),
+        files: vec!["/srv/app/.env.local".into()],
+        ..Options::default()
+    };
+    let mut config = Config::load("defaults.toml", options)?;
+    let Value::Int(port) = config.get("server.port")? else { unreachable!() };
+    config.set("server.port", "8421")?;
+    println!("{port}");
+    Ok(())
+}
 ```
 
 值是 `layeredconf::Value`（`Bool`、`Int`、`Float`、`Str`、`List`）；调用方给的值是 `Raw`，文字（`&str`、`String`、`OsString`）、其他类型和 `Value` 都能转成它。环境变量和文件里的文字是 `OsString`，不一定是 UTF-8。出错时返回 `layeredconf::Error`，`kind()` 说明是哪种错。环境变量默认是进程的，`Options::environment` 可以换成别的（`Environment::new`），而且只读不写。TOML 用 [toml](https://crates.io/crates/toml) crate 读。
@@ -152,46 +186,6 @@ config.set("server.port", "8421")?;
 | `pixi run test-python` | 打出并安装 wheel，再跑 Python 的测试 |
 | `pixi run lint` | rustfmt 和 clippy |
 
-## 审计
-
-审计和构建、测试分开：`pixi run test`、`cargo test` 和 wheel 的构建都不会跑其中任何一项。审计由 `cargo xtask` 来跑，它要的工具和 nightly 版 Rust 的版本固定在 `xtask/src/pins.rs` 里；每项检查覆盖什么、不覆盖什么见 [SECURITY.md](../SECURITY.md)，依赖怎么检查见 [SUPPLY_CHAIN.md](../SUPPLY_CHAIN.md)。
-
-| 命令 | 说明 |
-|---|---|
-| `cargo xtask setup [task…]` | 安装任务要用的、固定版本的工具，默认全部装上：cargo-deny、cargo-vet、cargo-geiger、cargo-fuzz、cargo-llvm-cov、Kani，以及带 Miri 和 LLVM 工具的 nightly 版 Rust |
-| `cargo xtask deny`、`vet`、`geiger` | 检查依赖：已知漏洞、许可证和来源；审计记录；`unsafe` 代码（只计数，不会失败） |
-| `cargo xtask miri` | 在 [Miri](https://github.com/rust-lang/miri) 下跑 Rust 的测试，检查未定义行为 |
-| `cargo xtask coverage` | Rust 测试的分支覆盖率：每个文件一行的表在 `audit/coverage/summary.txt`，没走到的行和分支标在 `target/llvm-cov/html/` 里 |
-| `cargo xtask kani` | 用 [Kani](https://model-checking.github.io/kani/) 证明读文字的函数（空白、整数、布尔值、列表）在 6 字节以内的任何输入下都不 panic、不溢出，读法和标准库一致，并单独证明 64 位整数边界处的读法（`crates/layeredconf/src/proofs.rs`）；env 文件的读取器靠它的测试和模糊测试检查 |
-| `cargo xtask fuzz` | 用 [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz) 做模糊测试：`envfile`、`numbers`、`config` 同时跑，各一小时 |
-| `cargo xtask all` | 依次跑上面每一项，前一项失败也接着跑 |
-| `cargo xtask status` | 每个任务最近一次的结果、什么时候在哪个提交上跑的，以及结果是否仍然有效 |
-| `cargo xtask needed <task>` | 这个任务要不要重跑、为什么：要跑退出码 0，结果仍然有效退出码 1 |
-| `cargo xtask outdated` | 列出该升级的固定版本，在终端里逐项询问，升级同意的那些：有已知漏洞的立即到期，工具最新的正式版比固定版本晚一个月以上发布的到期，nightly 满一个月到期；只升到发布满一周、没有已知漏洞的版本（`--vulns` 只查漏洞） |
-| `pixi run audit <task>` | 同上，在 pixi 的环境里跑 |
-
-每个任务最近一次的运行和代码一起提交在 `audit/<task>/`：`run.txt`（开始时间、耗时、跑的时候的提交、工具版本和结果）、`run.log`（全部输出），以及任务自己的产物，例如证明的表 `audit/kani/harnesses.txt` 和各个 fuzz target 的日志。最近一次失败时，最后一次成功的运行留在 `audit/<task>/last_succeeded/`。只有工作区全部提交了才记录结果，这样结果对应一个提交；`inputs.txt` 记着任务读的每个文件的 git blob，这些文件都没变、固定的工具和任务参数也没变时，结果仍然有效；`deny` 查的安全公告每天更新，它的结果只管一天。`--if-needed`（`cargo xtask all --if-needed`）跳过结果仍然有效的任务；`--no-record` 可以在任何工作区上跑，结果写进 `target/audit/<task>/`，不动 `audit/`（`kani <harness…>`、`fuzz <秒数> [target…]` 只能这样跑）。记录的顺序：先提交代码，再跑，再提交 `audit/`。
-
-一次只跑一个任务（`audit/lock` 让第二个起不来；设了 `RUST_XTASK_PARALLEL=1` 时，各任务的内存上限加起来放得下就可以同时跑，Kani 和模糊测试永远不同时跑），每个重任务放在限内存、不用 swap 的 systemd 用户 scope 里，超了只杀它自己，不拖垮机器。上限是 4 GB（用 `RUST_XTASK_MEMORY` 改），证明是 17 GB，模糊测试按同时跑的 target 数每个 1.25 GB（`RUST_XTASK_FUZZ_MEMORY`；同时跑几个用 `RUST_XTASK_JOBS`）。没有能限住内存的 scope 时重任务不跑，除非设了 `RUST_XTASK_NO_SCOPE=1`。其他任务每天查一次固定的工具有没有已知漏洞、每周查一次有没有新版本，到期就提示一行。
-
-2026-11-02 在 0f7f1b5 上跑的证明（`audit/kani/harnesses.txt`），每个单独跑、事先编译好，机器是 AMD Ryzen 9 5950X、32 GB 内存：
-
-| 证明 | 耗时 | 内存 |
-|---|---|---|
-| `decode_past_the_end_is_no_character` | 1 秒 | 81 MiB |
-| `decode_reads_utf8_as_the_standard_library_does` | 42 秒 | 1.3 GiB |
-| `parse_bool_does_not_panic` | 16 秒 | 650 MiB |
-| `parse_int_does_not_panic_or_overflow` | 42 秒 | 1.7 GiB |
-| `parse_int_is_exact_at_the_largest_i64` | 15 分 11 秒 | 9.7 GiB |
-| `parse_int_is_exact_at_the_smallest_i64` | 15 分 41 秒 | 9.7 GiB |
-| `parse_int_is_exact_past_u64` | 16 分 25 秒 | 10.8 GiB |
-| `parse_int_is_exact_past_u64_negative` | 14 分 24 秒 | 10.2 GiB |
-| `parse_int_reads_plain_numbers_as_the_standard_library_does` | 1 分 27 秒 | 2.5 GiB |
-| `space_at_stays_in_the_text` | 1 秒 | 99 MiB |
-| `split_list_cuts_at_the_commas_and_nowhere_else` | 54 秒 | 2.1 GiB |
-| `strip_str_cuts_at_the_boundaries_of_characters` | 24 秒 | 1.1 GiB |
-| `strip_takes_whitespace_off_once_and_for_all` | 27 秒 | 906 MiB |
-
 ## 兼容性
 
 目前只支持 POSIX（Linux、macOS）。
@@ -213,7 +207,9 @@ The entire repository is licensed under the Apache License, Version 2.0
 (the "License"); you may not use any file in this repository except in 
 compliance with the License. You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+```plaintext
+http://www.apache.org/licenses/LICENSE-2.0
+```
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
