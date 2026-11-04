@@ -62,23 +62,23 @@
 - **依赖。** 29 个 crate，只来自 crates.io，由 cargo deny 检查已知漏洞、无人维护或被撤回的 crate、许可证和来源。cargo vet 里，3 个有其他组织的审计记录（导入的），其余 26 个由维护者自己批准（certify），没有豁免。依赖没有本地化（vendor）：这是一个库，`Cargo.lock` 固定了每个版本和校验和。
 - **Miri。** Rust 库的 44 个测试（各层、persist、环境变量写法的文件、读文字的函数）在 Miri 下跑过，没有未定义行为；绑定层调用 Python 的 C API，不在其内。
 - **模糊测试。** 三个 target，在工作站上每个跑一小时，发版时每个跑四小时：`envfile`（读出的语句按顺序落在原文以内，`persist` 写进去的值读回来不变）、`numbers`（整数和浮点数写出来再读回来不变，`strip` 幂等，列表的每项不含逗号、首尾没有空白）、`config`（读默认值，以及对每个配置项 `get`、`shown`、`path`、`set` 都不 panic）。
-- **Kani。** 13 个证明：在 6 字节以内的任何输入下，UTF-8 的解码和标准库一致，空白一次去干净、只在字符之间切，整数读取不 panic、不溢出，结果和 `str::parse` 一致，布尔值读取不 panic，列表只在逗号处切开；另外 21 字节的整数在 64 位边界处读得准确。每个证明单独跑、事先编译好，2026-11-02 在 e7ac67d 上跑，机器是 AMD Ryzen 9 5950X、32 GB 内存：
+- **Kani。** 13 个证明：在 6 字节以内的任何输入下，UTF-8 的解码和标准库一致，空白一次去干净、只在字符之间切，整数读取不 panic、不溢出，结果和 `str::parse` 一致，布尔值读取不 panic，列表只在逗号处切开；另外 21 字节的整数在 64 位边界处读得准确。每个证明单独跑、事先编译好，2026-11-04 在 5970f0e 上跑，机器是 AMD Ryzen 9 5950X、32 GB 内存：
 
   | 证明 | 耗时 | 峰值内存 |
   |---|---|---|
-  | `decode_past_the_end_is_no_character` | 1 秒 | 81 MiB |
-  | `decode_reads_utf8_as_the_standard_library_does` | 42 秒 | 1.3 GiB |
-  | `parse_bool_does_not_panic` | 16 秒 | 650 MiB |
-  | `parse_int_does_not_panic_or_overflow` | 42 秒 | 1.7 GiB |
-  | `parse_int_is_exact_at_the_largest_i64` | 15 分 11 秒 | 9.7 GiB |
-  | `parse_int_is_exact_at_the_smallest_i64` | 15 分 41 秒 | 9.7 GiB |
-  | `parse_int_is_exact_past_u64` | 16 分 25 秒 | 10.8 GiB |
-  | `parse_int_is_exact_past_u64_negative` | 14 分 24 秒 | 10.2 GiB |
-  | `parse_int_reads_plain_numbers_as_the_standard_library_does` | 1 分 27 秒 | 2.5 GiB |
-  | `space_at_stays_in_the_text` | 1 秒 | 99 MiB |
+  | `decode_past_the_end_is_no_character` | 1 秒 | 96 MiB |
+  | `decode_reads_utf8_as_the_standard_library_does` | 55 秒 | 1.3 GiB |
+  | `parse_bool_does_not_panic` | 20 秒 | 669 MiB |
+  | `parse_int_does_not_panic_or_overflow` | 50 秒 | 1.7 GiB |
+  | `parse_int_is_exact_at_the_largest_i64` | 16 分 58 秒 | 9.7 GiB |
+  | `parse_int_is_exact_at_the_smallest_i64` | 15 分 36 秒 | 9.7 GiB |
+  | `parse_int_is_exact_past_u64` | 15 分 40 秒 | 10.8 GiB |
+  | `parse_int_is_exact_past_u64_negative` | 14 分 5 秒 | 10.3 GiB |
+  | `parse_int_reads_plain_numbers_as_the_standard_library_does` | 1 分 24 秒 | 2.5 GiB |
+  | `space_at_stays_in_the_text` | 1 秒 | 100 MiB |
   | `split_list_cuts_at_the_commas_and_nowhere_else` | 54 秒 | 2.1 GiB |
   | `strip_str_cuts_at_the_boundaries_of_characters` | 24 秒 | 1.1 GiB |
-  | `strip_takes_whitespace_off_once_and_for_all` | 27 秒 | 906 MiB |
+  | `strip_takes_whitespace_off_once_and_for_all` | 26 秒 | 907 MiB |
 - **分支覆盖率。** Rust 测试走到了 Rust 代码 310 个分支中的 85.81%，其中库的 294 个里是 90.48%（`audit/coverage/summary.txt`）；绑定层的 16 个留给 Python 测试。
 - **两路评审。** 每次改动都经过代码评审；最敏感的代码（环境变量写法的文件的读取器、`persist`、密钥打码）另由几位评审从头到尾读过，给他们的只有威胁模型，没有已有的结论。
 
