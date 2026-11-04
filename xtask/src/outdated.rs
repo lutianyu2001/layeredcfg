@@ -40,7 +40,7 @@ const RELEASES_EVERY: (&str, u64) = ("RUST_XTASK_RELEASES_EVERY", 7);
 const VULNS_EVERY: (&str, u64) = ("RUST_XTASK_VULNS_EVERY", 1);
 /// crates.io asks for one that says who is calling.
 // Per project: its name and address, and no e-mail.
-const USER_AGENT: &str = "layeredconf-xtask (+https://github.com/lutianyu2001/layeredconf)";
+const USER_AGENT: &str = "layeredcfg-xtask (+https://github.com/lutianyu2001/layeredcfg)";
 /// OSV's names for where the tools and the actions come from.
 const CRATES: &str = "crates.io";
 const ACTIONS: &str = "GitHub Actions";

@@ -2,7 +2,7 @@
 //! name replaced reads back as it was written.
 #![no_main]
 
-use layeredconf::envfile;
+use layeredcfg::envfile;
 use libfuzzer_sys::fuzz_target;
 
 fuzz_target!(|data: &[u8]| {

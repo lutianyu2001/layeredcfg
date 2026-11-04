@@ -1,11 +1,11 @@
-# layeredconf
+# layeredcfg
 <p align="right">
     <strong>English</strong> | <a href="./README/README_CN.md">中文</a>
 </p>
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)<br>
-[![audit](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Faudit.json)](SECURITY.md#ci)
-[![pins](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fpins.json)](xtask/src/pins.rs)
+[![audit](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Faudit.json)](SECURITY.md#ci)
+[![pins](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fpins.json)](xtask/src/pins.rs)
 
 A lightweight layered configuration library with a Rust core and a Python binding, that takes each setting from a TOML
 file of defaults, env-style files, the environment or the command line, and converts it to its default's type.
@@ -50,13 +50,13 @@ dots made underscores: with the prefix `APP_`, `server.port` is `APP_SERVER_PORT
 
 ## Security Audit
 
-[![deny](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fdeny.json)](https://github.com/lutianyu2001/layeredconf/actions/workflows/advisories.yml)
-[![vet](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fvet.json)](audit/vet)
-[![geiger](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fgeiger.json)](audit/geiger)
-[![miri](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fmiri.json)](audit/miri)
-[![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fcoverage.json)](audit/coverage)
-[![kani](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Fkani.json)](audit/kani)
-[![fuzz](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredconf%2Fbadges%2Ffuzz.json)](audit/fuzz)
+[![deny](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fdeny.json)](https://github.com/lutianyu2001/layeredcfg/actions/workflows/advisories.yml)
+[![vet](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fvet.json)](audit/vet)
+[![geiger](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fgeiger.json)](audit/geiger)
+[![miri](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fmiri.json)](audit/miri)
+[![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fcoverage.json)](audit/coverage)
+[![kani](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fkani.json)](audit/kani)
+[![fuzz](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Ffuzz.json)](audit/fuzz)
 
 The maintainer's own security audit of the code, not one by a third party: it says what was checked and how, not that
 nothing is wrong. The latest results of each check are committed in [`audit/`](audit) with the commit they ran at, and
@@ -126,13 +126,13 @@ reader of env-style files, and what is above the readers of text (the layers, `p
 
 ## Installation
 
-layeredconf is not published yet, so it is built from source.
+layeredcfg is not published yet, so it is built from source.
 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/lutianyu2001/layeredconf.git
-   cd layeredconf
+   git clone https://github.com/lutianyu2001/layeredcfg.git
+   cd layeredcfg
    ```
 
 2. Build the wheel, into `dist/`:
@@ -144,10 +144,10 @@ layeredconf is not published yet, so it is built from source.
 3. Install it into your Python:
 
    ```bash
-   pip install dist/layeredconf-*.whl
+   pip install dist/layeredcfg-*.whl
    ```
 
-For Rust, depend on the crate in `crates/layeredconf` by its path or by this repository's git URL; its build needs a
+For Rust, depend on the crate in `crates/layeredcfg` by its path or by this repository's git URL; its build needs a
 Python 3, as above.
 
 ## Usage
@@ -155,7 +155,7 @@ Python 3, as above.
 ### Python
 
 ```python
-from layeredconf import Config, find_upward
+from layeredcfg import Config, find_upward
 
 config = Config(
     "defaults.toml",
@@ -179,7 +179,7 @@ config.persist("subagent.timeout_minutes", 45)  # written into the file for good
 
 The errors are Python's kinds too: `UnknownKey` is a `KeyError`, `InvalidValue` and `FileOnlyKey` are `ValueError`s,
 `NotPersisted` is a `KeyError`, all of them `ConfigError`s; an unknown attribute is an `AttributeError`. Their messages
-are templates a program can replace with its own words (`messages=`, see `layeredconf.MESSAGES`).
+are templates a program can replace with its own words (`messages=`, see `layeredcfg.MESSAGES`).
 
 The environment is `os.environ` (or the mapping given as `environ=`), read when a value is asked for: a variable set by
 Python code holds at once. The files' values are read into the configuration only, never into the process's
@@ -189,9 +189,9 @@ either (see [Env-Style Files](#env-style-files)).
 ### Rust
 
 ```rust,no_run
-use layeredconf::{Config, Options, Value};
+use layeredcfg::{Config, Options, Value};
 
-fn main() -> Result<(), layeredconf::Error> {
+fn main() -> Result<(), layeredcfg::Error> {
     let options = Options {
         prefix: "APP_".to_owned(),
         files: vec!["/srv/app/.env.local".into()],
@@ -205,9 +205,9 @@ fn main() -> Result<(), layeredconf::Error> {
 }
 ```
 
-Values are a `layeredconf::Value` (`Bool`, `Int`, `Float`, `Str`, `List`); what a caller gives is a `Raw`, which text
+Values are a `layeredcfg::Value` (`Bool`, `Int`, `Float`, `Str`, `List`); what a caller gives is a `Raw`, which text
 (`&str`, `String`, `OsString`), the other types and a `Value` convert into. Text from the environment and the files is
-an `OsString`, which need not be UTF-8. Failures are a `layeredconf::Error`, whose `kind()` says which. The environment
+an `OsString`, which need not be UTF-8. Failures are a `layeredcfg::Error`, whose `kind()` says which. The environment
 is the process's unless `Options::environment` gives another (`Environment::new`), and it is only ever read. TOML is
 read with the [toml](https://crates.io/crates/toml) crate.
 

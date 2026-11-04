@@ -1,7 +1,7 @@
 //! Text to values: any bytes are read without a panic, and a number read is written so that it reads back the same.
 #![no_main]
 
-use layeredconf::text;
+use layeredcfg::text;
 use libfuzzer_sys::fuzz_target;
 
 fuzz_target!(|data: &[u8]| {

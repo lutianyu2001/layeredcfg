@@ -13,7 +13,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use layeredconf::{Config, Environment, ErrorKind, Options, Raw, Source, Type, Value, find_upward};
+use layeredcfg::{Config, Environment, ErrorKind, Options, Raw, Source, Type, Value, find_upward};
 
 const DEFAULTS: &str = r#"# The test's defaults.
 [server]
@@ -43,7 +43,7 @@ impl Scratch {
     fn new() -> Self {
         static COUNT: AtomicUsize = AtomicUsize::new(0);
         let nanos = SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |since| since.as_nanos());
-        let name = format!("layeredconf-test-{}-{}-{nanos}", std::process::id(), COUNT.fetch_add(1, Ordering::Relaxed));
+        let name = format!("layeredcfg-test-{}-{}-{nanos}", std::process::id(), COUNT.fetch_add(1, Ordering::Relaxed));
         let dir = std::env::temp_dir().join(name);
         fs::create_dir_all(&dir).unwrap();
         Scratch { dir }

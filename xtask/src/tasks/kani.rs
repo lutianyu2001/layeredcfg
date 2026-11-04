@@ -25,7 +25,7 @@ const PEAK: &str = "xtask: peak memory in bytes:";
 /// What the proofs are built with, when they are listed and when each runs. `cargo kani
 /// list` takes these only before `list`, and its own `-Z` after it. The proofs are the core
 /// crate's; the binding would build `PyO3` for nothing.
-const BUILD: [&str; 3] = ["-p", "layeredconf", "--lib"];
+const BUILD: [&str; 3] = ["-p", "layeredcfg", "--lib"];
 
 // Per project: Kani's unstable features the proofs use, for listing them and running them;
 // for example `-Z function-contracts` for `#[kani::proof_for_contract]`.

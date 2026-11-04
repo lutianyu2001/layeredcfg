@@ -11,7 +11,7 @@ use crate::tasks::limit;
 /// their programs (`-p <crate> --tests`) and `""` runs every test in them.
 const MODULES: &[&str] = &[""];
 /// What the tests are built with: `--lib`, or the integration tests (see MODULES).
-pub const BUILD: &[&str] = &["-p", "layeredconf", "--tests"];
+pub const BUILD: &[&str] = &["-p", "layeredcfg", "--tests"];
 /// Tests too slow under Miri.
 const SKIP: &[&str] = &[];
 

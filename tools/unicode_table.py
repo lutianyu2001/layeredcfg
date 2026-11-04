@@ -3,7 +3,7 @@ whitespace, so that the core reads numbers and strips text as that Python does (
 
     python tools/unicode_table.py OUT
 
-The core's build script (crates/layeredconf/build.rs) runs it with the Python it is given, for a wheel the one the
+The core's build script (crates/layeredcfg/build.rs) runs it with the Python it is given, for a wheel the one the
 wheel is for.
 """
 

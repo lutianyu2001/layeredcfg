@@ -5,7 +5,7 @@
 
 use std::collections::BTreeMap;
 
-use layeredconf::envfile::{parse, quote, replace};
+use layeredcfg::envfile::{parse, quote, replace};
 
 fn text(bytes: Vec<u8>) -> String {
     String::from_utf8(bytes).expect("UTF-8")

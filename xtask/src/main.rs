@@ -238,12 +238,11 @@ fn refused(task: &str, why: &str) -> Outcome {
 const READ_AS_DATA: [&str; 0] = [];
 
 // Per project: what only Kani compiles (`#[cfg(kani)]`), which no other task can find changed.
-const PROOFS: [&str; 1] = ["crates/layeredconf/src/proofs.rs"];
+const PROOFS: [&str; 1] = ["crates/layeredcfg/src/proofs.rs"];
 
 // Per project: a workspace member that some of the tasks reading code never build, with the
 // tasks that do: its files are no input of the others (its Cargo.toml still is).
-const BUILT_ONLY_BY: [(&str, &[&str]); 1] =
-    [("crates/layeredconf-python", &["geiger", "coverage"])];
+const BUILT_ONLY_BY: [(&str, &[&str]); 1] = [("crates/layeredcfg-python", &["geiger", "coverage"])];
 
 // Per project: what can change what a task finds besides the files and the pinned tools, as
 // a command (run with `sh -c` from the root) whose output says it, and the tasks it is an
@@ -576,15 +575,15 @@ mod tests {
         assert_eq!(reads("fuzz/fuzz_targets/envfile.rs"), only(&["fuzz"]));
         assert_eq!(reads("tests/python/test_config.py"), only(&["coverage"]));
         let code = only(&["geiger", "miri", "coverage", "kani", "fuzz"]);
-        assert_eq!(reads("crates/layeredconf/src/text.rs"), code);
+        assert_eq!(reads("crates/layeredcfg/src/text.rs"), code);
         // The binding, which only geiger and coverage build, but its manifest.
-        assert_eq!(reads("crates/layeredconf-python/src/lib.rs"), only(&["geiger", "coverage"]));
-        assert_eq!(reads("crates/layeredconf-python/Cargo.toml"), all);
+        assert_eq!(reads("crates/layeredcfg-python/src/lib.rs"), only(&["geiger", "coverage"]));
+        assert_eq!(reads("crates/layeredcfg-python/Cargo.toml"), all);
         // The integration tests Miri runs, and what build.rs runs to write the Unicode table.
-        assert_eq!(reads("crates/layeredconf/tests/config.rs"), only(&["miri", "coverage"]));
+        assert_eq!(reads("crates/layeredcfg/tests/config.rs"), only(&["miri", "coverage"]));
         assert_eq!(reads("tools/unicode_table.py"), code);
         assert_eq!(reads("pyproject.toml"), code);
-        assert_eq!(reads("crates/layeredconf/src/proofs.rs"), only(&["kani"]));
+        assert_eq!(reads("crates/layeredcfg/src/proofs.rs"), only(&["kani"]));
     }
 
     #[test]

@@ -5,7 +5,7 @@
 use std::ffi::OsString;
 use std::os::unix::ffi::OsStringExt;
 
-use layeredconf::{Config, Environment, Options, Raw};
+use layeredcfg::{Config, Environment, Options, Raw};
 use libfuzzer_sys::fuzz_target;
 
 fuzz_target!(|data: &[u8]| {

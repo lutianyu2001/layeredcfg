@@ -1,5 +1,5 @@
 [package]
-name = "layeredconf-python"
+name = "layeredcfg-python"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -11,7 +11,7 @@ name = "_core"
 crate-type = ["cdylib"]
 
 [dependencies]
-layeredconf = { path = "../layeredconf" }
+layeredcfg = { path = "../layeredcfg" }
 pyo3 = "0.30.1"
 
 [lints.clippy]

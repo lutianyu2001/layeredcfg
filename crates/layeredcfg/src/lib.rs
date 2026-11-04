@@ -1,4 +1,4 @@
-//! layeredconf: layered configuration.
+//! layeredcfg: layered configuration.
 //!
 //! A TOML file of defaults says which settings there are and the type of each: that of its default. A setting's value
 //! is taken from the highest layer that has one:

@@ -1,4 +1,4 @@
-//! The module layeredconf._core: the Rust library as it is. layeredconf/__init__.py makes the Python API of it
+//! The module layeredcfg._core: the Rust library as it is. layeredcfg/__init__.py makes the Python API of it
 //! (attribute access, Python's exceptions and messages).
 #![forbid(unsafe_code)]
 
@@ -8,7 +8,7 @@ use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, PoisonError};
 
-use layeredconf::{Environment, ErrorKind, Options, Raw, Value};
+use layeredcfg::{Environment, ErrorKind, Options, Raw, Value};
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use pyo3::types::{PyBool, PyBytes, PyDict, PyFloat, PyInt, PyList, PyString};
@@ -89,7 +89,7 @@ fn raw_from_python(value: &Bound<'_, PyAny>) -> PyResult<Raw> {
     })
 }
 
-fn error_to_python(py: Python<'_>, error: &layeredconf::Error) -> PyErr {
+fn error_to_python(py: Python<'_>, error: &layeredcfg::Error) -> PyErr {
     let raw = match error.raw() {
         Some(raw) => match raw_to_python(py, raw) {
             Ok(raw) => raw.unbind(),
@@ -97,7 +97,7 @@ fn error_to_python(py: Python<'_>, error: &layeredconf::Error) -> PyErr {
         },
         None => py.None(),
     };
-    let expected = error.expected().map(layeredconf::Type::name);
+    let expected = error.expected().map(layeredcfg::Type::name);
     Error::new_err((kind_name(error.kind()), error.key().to_owned(), raw, expected, error.message().to_owned()))
 }
 
@@ -120,17 +120,17 @@ fn python_environment(get: Py<PyAny>, failure: Failure) -> Environment {
     })
 }
 
-#[pyclass(name = "State", module = "layeredconf._core", frozen)]
-struct State(layeredconf::State);
+#[pyclass(name = "State", module = "layeredcfg._core", frozen)]
+struct State(layeredcfg::State);
 
-#[pyclass(name = "Config", module = "layeredconf._core")]
+#[pyclass(name = "Config", module = "layeredcfg._core")]
 struct Config {
-    core: layeredconf::Config,
+    core: layeredcfg::Config,
     failure: Failure,
 }
 
 /// A core call's result, or the exception the environment raised during it.
-fn done<T>(py: Python<'_>, failure: &Failure, result: layeredconf::Result<T>) -> PyResult<T> {
+fn done<T>(py: Python<'_>, failure: &Failure, result: layeredcfg::Result<T>) -> PyResult<T> {
     if let Some(raised) = failure.lock().unwrap_or_else(PoisonError::into_inner).take() {
         return Err(raised);
     }
@@ -174,7 +174,7 @@ impl Config {
             options.environment = python_environment(get, failure.clone());
         }
         let defaults = PathBuf::from(from_python(defaults)?);
-        let core = done(py, &failure, layeredconf::Config::load(defaults, options))?;
+        let core = done(py, &failure, layeredcfg::Config::load(defaults, options))?;
         Ok(Config { core, failure })
     }
 
@@ -191,7 +191,7 @@ impl Config {
     }
 
     fn r#type(&self, py: Python<'_>, key: &str) -> PyResult<&'static str> {
-        done(py, &self.failure, self.core.type_of(key)).map(layeredconf::Type::name)
+        done(py, &self.failure, self.core.type_of(key)).map(layeredcfg::Type::name)
     }
 
     fn default<'py>(&self, py: Python<'py>, key: &str) -> PyResult<Bound<'py, PyAny>> {
@@ -207,7 +207,7 @@ impl Config {
     }
 
     fn source(&self, py: Python<'_>, key: &str) -> PyResult<&'static str> {
-        done(py, &self.failure, self.core.source(key)).map(layeredconf::Source::name)
+        done(py, &self.failure, self.core.source(key)).map(layeredcfg::Source::name)
     }
 
     fn shown<'py>(&self, py: Python<'py>, key: &str) -> PyResult<Bound<'py, PyAny>> {
@@ -338,11 +338,11 @@ fn find_upward<'py>(
     name: &Bound<'py, PyAny>,
     start: &Bound<'py, PyAny>,
 ) -> PyResult<Option<Bound<'py, PyAny>>> {
-    let found = layeredconf::find_upward(from_python(name)?, from_python(start)?);
+    let found = layeredcfg::find_upward(from_python(name)?, from_python(start)?);
     found.map(|path| path_to_python(py, &path)).transpose()
 }
 
-/// The Rust core of layeredconf.
+/// The Rust core of layeredcfg.
 #[pymodule]
 fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;

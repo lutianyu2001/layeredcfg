@@ -1,5 +1,5 @@
 [package]
-name = "layeredconf-fuzz"
+name = "layeredcfg-fuzz"
 version = "0.0.0"
 edition = "2024"
 publish = false
@@ -9,7 +9,7 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-layeredconf = { path = "../crates/layeredconf" }
+layeredcfg = { path = "../crates/layeredcfg" }
 
 # Not a member of the main workspace: built by cargo fuzz, on nightly.
 [workspace]

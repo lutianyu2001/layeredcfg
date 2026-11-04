@@ -1,6 +1,6 @@
 //! Text to values and back, held to what Python's `int()`, `float()` and `repr()` give.
 
-use layeredconf::text::{format_float, parse_bool, parse_float, parse_int, space_at, split_list, strip, valid_utf8};
+use layeredcfg::text::{format_float, parse_bool, parse_float, parse_int, space_at, split_list, strip, valid_utf8};
 
 fn int(s: &str) -> Option<i64> {
     parse_int(s.as_bytes())

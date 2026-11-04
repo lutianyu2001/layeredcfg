@@ -3,7 +3,7 @@ requires = ["maturin>=1.9,<2"]
 build-backend = "maturin"
 
 [project]
-name = "layeredconf"
+name = "layeredcfg"
 dynamic = ["version"]
 description = "Layered configuration: defaults from a TOML file, overridden by env-style files, the environment and the command line, each value converted to its default's type"
 readme = "README.md"
@@ -18,9 +18,9 @@ classifiers = [
 
 # The version is the Cargo workspace's (Cargo.toml).
 [tool.maturin]
-manifest-path = "crates/layeredconf-python/Cargo.toml"
+manifest-path = "crates/layeredcfg-python/Cargo.toml"
 python-source = "python"
-module-name = "layeredconf._core"
+module-name = "layeredcfg._core"
 locked = true
 strip = true
 # The build script of the core writes its Unicode table with this script.

@@ -9,7 +9,7 @@ this is a library, and `Cargo.lock` (committed) pins every crate's version and c
 |---|---|---|
 | `cargo xtask deny` | `cargo deny --workspace check` (xtask too): known vulnerabilities and unmaintained or yanked crates (RustSec), licenses, duplicate crates, sources; and for the fuzz workspace, vulnerabilities and sources | `deny.toml` |
 | `cargo xtask vet` | `cargo vet`: that every crate is audited, by an audit of this project or one imported from another organisation | `supply-chain/` |
-| `cargo xtask geiger` | `cargo geiger` of each crate of this project, `crates/layeredconf` and `crates/layeredconf-python`, a table each: how much `unsafe` code each dependency has and uses | none |
+| `cargo xtask geiger` | `cargo geiger` of each crate of this project, `crates/layeredcfg` and `crates/layeredcfg-python`, a table each: how much `unsafe` code each dependency has and uses | none |
 
 `cargo xtask setup` installs these tools at the versions `xtask/src/pins.rs` pins, and `cargo xtask outdated` says
 when one is due an upgrade (a known vulnerability in it, or a latest release that came out a month or more after it,
@@ -32,7 +32,7 @@ between two versions).
 
 ## Unsafe Code
 
-The two crates of this project, `layeredconf` and `layeredconf-python`, have `#![forbid(unsafe_code)]`: neither has any
+The two crates of this project, `layeredcfg` and `layeredcfg-python`, have `#![forbid(unsafe_code)]`: neither has any
 `unsafe` code of its own. What `unsafe` code runs is the dependencies'. As `cargo geiger` counts it (used / present):
 
 | Crate | Expressions | Why it has `unsafe` code |
@@ -75,7 +75,7 @@ cargo metadata --format-version 1 --locked | jq -r '
   | "\(.name) \(.version) [\([.targets[].kind[]] | unique | map(select(. == "custom-build" or . == "proc-macro")) | join(","))]"' | sort
 ```
 
-The project's own build script, `crates/layeredconf/build.rs`, runs `tools/unicode_table.py` with a Python
+The project's own build script, `crates/layeredcfg/build.rs`, runs `tools/unicode_table.py` with a Python
 interpreter to write the table of Unicode digits and whitespace.
 
 ## The Fuzz Targets

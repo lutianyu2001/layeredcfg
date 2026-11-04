@@ -49,7 +49,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "layeredconf"
+name = "layeredcfg"
 version = "0.1.0"
 dependencies = [
  "nix",
@@ -57,10 +57,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "layeredconf-python"
+name = "layeredcfg-python"
 version = "0.1.0"
 dependencies = [
- "layeredconf",
+ "layeredcfg",
  "pyo3",
 ]
 

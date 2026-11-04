@@ -1,5 +1,5 @@
 [workspace]
-name = "layeredconf"
+name = "layeredcfg"
 version = "0.1.0"
 description = "Layered configuration: defaults from a TOML file, overridden by env-style files, the environment and the command line"
 channels = ["conda-forge"]
@@ -19,11 +19,11 @@ PYTHONNOUSERSITE = "1"
 PYO3_PYTHON = "$CONDA_PREFIX/bin/python"
 
 [tasks]
-test-rust = { cmd = "cargo test --locked -p layeredconf", description = "Run the Rust tests" }
+test-rust = { cmd = "cargo test --locked -p layeredcfg", description = "Run the Rust tests" }
 lint = { cmd = "cargo fmt --all --check && cargo clippy --locked --workspace --all-targets -- -D warnings", description = "Check formatting and run clippy" }
 # The Python package: built into a wheel in dist/ from the environment's own build tools (no download).
 wheel = { cmd = "rm -rf dist && pip wheel . --no-build-isolation --no-deps -w dist", description = "Build the Python wheel into dist/" }
-install-wheel = { cmd = "pip install --force-reinstall --no-deps dist/layeredconf-*.whl", depends-on = ["wheel"], description = "Build the wheel and install it into this environment" }
+install-wheel = { cmd = "pip install --force-reinstall --no-deps dist/layeredcfg-*.whl", depends-on = ["wheel"], description = "Build the wheel and install it into this environment" }
 test-python = { cmd = "python -m pytest -q tests/python", depends-on = ["install-wheel"], description = "Build and install the wheel, then run the Python tests" }
 test = { depends-on = ["test-rust", "test-python"], description = "Run the Rust and the Python tests" }
 # The security audit, apart from the tests: pixi run audit <task> (cargo xtask, which lists the tasks).

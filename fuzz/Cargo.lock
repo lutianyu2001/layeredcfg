@@ -88,7 +88,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "layeredconf"
+name = "layeredcfg"
 version = "0.1.0"
 dependencies = [
  "nix",
@@ -96,10 +96,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "layeredconf-fuzz"
+name = "layeredcfg-fuzz"
 version = "0.0.0"
 dependencies = [
- "layeredconf",
+ "layeredcfg",
  "libfuzzer-sys",
 ]
 

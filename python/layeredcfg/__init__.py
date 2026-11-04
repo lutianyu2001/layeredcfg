@@ -1,4 +1,4 @@
-"""layeredconf: layered configuration.
+"""layeredcfg: layered configuration.
 
 A TOML file of defaults says which settings there are and the type of each, that of its default. A setting's value is
 taken from the highest layer that has one,
@@ -6,7 +6,7 @@ taken from the highest layer that has one,
     defaults (the TOML file) < env-style files < the environment < overrides (the command line)
 
 and converted to its default's type; a value that does not convert is an error, not a guess. The core is Rust
-(`layeredconf._core`); this module is its Python face: attribute access (`config.server.port`), Python's exceptions,
+(`layeredcfg._core`); this module is its Python face: attribute access (`config.server.port`), Python's exceptions,
 and the messages they carry, which a program can give in its own words.
 """
 

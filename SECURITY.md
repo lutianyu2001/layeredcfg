@@ -1,10 +1,10 @@
 # Security
 
-What layeredconf is trusted with, how it is checked, and what is left to the program that uses it.
+What layeredcfg is trusted with, how it is checked, and what is left to the program that uses it.
 
 ## What It Is Trusted With
 
-layeredconf reads a program's settings from four layers: the TOML file of defaults (the program's own), env-style
+layeredcfg reads a program's settings from four layers: the TOML file of defaults (the program's own), env-style
 files, the environment and the command line. All of them come from the program or from the user who runs it; they are
 trusted, but may be wrong. It gives back values and errors, whose messages programs tend to log or print, and
 `persist` writes files.
@@ -37,7 +37,7 @@ wheel runs any of it. `cargo xtask` runs it, with the versions of its tools and 
 |---|---|---|---|
 | `#![forbid(unsafe_code)]` | Neither crate of this project has `unsafe` code; the dependencies' is counted in [SUPPLY_CHAIN.md](SUPPLY_CHAIN.md) | built in | |
 | Tests | The layers, the conversions, persist, the readers of text and of env-style files; each condition of the masking of secrets and of the checks persist makes before writing | `pixi run test` | stable |
-| Miri | The 44 integration tests of `layeredconf` without undefined behaviour (not the binding, which calls the C API of Python) | `cargo xtask miri` | nightly |
+| Miri | The 44 integration tests of `layeredcfg` without undefined behaviour (not the binding, which calls the C API of Python) | `cargo xtask miri` | nightly |
 | Branch coverage | Which branches the Rust tests do not take, to find conditions left untested | `cargo xtask coverage` | nightly |
 | Kani | For every input up to 6 bytes: UTF-8 decoded as the standard library does, whitespace stripped once and for all and only between characters, integers without panic or overflow and as `str::parse` reads them, booleans without panic, lists cut at their commas and nowhere else; integers of 21 bytes at the edges of 64 bits | `cargo xtask kani` | Kani's own |
 | Fuzzing | Each target an hour on a workstation, four hours in CI (see below) | `cargo xtask fuzz` | nightly |

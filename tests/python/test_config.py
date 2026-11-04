@@ -1,4 +1,4 @@
-"""The Python face of layeredconf: attribute access, the layers through os.environ, the exceptions and their messages,
+"""The Python face of layeredcfg: attribute access, the layers through os.environ, the exceptions and their messages,
 problems, secrets, persist, snapshots."""
 
 import os
@@ -10,8 +10,8 @@ from pathlib import Path
 
 import pytest
 
-import layeredconf
-from layeredconf import Config, FileOnlyKey, InvalidValue, NotPersisted, UnknownKey, find_upward
+import layeredcfg
+from layeredcfg import Config, FileOnlyKey, InvalidValue, NotPersisted, UnknownKey, find_upward
 
 DEFAULTS = """\
 [server]
@@ -54,7 +54,7 @@ def test_settings_are_read_as_attributes_in_their_types(defaults):
     assert repr(config.server) == "<config section 'server'>"
     assert config.type("quota.hosts") == "list" and config.type("server.host") == "str"
     assert config.default("server.port") == 8420 and config.variable("server.port") == "APP_SERVER_PORT"
-    assert layeredconf.__version__ == "0.1.0"
+    assert layeredcfg.__version__ == "0.1.0"
 
 
 def test_unknown_settings_are_errors_of_the_kinds_python_code_expects(defaults):
@@ -134,7 +134,7 @@ def test_problems_say_what_is_wrong_and_where_it_is_written(defaults, tmp_path):
 def test_values_given_by_hand_are_said_to_be_in_the_write_file_and_nothing_is_relative_to_the_current_directory(
     defaults, tmp_path
 ):
-    from layeredconf import _core
+    from layeredcfg import _core
 
     core = _core.Config(str(defaults), files=[str(tmp_path / "x.env")], get=lambda name: None)
     core.set_file_values({"SERVER_PORT": "x"})
@@ -238,9 +238,9 @@ def test_a_snapshot_puts_the_overrides_and_the_files_back(defaults, tmp_path):
 def test_bad_defaults_and_settings_that_do_not_exist_are_refused(tmp_path):
     bad = tmp_path / "bad.toml"
     bad.write_text("when = 1979-05-27\n")
-    with pytest.raises(layeredconf.ConfigError, match="date or a time"):
+    with pytest.raises(layeredcfg.ConfigError, match="date or a time"):
         Config(bad)
-    with pytest.raises(layeredconf.ConfigError):
+    with pytest.raises(layeredcfg.ConfigError):
         Config(tmp_path / "missing.toml")
     good = tmp_path / "good.toml"
     good.write_text(DEFAULTS)
