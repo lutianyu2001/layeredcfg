@@ -37,7 +37,7 @@ wheel runs any of it. `cargo xtask` runs it, with the versions of its tools and 
 |---|---|---|---|
 | `#![forbid(unsafe_code)]` | Neither crate of this project has `unsafe` code; the dependencies' is counted in [SUPPLY_CHAIN.md](SUPPLY_CHAIN.md) | built in | |
 | Tests | The layers, the conversions, persist, the readers of text and of env-style files; each condition of the masking of secrets and of the checks persist makes before writing | `pixi run test` | stable |
-| Miri | The 44 integration tests of `layeredcfg` without undefined behaviour (not the binding, which calls the C API of Python) | `cargo xtask miri` | nightly |
+| Miri | The 45 integration tests of `layeredcfg` without undefined behaviour (not the binding, which calls the C API of Python) | `cargo xtask miri` | nightly |
 | Branch coverage | Which branches the Rust tests do not take, to find conditions left untested | `cargo xtask coverage` | nightly |
 | Kani | For every input up to 6 bytes, whatever is whitespace or a digit beyond ASCII: UTF-8 decoded as the standard library does, whitespace stripped only between characters, integers and booleans without panic or overflow, lists cut at their commas and nowhere else; for every ASCII input up to 6 bytes: whitespace stripped once and for all, integers as `str::parse` reads them; integers of 21 bytes at the edges of 64 bits | `cargo xtask kani` | Kani's own |
 | Fuzzing | Each target an hour on a workstation, four hours in CI (see below) | `cargo xtask fuzz` | nightly |

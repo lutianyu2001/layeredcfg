@@ -75,34 +75,35 @@ to run them, and what each covers, is in [SECURITY.md](https://github.com/lutian
   yanked crates, licenses and sources. In cargo vet, 3 are covered by audits imported from other organisations and
   the other 26 by the maintainer's own certification, none exempted. They are not vendored: this is a library,
   and `Cargo.lock` pins every version and checksum.
-- **Miri.** The 44 tests of the Rust library (the layers, persist, env-style files, the readers of text) run under Miri
+- **Miri.** The 45 tests of the Rust library (the layers, persist, env-style files, the readers of text) run under Miri
   without undefined behaviour; not the binding, which calls Python's C API.
 - **Fuzzing.** Three targets, an hour each on a workstation and four hours each at a release: `envfile` (statements in
   order inside the text, values written by `persist` read back the same), `numbers` (integers and floats written so
   that they read back the same, digits beyond ASCII included, `strip` idempotent, list items without commas or
   whitespace around them) and `config`
   (reading defaults and every setting's `get`, `shown`, `path` and `set` without a panic).
-- **Kani.** 13 proofs: for every input up to 6 bytes, UTF-8 is decoded as the standard library does, whitespace is
-  stripped once and for all and only between characters, integers are read without panic or overflow and as
-  `str::parse` reads them, booleans without panic, and lists are cut at their commas and nowhere else; and integers of
-  21 bytes are read exactly at the edges of 64 bits. Each proof ran alone, compiled before, on 2026-11-04 at 5970f0e,
-  on an AMD Ryzen 9 5950X with 32 GB:
+- **Kani.** 13 proofs: for every input up to 6 bytes, whatever the characters beyond ASCII are taken for, UTF-8 is
+  decoded as the standard library does, whitespace is stripped only between characters, integers and booleans are read
+  without panic or overflow, and lists are cut at their commas and nowhere else; for every ASCII input up to 6 bytes,
+  whitespace is stripped once and for all and integers are read as `str::parse` reads them; and integers of 21 bytes
+  are read exactly at the edges of 64 bits. Each proof ran alone, compiled before, on 2026-11-04 at e55861f, on an AMD
+  Ryzen 9 5950X with 32 GB:
 
   | Proof | Time | Peak memory |
   |---|---|---|
-  | `decode_past_the_end_is_no_character` | 1 s | 96 MiB |
-  | `decode_reads_utf8_as_the_standard_library_does` | 55 s | 1.3 GiB |
-  | `parse_bool_does_not_panic` | 20 s | 669 MiB |
-  | `parse_int_does_not_panic_or_overflow` | 50 s | 1.7 GiB |
-  | `parse_int_is_exact_at_the_largest_i64` | 16 min 58 s | 9.7 GiB |
-  | `parse_int_is_exact_at_the_smallest_i64` | 15 min 36 s | 9.7 GiB |
-  | `parse_int_is_exact_past_u64` | 15 min 40 s | 10.8 GiB |
-  | `parse_int_is_exact_past_u64_negative` | 14 min 5 s | 10.3 GiB |
-  | `parse_int_reads_plain_numbers_as_the_standard_library_does` | 1 min 24 s | 2.5 GiB |
-  | `space_at_stays_in_the_text` | 1 s | 100 MiB |
-  | `split_list_cuts_at_the_commas_and_nowhere_else` | 54 s | 2.1 GiB |
+  | `decode_past_the_end_is_no_character` | 1 s | 81 MiB |
+  | `decode_reads_utf8_as_the_standard_library_does` | 37 s | 1.4 GiB |
+  | `parse_bool_does_not_panic` | 15 s | 664 MiB |
+  | `parse_int_does_not_panic_or_overflow` | 32 s | 1.3 GiB |
+  | `parse_int_is_exact_at_the_largest_i64` | 14 min 52 s | 9.6 GiB |
+  | `parse_int_is_exact_at_the_smallest_i64` | 15 min 5 s | 9.6 GiB |
+  | `parse_int_is_exact_past_u64` | 14 min 2 s | 9.6 GiB |
+  | `parse_int_is_exact_past_u64_negative` | 14 min 11 s | 9.6 GiB |
+  | `parse_int_reads_plain_numbers_as_the_standard_library_does` | 58 s | 2.2 GiB |
+  | `space_at_stays_in_the_text` | 1 s | 105 MiB |
+  | `split_list_cuts_at_the_commas_and_nowhere_else` | 51 s | 2.1 GiB |
   | `strip_str_cuts_at_the_boundaries_of_characters` | 24 s | 1.1 GiB |
-  | `strip_takes_whitespace_off_once_and_for_all` | 26 s | 907 MiB |
+  | `strip_takes_whitespace_off_once_and_for_all` | 19 s | 1010 MiB |
 - **Branch coverage.** The Rust tests take 85.81 % of the 310 branches of the Rust code, 90.48 % of the library's 294
   (`audit/coverage/summary.txt`); the binding's 16 are left to the Python tests.
 - **Two reviews.** Every change went through a code review, and the most sensitive code (the reader of env-style files,
@@ -119,15 +120,32 @@ whitespace character it has), `parse_float`, the reader of env-style files, and 
 
 ## Prerequisites
 
-- [rustup](https://rustup.rs), which installs the Rust version `rust-toolchain.toml` pins (1.99.1) when it is first
-  needed; the crates themselves need Rust 1.88 or later
-- [pixi](https://pixi.sh), which brings the rest into the environment of this directory:
-  - [maturin](https://www.maturin.rs) ≥1.9
-  - Python 3.12, for the binding and its tests
+- Python 3.10 or later for the Python package, Rust 1.88 or later for the crate
+- To build from source and run the tests:
+  - [rustup](https://rustup.rs), which installs the Rust version `rust-toolchain.toml` pins (1.99.1) when it is first
+    needed
+  - [pixi](https://pixi.sh), which brings the rest into the environment of this directory:
+    - [maturin](https://www.maturin.rs) ≥1.9
+    - Python 3.12, for the binding and its tests
 
 ## Installation
 
-layeredcfg is not published yet, so it is built from source.
+### From PyPI (Recommended)
+
+```bash
+pip install layeredcfg
+```
+
+The wheels are for Linux (x86_64 and aarch64, glibc and musl), one for every Python from 3.10. Elsewhere (macOS) pip
+builds the package from its source distribution, which needs Rust 1.88 or later.
+
+### From crates.io
+
+```bash
+cargo add layeredcfg
+```
+
+### Building from Source
 
 1. Clone the repository:
 
@@ -148,7 +166,8 @@ layeredcfg is not published yet, so it is built from source.
    pip install dist/layeredcfg-*.whl
    ```
 
-For Rust, depend on the crate in `crates/layeredcfg` by its path or by this repository's git URL.
+For the crate from this repository instead of crates.io, depend on `crates/layeredcfg` by its path or by this
+repository's git URL.
 
 ## Usage
 
@@ -272,7 +291,7 @@ Tested on:
 
 - Ubuntu 24.04.4 LTS (x86_64)
   - Rust 1.99.1
-  - Python 3.12.15
+  - Python 3.12.15, and the manylinux wheel on Python 3.15.0
   - [maturin](https://github.com/PyO3/maturin) 1.15.0
   - [PyO3](https://github.com/PyO3/pyo3) 0.30.1
   - [toml](https://crates.io/crates/toml) 1.1.8
