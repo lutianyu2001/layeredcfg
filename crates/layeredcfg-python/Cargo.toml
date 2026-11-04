@@ -12,7 +12,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 layeredcfg = { path = "../layeredcfg" }
-pyo3 = "0.30.1"
+# The stable ABI: one wheel for every Python from 3.10, which reads Unicode as the Python that runs it does.
+pyo3 = { version = "0.30.1", features = ["abi3-py310"] }
 
 [lints.clippy]
 pedantic = { level = "warn", priority = -1 }

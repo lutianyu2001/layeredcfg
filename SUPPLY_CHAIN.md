@@ -75,8 +75,7 @@ cargo metadata --format-version 1 --locked | jq -r '
   | "\(.name) \(.version) [\([.targets[].kind[]] | unique | map(select(. == "custom-build" or . == "proc-macro")) | join(","))]"' | sort
 ```
 
-The project's own build script, `crates/layeredcfg/build.rs`, runs `tools/unicode_table.py` with a Python
-interpreter to write the table of Unicode digits and whitespace.
+The project's own crates have no build script.
 
 ## The Fuzz Targets
 

@@ -144,7 +144,7 @@ jobs:
           [ "$c" -le 1 ]
       # Per project: what building with the default features needs, for the tasks that do
       # (for example a Go toolchain, under `if: steps.needed.outputs.code == '0'`). Nothing
-      # here: the runner's python3 is what build.rs and PyO3's build run.
+      # here: the runner's python3 is what PyO3's build runs.
       - if: steps.needed.outputs.code == '0'
         run: cargo xtask setup "$TASK"
       # A failure fails the job, and is committed too, with the last success kept beside it.

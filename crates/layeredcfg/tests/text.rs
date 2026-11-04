@@ -52,34 +52,27 @@ fn floats_are_read_as_python_float_reads_them() {
     }
 }
 
+// Beyond ASCII, without set_beyond_ascii (tests/beyond_ascii.rs gives one): whitespace is Unicode's and no digit is.
 #[test]
-fn digits_and_whitespace_beyond_ascii_are_read_as_python_reads_them() {
-    assert_eq!(int("８４２０"), Some(8420)); // full-width digits
-    assert_eq!(int("٣٥"), Some(35)); // Arabic-Indic digits
-    assert_eq!(int("\u{1D7D3}"), Some(5)); // a mathematical digit, beyond the BMP
-    assert_eq!(int("-５"), Some(-5));
-    assert_eq!(int("１_０"), Some(10));
-    assert_eq!(int("１_0"), Some(10));
+fn whitespace_beyond_ascii_is_unicodes_and_digits_are_ascii() {
     assert_eq!(int("\u{A0}5\u{3000}"), Some(5)); // a no-break space and an ideographic space around
     assert_eq!(int("\u{2028}5\u{85}"), Some(5));
-    assert_eq!(float("５.５"), Some(5.5));
-    assert_eq!(float("１e５"), Some(100_000.0));
-    assert_eq!(float("٣.٥"), Some(3.5));
-    assert_eq!(float("\u{3000}-０.５\u{3000}"), Some(-0.5));
+    assert_eq!(float("\u{3000}-0.5\u{3000}"), Some(-0.5));
+    for digits in ["８４２０", "٣٥", "\u{1D7D3}", "-５", "５.５"] {
+        assert_eq!(int(digits), None, "{digits:?}");
+        assert_eq!(float(digits), None, "{digits:?}");
+    }
     // No other character beyond ASCII (full-width signs, points and letters, a superscript, zero-width and byte order
     // marks), and not \x1c to \x1f, which str.isspace() takes but int() and float() do not.
-    let bad: [&[u8]; 12] = [
+    let bad: [&[u8]; 9] = [
         b"\x1c5",
         b"5\x1f",
         "＋5".as_bytes(),
-        "５．５".as_bytes(),
         "²".as_bytes(),
         "\u{200B}5".as_bytes(),
         "\u{FEFF}5".as_bytes(),
         "\u{180E}5".as_bytes(),
         "1\u{3000}2".as_bytes(),
-        "１ｅ５".as_bytes(),
-        "ｉｎｆ".as_bytes(),
         b"\xEF\xBC",
     ];
     for bad in bad {

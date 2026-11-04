@@ -8,9 +8,11 @@ use std::os::unix::ffi::{OsStrExt, OsStringExt};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, PoisonError};
 
+use layeredcfg::text::CharKind;
 use layeredcfg::{Environment, ErrorKind, Options, Raw, Value};
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
+use pyo3::sync::PyOnceLock;
 use pyo3::types::{PyBool, PyBytes, PyDict, PyFloat, PyInt, PyList, PyString};
 use pyo3::{IntoPyObjectExt, create_exception};
 
@@ -342,9 +344,30 @@ fn find_upward<'py>(
     found.map(|path| path_to_python(py, &path)).transpose()
 }
 
+/// What a character beyond ASCII is to the running Python: whitespace as `str.isspace()` takes it, a decimal digit as
+/// `unicodedata.decimal()` gives it. The core asks for each such character it reads, so that numbers and text read as
+/// this Python reads them, with its Unicode version and not that of the Python the module was built with (one wheel
+/// serves every Python from 3.10).
+fn python_kind(c: char) -> CharKind {
+    static DECIMAL: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
+    Python::attach(|py| {
+        let text = PyString::new(py, c.encode_utf8(&mut [0; 4]));
+        if text.call_method0("isspace").and_then(|space| space.extract::<bool>()).unwrap_or(false) {
+            return CharKind::Space;
+        }
+        let decimal = DECIMAL.get_or_try_init(py, || py.import("unicodedata")?.getattr("decimal").map(Bound::unbind));
+        // decimal(c, None) is the value of a decimal digit, None for another character.
+        match decimal.and_then(|decimal| decimal.bind(py).call1((text, py.None()))?.extract::<Option<u8>>()) {
+            Ok(Some(digit)) => CharKind::Digit(digit),
+            _ => CharKind::Other,
+        }
+    })
+}
+
 /// The Rust core of layeredcfg.
 #[pymodule]
 fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    layeredcfg::text::set_beyond_ascii(python_kind);
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     m.add("Error", m.py().get_type::<Error>())?;
     m.add_class::<Config>()?;

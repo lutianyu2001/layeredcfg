@@ -39,7 +39,7 @@ wheel runs any of it. `cargo xtask` runs it, with the versions of its tools and 
 | Tests | The layers, the conversions, persist, the readers of text and of env-style files; each condition of the masking of secrets and of the checks persist makes before writing | `pixi run test` | stable |
 | Miri | The 44 integration tests of `layeredcfg` without undefined behaviour (not the binding, which calls the C API of Python) | `cargo xtask miri` | nightly |
 | Branch coverage | Which branches the Rust tests do not take, to find conditions left untested | `cargo xtask coverage` | nightly |
-| Kani | For every input up to 6 bytes: UTF-8 decoded as the standard library does, whitespace stripped once and for all and only between characters, integers without panic or overflow and as `str::parse` reads them, booleans without panic, lists cut at their commas and nowhere else; integers of 21 bytes at the edges of 64 bits | `cargo xtask kani` | Kani's own |
+| Kani | For every input up to 6 bytes, whatever is whitespace or a digit beyond ASCII: UTF-8 decoded as the standard library does, whitespace stripped only between characters, integers and booleans without panic or overflow, lists cut at their commas and nowhere else; for every ASCII input up to 6 bytes: whitespace stripped once and for all, integers as `str::parse` reads them; integers of 21 bytes at the edges of 64 bits | `cargo xtask kani` | Kani's own |
 | Fuzzing | Each target an hour on a workstation, four hours in CI (see below) | `cargo xtask fuzz` | nightly |
 | cargo deny | Known vulnerabilities, unmaintained and yanked crates, licenses, sources; for the fuzz workspace, vulnerabilities and sources | `cargo xtask deny` | stable |
 | cargo vet | That every dependency is audited | `cargo xtask vet` | stable |
@@ -50,10 +50,13 @@ The fuzz targets, and what they assert of every input:
 | Target | Input | Asserted |
 |---|---|---|
 | `envfile` | An env-style file | No panic; the statements read lie in order inside the text, each with a name; a value written by `persist`'s quoting into the file reads back as it was, or the writing is refused (a quote never closed before it) |
-| `numbers` | Any bytes | No panic; an integer or a float read is written so that it reads back the same; `strip` is idempotent and the same on bytes and on text; the items of a list are not empty, have no comma and no whitespace around them |
+| `numbers` | Any bytes, with a few runs of digits beyond ASCII set | No panic; an integer or a float read is written so that it reads back the same; `strip` is idempotent and the same on bytes and on text; the items of a list are not empty, have no comma and no whitespace around them |
 | `config` | TOML text, a NUL, a value | No panic in reading the defaults, or in `get`, `shown`, `path`, `cast` and `set` of each setting with the value in the environment and as an override; a value `set` takes, `get` gives |
 
-Not proved, and covered by the tests and the fuzzing instead: `parse_float` (it builds the text it gives
+Not proved, and covered by the tests and the fuzzing instead: which characters beyond ASCII are whitespace or digits
+(the binding asks the running Python, which no proof can see into; the Python tests compare every digit and whitespace
+character of the Python they run on, and the characters next to them, with `int()`, `float()` and `str.strip()`),
+`parse_float` (it builds the text it gives
 `str::parse`, past what Kani can unroll), the reader of env-style files (a loop with some nine loops inside, past 16 GB
 of memory at 4 bytes), and what is above the readers of text (the layers, persist).
 
@@ -95,9 +98,8 @@ files it reads changed, and, for `deny`, whose advisories change every day, for 
 their tokens, so that a change to a comment or to the layout changes nothing; the others as they are. Which files a
 task reads is `affects` in `xtask/src/main.rs`: documentation reads none of them, a task's own module in `xtask/src/tasks/`
 only that task, the proofs only `kani`, the integration tests `miri` and `coverage`, the binding `geiger` and `coverage`
-(the others do not build it), the Python tests only `coverage`. The Unicode version of the Python that `build.rs` runs,
-from whose `unicodedata` the table of digits and whitespace is written, counts for `miri`, `coverage`, `kani` and
-`fuzz`; the crate's own version, which only the Python tests see, for none.
+(the others do not build it), the Python tests only `coverage`; the crate's own version, which only the Python tests
+see, for none.
 
 `--if-needed` (`cargo xtask all --if-needed`) skips the tasks whose results hold. `--no-record` runs a task on any
 working tree, into `target/audit/<task>/`, with `audit/` left as it is; some proofs only (`kani <proof…>`) or fuzzing

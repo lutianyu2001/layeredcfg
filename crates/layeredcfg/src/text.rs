@@ -1,11 +1,76 @@
 //! Text to values and back, the way Python reads and writes them (so that a binding behaves as Python code did).
 //!
-//! Whitespace is what Python's str.isspace() takes, beyond ASCII too (U+3000, U+00A0 and the others), and digits are
-//! Unicode's decimal digits (８, ٣), both as the unicodedata of the Python the library was built with has them.
+//! In ASCII, whitespace is what Python's `str.isspace()` takes (\x1c to \x1f too) and digits are 0 to 9. Beyond ASCII
+//! it is what `set_beyond_ascii` was given: the Python binding gives the running Python's `str.isspace()` and
+//! `unicodedata.decimal()` (U+3000, U+00A0, ８, ٣), so that text reads as that Python reads it, whatever its Unicode
+//! version. Without it, whitespace is Unicode's (`char::is_whitespace`, the same characters as Python's beyond ASCII)
+//! and there is no digit beyond ASCII, as `str::parse` has none.
 
 use std::fmt::Write;
+use std::sync::OnceLock;
 
-include!(concat!(env!("OUT_DIR"), "/unicode_table.rs"));
+/// What a character beyond ASCII is, in numbers and around text.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CharKind {
+    /// Whitespace: stripped around text, and around a number.
+    Space,
+    /// A decimal digit, with its value (0 to 9), which a number may be written in.
+    Digit(u8),
+    /// Neither.
+    Other,
+}
+
+static BEYOND_ASCII: OnceLock<fn(char) -> CharKind> = OnceLock::new();
+
+/// Says what each character beyond ASCII is, for the whole process and before any text is read: the Python binding
+/// gives the running Python's view. Only the first call takes effect; it returns whether this one did.
+pub fn set_beyond_ascii(kind: fn(char) -> CharKind) -> bool {
+    BEYOND_ASCII.set(kind).is_ok()
+}
+
+/// What the character of `code` is; bytes that are no character (`NOT_UTF8`) are none of them.
+fn kind(code: u32) -> CharKind {
+    if let Ok(byte) = u8::try_from(code)
+        && byte.is_ascii()
+    {
+        return match byte {
+            // Python's str.isspace() in ASCII: \t, \n, \x0b, \x0c, \r, \x1c to \x1f and the space.
+            b'\t'..=b'\r' | 0x1C..=b' ' => CharKind::Space,
+            b'0'..=b'9' => CharKind::Digit(byte - b'0'),
+            _ => CharKind::Other,
+        };
+    }
+    let Some(c) = char::from_u32(code) else { return CharKind::Other };
+    match beyond_ascii(c) {
+        CharKind::Digit(digit) if digit > 9 => CharKind::Other,
+        other => other,
+    }
+}
+
+/// What the function given to `set_beyond_ascii` says of a character beyond ASCII; without one, Unicode's whitespace
+/// and no digit.
+#[cfg(not(kani))]
+fn beyond_ascii(c: char) -> CharKind {
+    match BEYOND_ASCII.get() {
+        Some(kind) => kind(c),
+        None if c.is_whitespace() => CharKind::Space,
+        None => CharKind::Other,
+    }
+}
+
+/// Under Kani, any answer at all, each time it is asked: a proof then holds whatever the function says.
+#[cfg(kani)]
+fn beyond_ascii(_: char) -> CharKind {
+    match kani::any::<u8>() {
+        0 => CharKind::Space,
+        1 => CharKind::Other,
+        _ => CharKind::Digit(kani::any()),
+    }
+}
+
+fn is_space(code: u32) -> bool {
+    kind(code) == CharKind::Space
+}
 
 /// The code of bytes that are no UTF-8 character.
 pub(crate) const NOT_UTF8: u32 = u32::MAX;
@@ -54,11 +119,6 @@ pub(crate) fn decode(s: &[u8], at: usize) -> Decoded {
     Decoded { code, length }
 }
 
-/// The value of a decimal digit, nothing for a character that is none.
-fn decimal(code: u32) -> Option<u8> {
-    u8::try_from(code - digit_zero(code)?).ok()
-}
-
 /// The text as Python's `int()` and `float()` read it: a whitespace character beyond ASCII made a space and a decimal
 /// digit beyond ASCII the ASCII digit of its value (Python's `_PyUnicode_TransformDecimalAndSpaceToASCII`); nothing
 /// when there is another character beyond ASCII, which neither reads.
@@ -72,10 +132,12 @@ fn ascii_number(s: &[u8]) -> Option<Vec<u8>> {
         let c = decode(s, at);
         out[length] = if c.code < 0x80 {
             s[at]
-        } else if is_space(c.code) {
-            b' '
         } else {
-            b'0' + decimal(c.code)?
+            match kind(c.code) {
+                CharKind::Space => b' ',
+                CharKind::Digit(digit) => b'0' + digit,
+                CharKind::Other => return None,
+            }
         };
         length += 1;
         at += c.length;

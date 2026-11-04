@@ -1,14 +1,19 @@
-//! Kani proofs: for every input up to 6 bytes, the readers of whitespace, integers, booleans and lists do not panic,
-//! do not overflow, and say what the standard library says where it says the same thing; integers are proved at the
-//! edges of 64 bits too. `parse_float`, which builds the text it gives str::parse, has no proof. `cargo xtask kani`
-//! runs them, one at a time.
+//! Kani proofs: for every input up to 6 bytes, UTF-8 is decoded as the standard library does, the readers of
+//! whitespace, integers and booleans do not panic or overflow, text is cut only between characters, and lists are cut
+//! at their commas; for every ASCII input up to 6 bytes, whitespace is taken off once and for all and integers are
+//! read as the standard library reads them; integers are proved at the edges of 64 bits too. `parse_float`, which
+//! builds the text it gives str::parse, has no proof. `cargo xtask kani` runs them, one at a time.
+//!
+//! What is whitespace or a digit beyond ASCII is asked of a function given at run time (for the Python binding, the
+//! running Python). Under Kani it answers anything at all, each time it is asked, so that the proofs above that take
+//! any bytes hold whatever it says. That a character reads the same each time is no part of it, so what depends on it
+//! (stripping twice changes nothing) is proved on ASCII only; the tests and the `numbers` fuzz target check the rest.
 //!
 //! Kani unrolls every loop of a harness to the one bound its `#[kani::unwind]` gives, so the code under proof is kept
-//! without loops where it can be. The Unicode lookups are matches of ranges (`tools/unicode_table.py`) and not tables
-//! searched: a search of the 68 runs of digits needs a bound of 8, which every loop over the input then takes too,
-//! each step reading the table at an unknown place; with them, harnesses of 6 bytes ran past 30 minutes or past 16G of
-//! memory, and they take seconds without. A harness without a bound unrolls without end. Nor do they push onto a
-//! `Vec` in a loop: every push carries the branch that grows it, unrolled at every step.
+//! without loops where it can be: a table searched in a loop takes the bound of its search into every loop over the
+//! input (with a search of 68 runs, harnesses of 6 bytes ran past 30 minutes or past 16G of memory). A harness
+//! without a bound unrolls without end. Nor do they push onto a `Vec` in a loop: every push carries the branch that
+//! grows it, unrolled at every step.
 //!
 //! The reader of env-style files has none: it is a loop over statements with some nine loops inside, each unrolled
 //! whole at every step of the outer one, and at 4 bytes it was past 16G of memory. Its tests and the `envfile` fuzz
@@ -21,6 +26,13 @@ fn any_bytes<const N: usize>() -> ([u8; N], usize) {
     let bytes: [u8; N] = kani::any();
     let len: usize = kani::any();
     kani::assume(len <= N);
+    (bytes, len)
+}
+
+/// Any ASCII bytes, at most N of them.
+fn any_ascii<const N: usize>() -> ([u8; N], usize) {
+    let (bytes, len) = any_bytes::<N>();
+    kani::assume(bytes.iter().all(u8::is_ascii));
     (bytes, len)
 }
 
@@ -65,7 +77,7 @@ fn space_at_stays_in_the_text() {
 #[kani::proof]
 #[kani::unwind(7)]
 fn strip_takes_whitespace_off_once_and_for_all() {
-    let (bytes, len) = any_bytes::<6>();
+    let (bytes, len) = any_ascii::<6>();
     let s = &bytes[..len];
     let stripped = text::strip(s);
     assert!(stripped.len() <= s.len());

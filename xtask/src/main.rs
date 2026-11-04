@@ -247,13 +247,7 @@ const BUILT_ONLY_BY: [(&str, &[&str]); 1] = [("crates/layeredcfg-python", &["gei
 // Per project: what can change what a task finds besides the files and the pinned tools, as
 // a command (run with `sh -c` from the root) whose output says it, and the tasks it is an
 // input of. inputs.txt keeps the output, or how the command failed, as `<output>\t(<name>)`.
-// build.rs writes the table of Unicode digits and whitespace from the unicodedata of this
-// Python; Kani, Miri, coverage and the fuzzing run that table.
-const PROBES: [(&str, &str, &[&str]); 1] = [(
-    "the Unicode version of the Python build.rs runs",
-    r#""${PYO3_PYTHON:-${PYTHON:-python3}}" -c 'import unicodedata; print(unicodedata.unidata_version)'"#,
-    &["miri", "coverage", "kani", "fuzz"],
-)];
+const PROBES: [(&str, &str, &[&str]); 0] = [];
 
 /// Whether a change to `path` can change what `task` finds, besides the tools pinned for
 /// it. Documentation, CI and the results themselves change nothing.
@@ -579,9 +573,8 @@ mod tests {
         // The binding, which only geiger and coverage build, but its manifest.
         assert_eq!(reads("crates/layeredcfg-python/src/lib.rs"), only(&["geiger", "coverage"]));
         assert_eq!(reads("crates/layeredcfg-python/Cargo.toml"), all);
-        // The integration tests Miri runs, and what build.rs runs to write the Unicode table.
+        // The integration tests Miri runs.
         assert_eq!(reads("crates/layeredcfg/tests/config.rs"), only(&["miri", "coverage"]));
-        assert_eq!(reads("tools/unicode_table.py"), code);
         assert_eq!(reads("pyproject.toml"), code);
         assert_eq!(reads("crates/layeredcfg/src/proofs.rs"), only(&["kani"]));
     }

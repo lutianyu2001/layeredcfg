@@ -60,7 +60,7 @@
 - **`unsafe` 代码。** 本项目的两个 crate 都没有（`#![forbid(unsafe_code)]`）；依赖里的由 cargo geiger 计数，大部分在调用 Python C API 的 PyO3 里。
 - **依赖。** 29 个 crate，只来自 crates.io，由 cargo deny 检查已知漏洞、无人维护或被撤回的 crate、许可证和来源。cargo vet 里，3 个有其他组织的审计记录（导入的），其余 26 个由维护者自己批准（certify），没有豁免。依赖没有本地化（vendor）：这是一个库，`Cargo.lock` 固定了每个版本和校验和。
 - **Miri。** Rust 库的 44 个测试（各层、persist、环境变量写法的文件、读文字的函数）在 Miri 下跑过，没有未定义行为；绑定层调用 Python 的 C API，不在其内。
-- **模糊测试。** 三个 target，在工作站上每个跑一小时，发版时每个跑四小时：`envfile`（读出的语句按顺序落在原文以内，`persist` 写进去的值读回来不变）、`numbers`（整数和浮点数写出来再读回来不变，`strip` 幂等，列表的每项不含逗号、首尾没有空白）、`config`（读默认值，以及对每个配置项 `get`、`shown`、`path`、`set` 都不 panic）。
+- **模糊测试。** 三个 target，在工作站上每个跑一小时，发版时每个跑四小时：`envfile`（读出的语句按顺序落在原文以内，`persist` 写进去的值读回来不变）、`numbers`（整数和浮点数写出来再读回来不变，ASCII 以外的数字也算，`strip` 幂等，列表的每项不含逗号、首尾没有空白）、`config`（读默认值，以及对每个配置项 `get`、`shown`、`path`、`set` 都不 panic）。
 - **Kani。** 13 个证明：在 6 字节以内的任何输入下，UTF-8 的解码和标准库一致，空白一次去干净、只在字符之间切，整数读取不 panic、不溢出，结果和 `str::parse` 一致，布尔值读取不 panic，列表只在逗号处切开；另外 21 字节的整数在 64 位边界处读得准确。每个证明单独跑、事先编译好，2026-11-04 在 5970f0e 上跑，机器是 AMD Ryzen 9 5950X、32 GB 内存：
 
   | 证明 | 耗时 | 峰值内存 |
@@ -81,15 +81,14 @@
 - **分支覆盖率。** Rust 测试走到了 Rust 代码 310 个分支中的 85.81%，其中库的 294 个里是 90.48%（`audit/coverage/summary.txt`）；绑定层的 16 个留给 Python 测试。
 - **两路评审。** 每次改动都经过代码评审；最敏感的代码（环境变量写法的文件的读取器、`persist`、密钥打码）另由几位评审从头到尾读过，给他们的只有威胁模型，没有已有的结论。
 
-这些说明了什么：本项目自己的代码是没有 `unsafe` 的 Rust，没有内存错误（除非编译器或依赖里的 `unsafe` 代码有错），上面的检查也没有发现 panic、溢出或未定义行为。没有说明什么：Rust 不排除逻辑错误；依赖里的 `unsafe` 代码靠它们自己和它们的审计记录；Kani 只证明界限以内的输入，模糊测试只是抽样。没有证明、只靠测试和模糊测试覆盖的：`parse_float`、环境变量写法的文件的读取器，以及读文字的函数之上的部分（各层、`persist`）。
+这些说明了什么：本项目自己的代码是没有 `unsafe` 的 Rust，没有内存错误（除非编译器或依赖里的 `unsafe` 代码有错），上面的检查也没有发现 panic、溢出或未定义行为。没有说明什么：Rust 不排除逻辑错误；依赖里的 `unsafe` 代码靠它们自己和它们的审计记录；Kani 只证明界限以内的输入，模糊测试只是抽样。没有证明、只靠测试和模糊测试覆盖的：ASCII 以外哪些字符算空白或数字（取自正在运行的 Python，Python 测试对它的每个数字和空白字符逐一对照过）、`parse_float`、环境变量写法的文件的读取器，以及读文字的函数之上的部分（各层、`persist`）。
 
 ## 前置要求
 
 - [rustup](https://rustup.rs)：第一次用到时会装上 `rust-toolchain.toml` 固定的 Rust 版本（1.99.1）
 - [pixi](https://pixi.sh)，其余的都由它装进这个目录的环境：
   - [maturin](https://www.maturin.rs) ≥1.9
-  - Python 3.12：只构建 Rust 库也要用它，Unicode 的数字和空白表由 `tools/unicode_table.py` 从它的 `unicodedata` 生成（用
-    `PYO3_PYTHON` 指定的 Python，没有就用 `PYTHON` 指定的，再没有就用 `python3`）
+  - Python 3.12：给绑定层和它的测试用
 
 ## 安装
 
@@ -114,7 +113,7 @@ layeredcfg 还没有发布，需要从源码构建。
    pip install dist/layeredcfg-*.whl
    ```
 
-Rust 项目按路径或这个仓库的 git 地址依赖 `crates/layeredcfg` 里的 crate 即可；构建它同样要有 Python 3，见上。
+Rust 项目按路径或这个仓库的 git 地址依赖 `crates/layeredcfg` 里的 crate 即可。
 
 ## 用法
 
@@ -178,7 +177,7 @@ fn main() -> Result<(), layeredcfg::Error> {
 | 字符串 | 原样 |
 | 字符串列表 | 逗号分隔，每项去掉首尾空白，空项不要 |
 
-文字必须是 UTF-8（不是的算写错）。数字和空白照 Python 认，ASCII 以外的也认：`８４２０` 和 `int()` 读出来一样是 8420，不换行空格、全角空格（U+3000）都算空白，值里和文件里都是。哪些字符算，取自构建这个库的那个 Python 的 `unicodedata`，所以每个 wheel 的 Unicode 版本和它对应的 Python 一样。从 Python 给的不是文字的值，照 Python 的转换（`int()`、`float()`、`bool()`、`str()`、`list()`），`Decimal`、`None` 也一样。别的类型的 TOML 默认值（日期、数字的列表）在读文件时就拒绝：别的层写不出这种值。浮点数写回去的样子和 Python 一样（`45.0`、`1e+16`），所以换成这个库以后，Python 程序的行为不变。
+文字必须是 UTF-8（不是的算写错）。数字和空白照 Python 认，ASCII 以外的也认：`８４２０` 和 `int()` 读出来一样是 8420，不换行空格、全角空格（U+3000）都算空白，值里和文件里都是。ASCII 以外的字符，绑定层去问正在运行的 Python（`str.isspace()`、`unicodedata.decimal()`），所以每个平台只有一个 wheel，读文字时用的是运行它的那个 Python 的 Unicode 版本。在 Rust 里，ASCII 以外的空白照 Unicode 认（`char::is_whitespace`，字符和 Python 的一样），ASCII 以外没有数字，和 `str::parse` 一样，除非用 `text::set_beyond_ascii` 另行指定。从 Python 给的不是文字的值，照 Python 的转换（`int()`、`float()`、`bool()`、`str()`、`list()`），`Decimal`、`None` 也一样。别的类型的 TOML 默认值（日期、数字的列表）在读文件时就拒绝：别的层写不出这种值。浮点数写回去的样子和 Python 一样（`45.0`、`1e+16`），所以换成这个库以后，Python 程序的行为不变。
 
 ## 环境变量写法的文件
 

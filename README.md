@@ -79,7 +79,8 @@ to run them, and what each covers, is in [SECURITY.md](SECURITY.md); the depende
   without undefined behaviour; not the binding, which calls Python's C API.
 - **Fuzzing.** Three targets, an hour each on a workstation and four hours each at a release: `envfile` (statements in
   order inside the text, values written by `persist` read back the same), `numbers` (integers and floats written so
-  that they read back the same, `strip` idempotent, list items without commas or whitespace around them) and `config`
+  that they read back the same, digits beyond ASCII included, `strip` idempotent, list items without commas or
+  whitespace around them) and `config`
   (reading defaults and every setting's `get`, `shown`, `path` and `set` without a panic).
 - **Kani.** 13 proofs: for every input up to 6 bytes, UTF-8 is decoded as the standard library does, whitespace is
   stripped once and for all and only between characters, integers are read without panic or overflow and as
@@ -111,8 +112,10 @@ to run them, and what each covers, is in [SECURITY.md](SECURITY.md); the depende
 What this shows: this project's own code has no memory errors, being Rust without `unsafe` (unless the compiler or a
 dependency's `unsafe` code is wrong), and none of the checks above found a panic, an overflow or undefined behaviour. What it does not: Rust does not rule out mistakes
 of logic; the dependencies' `unsafe` code is left to them and their audits; Kani proves only the inputs within its
-bounds, and fuzzing tries only some. Not proved, and covered by the tests and the fuzzing alone: `parse_float`, the
-reader of env-style files, and what is above the readers of text (the layers, `persist`).
+bounds, and fuzzing tries only some. Not proved, and covered by the tests and the fuzzing alone: which characters
+beyond ASCII are whitespace or digits (the running Python's, which the Python tests compare for every digit and
+whitespace character it has), `parse_float`, the reader of env-style files, and what is above the readers of text
+(the layers, `persist`).
 
 ## Prerequisites
 
@@ -120,9 +123,7 @@ reader of env-style files, and what is above the readers of text (the layers, `p
   needed
 - [pixi](https://pixi.sh), which brings the rest into the environment of this directory:
   - [maturin](https://www.maturin.rs) ≥1.9
-  - Python 3.12, which a build of the Rust library needs too: the table of Unicode digits and whitespace is written
-    from its `unicodedata` by `tools/unicode_table.py` (the Python `PYO3_PYTHON` names, else `PYTHON`, else
-    `python3`)
+  - Python 3.12, for the binding and its tests
 
 ## Installation
 
@@ -147,8 +148,7 @@ layeredcfg is not published yet, so it is built from source.
    pip install dist/layeredcfg-*.whl
    ```
 
-For Rust, depend on the crate in `crates/layeredcfg` by its path or by this repository's git URL; its build needs a
-Python 3, as above.
+For Rust, depend on the crate in `crates/layeredcfg` by its path or by this repository's git URL.
 
 ## Usage
 
@@ -223,8 +223,10 @@ read with the [toml](https://crates.io/crates/toml) crate.
 
 Text must be UTF-8 (a value that is not is an invalid value). Digits and whitespace are Python's, beyond ASCII too:
 `８４２０` is 8420, as it is for `int()`, and a no-break space or an ideographic space (U+3000) is whitespace, in values
-and in the files alike. Which characters they are comes from the `unicodedata` of the Python the library is built with,
-so a wheel has the Unicode version of the Python it is for. A value given from Python that is not text is converted as
+and in the files alike. Beyond ASCII, the binding asks the running Python (`str.isspace()`, `unicodedata.decimal()`), so
+the one wheel of each platform reads text with the Unicode version of whichever Python runs it. In Rust, whitespace
+beyond ASCII is Unicode's (`char::is_whitespace`, the same characters) and there is no digit beyond ASCII, as for
+`str::parse`, unless `text::set_beyond_ascii` says otherwise. A value given from Python that is not text is converted as
 Python converts it (`int()`, `float()`, `bool()`, `str()`, `list()`), a `Decimal` or `None` included. A TOML default of
 another type (a date, a list of numbers) is refused when the file is read: no other layer could write it. Floats are
 written back as Python writes them (`45.0`, `1e+16`), so a binding behaves as Python code did.
