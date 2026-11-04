@@ -105,7 +105,7 @@ pub fn hashes(
         .filter(|&i| !data.contains(&files[i].0.as_str()))
         .filter(|&i| {
             let path = Path::new(&files[i].0);
-            path.extension().is_some_and(|e| e == "rs" || e == "toml") || is_cargo_file(&files[i].0)
+            path.extension().is_some_and(|e| e == "rs") || is_cargo_file(&files[i].0)
         })
         .collect();
     let blobs = contents(root, wanted.iter().map(|&i| files[i].1.as_str()))?;

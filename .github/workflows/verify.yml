@@ -5,9 +5,9 @@ name: Verify
 # it starts, and so make full use of GitHub Actions; and only those:
 #
 # - At each release published on GitHub, deny, vet, geiger, coverage and fuzz run by
-#   themselves. Fuzzing runs FUZZ_SECONDS a target, all four at once on a runner's four
-#   cores, stopping on time whatever it finds: four hours, well within the six a job may
-#   take.
+#   themselves. Fuzzing runs FUZZ_SECONDS a target, the targets at once on a runner's four
+#   cores (up to four of them), stopping on time whatever it finds: four hours, well within
+#   the six a job may take.
 # - Kani and Miri never start by themselves. How long they take depends on the proofs and
 #   tests, and one change can take them from seconds to hours (a single test took Miri from
 #   a minute to three hours). A run left to time out, release after release, would waste the
@@ -90,8 +90,8 @@ jobs:
         task: ${{ fromJSON(needs.plan.outputs.tasks) }}
     runs-on: ubuntu-latest
     # Per project: well past each task's usual time, for a run that hangs, not to stop one
-    # that is merely slow: fuzz takes FUZZ_SECONDS and its building. Kani took an hour and a
-    # half on a workstation (README), Miri two minutes, the others less.
+    # that is merely slow: fuzz takes FUZZ_SECONDS and its building. Kani took 67 to 88
+    # minutes on a workstation (audit/kani/run.txt), Miri two, the others less.
     timeout-minutes: ${{ (matrix.task == 'fuzz' || matrix.task == 'kani') && 300 || 120 }}
     permissions:
       contents: read

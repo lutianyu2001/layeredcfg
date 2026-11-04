@@ -6,6 +6,7 @@ use std::os::unix::fs::symlink;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use crate::json::{self, Value};
 use crate::record;
 use crate::run::{capped, cargo, shown, status};
 use crate::tasks::{limit, own_target};
@@ -13,32 +14,72 @@ use crate::tasks::{limit, own_target};
 /// Where the copy of the work tree that geiger scans is made.
 const COPY: &str = "target/geiger-src";
 
-/// The members scanned, each into a table of its own, `geiger-<directory>.txt`: the root
-/// manifest is a virtual one, which cargo-geiger 0.14.0 does not take (nor `-p`). The
-/// binding's dependencies are the core crate's and `PyO3`'s; xtask is not shipped.
-const MEMBERS: [&str; 2] = ["crates/layeredconf", "crates/layeredconf-python"];
-
 pub fn run(root: &Path, dir: &Path) -> Result<(), String> {
     // geiger reads the dependencies' sources, which a build without vendor/ has fetched
     // only for the host's targets.
     status(cargo(root, &["fetch", "--locked"]))?;
     own_target(root, "geiger")?;
+    let members = members(root)?;
     let copy = copy(root)?;
-    for member in MEMBERS {
-        scan(root, &copy, dir, member)?;
+    for (package, manifest) in &members {
+        scan(root, &copy, dir, package, manifest)?;
     }
     Ok(())
 }
 
-/// Scans `member` of the copy into its table in `dir`.
-fn scan(root: &Path, copy: &Path, dir: &Path, member: &str) -> Result<(), String> {
-    let name = format!("geiger-{}.txt", member.rsplit('/').next().unwrap_or(member));
+/// The workspace's default members, each scanned into a table of its own: the root
+/// manifest is a virtual one, which cargo-geiger 0.14.0 does not take (nor `-p`). Each
+/// one's package name, and its manifest relative to the root; xtask, which is not
+/// shipped, is no default member.
+fn members(root: &Path) -> Result<Vec<(String, PathBuf)>, String> {
+    let out = cargo(root, &["metadata", "--no-deps", "--format-version", "1", "--locked"])
+        .output()
+        .map_err(|e| format!("cargo metadata: {e}"))?;
+    if !out.status.success() {
+        return Err(format!("cargo metadata: {}", out.status));
+    }
+    let text = String::from_utf8(out.stdout).map_err(|e| format!("cargo metadata: {e}"))?;
+    let meta: Value = json::parse(&text).map_err(|e| format!("cargo metadata: {e}"))?;
+    let ids: Vec<&str> = meta["workspace_default_members"]
+        .as_array()
+        .ok_or("cargo metadata: no default members")?
+        .iter()
+        .filter_map(Value::as_str)
+        .collect();
+    let base = fs::canonicalize(root).map_err(|e| format!("{}: {e}", root.display()))?;
+    let mut members = Vec::new();
+    for package in meta["packages"].as_array().ok_or("cargo metadata: no packages")? {
+        let field = |k: &str| package[k].as_str().ok_or(format!("cargo metadata: a package's {k}"));
+        if !ids.contains(&field("id")?) {
+            continue;
+        }
+        let manifest = Path::new(field("manifest_path")?);
+        let relative = manifest.strip_prefix(&base).map_err(|_| {
+            format!("cargo metadata: {} is outside the workspace", manifest.display())
+        })?;
+        members.push((field("name")?.to_owned(), relative.to_path_buf()));
+    }
+    if members.is_empty() {
+        return Err("cargo metadata: no default member to scan".to_owned());
+    }
+    members.sort();
+    Ok(members)
+}
+
+/// Scans `package` of the copy, whose manifest is `manifest`, into its table in `dir`.
+fn scan(
+    root: &Path,
+    copy: &Path,
+    dir: &Path,
+    package: &str,
+    manifest: &Path,
+) -> Result<(), String> {
+    let name = format!("geiger-{package}.txt");
     let path = dir.join(&name);
     let file = fs::File::create(&path).map_err(|e| format!("{}: {e}", path.display()))?;
-    let manifest = copy.join(member).join("Cargo.toml");
     // geiger cleans before it builds; in target/debug that would take everyone's build.
     let mut scan = cargo(copy, &["geiger", "--locked", "--offline", "--output-format", "Ascii"]);
-    scan.arg("--manifest-path").arg(&manifest);
+    scan.arg("--manifest-path").arg(copy.join(manifest));
     scan.env("CARGO_TARGET_DIR", root.join("target/geiger"));
     // It colours the table as cargo's own output is coloured, and CI sets that to always.
     scan.env("CARGO_TERM_COLOR", "never");
@@ -49,13 +90,13 @@ fn scan(root: &Path, copy: &Path, dir: &Path, member: &str) -> Result<(), String
     // geiger exits non-zero when files it was shown are not Rust (READMEs, included
     // text), so the table itself tells whether it ran; a signal says it did not finish.
     if ended.code().is_none() {
-        return Err(format!("cargo geiger did not finish on {member}: {ended}"));
+        return Err(format!("cargo geiger did not finish on {package}: {ended}"));
     }
     if !complete(&table) {
-        return Err(format!("cargo geiger wrote no whole table of {member}: {ended}"));
+        return Err(format!("cargo geiger wrote no whole table of {package}: {ended}"));
     }
     if !ended.success() {
-        record::say(&format!("cargo geiger: {ended}, with a whole table of {member}"));
+        record::say(&format!("cargo geiger: {ended}, with a whole table of {package}"));
     }
     Ok(())
 }
