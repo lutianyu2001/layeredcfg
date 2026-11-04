@@ -1,164 +1,148 @@
-//! What each task needs installed, whether it is, and installing it.
+//! The pinned tools and toolchain: `cargo xtask setup` installs them, and each task checks
+//! before it runs that what it needs is in place. The versions a run used are recorded
+//! with it and compared on their own, so this module is no task's input.
 
+use std::collections::{BTreeMap, BTreeSet};
 use std::env;
-use std::path::PathBuf;
+use std::path::Path;
 use std::process::Command;
 
-use crate::pins::{DENY, FUZZ, GEIGER, KANI, LLVM_COV, NIGHTLY, TOOLS, Tool, VET};
-use crate::run::{Result, cargo};
+use crate::USAGE;
+use crate::pins::{NIGHTLY, STABLE, TOOLS};
+use crate::run::status;
+use crate::tasks::{TASKS, needs, subcommands};
 
-/// The components of the nightly: Miri and the source of the standard library for Miri, the LLVM tools for the
-/// coverage.
-const COMPONENTS: [&str; 3] = ["miri", "rust-src", "llvm-tools"];
-
-/// The tasks, in the order `all` runs them: the cheap ones first.
-pub const TASKS: [&str; 7] = ["deny", "vet", "geiger", "miri", "coverage", "kani", "fuzz"];
-
-type Needs = (Vec<Tool>, Option<Vec<&'static str>>);
-
-/// What a task runs: its tools, and the components of the nightly if it runs the nightly; None for what is no task.
-fn uses(task: &str) -> Option<Needs> {
-    Some(match task {
-        "deny" => (vec![DENY], None),
-        "vet" => (vec![VET], None),
-        "geiger" => (vec![GEIGER], None),
-        "miri" => (vec![], Some(vec!["miri", "rust-src"])),
-        "coverage" => (vec![LLVM_COV], Some(vec!["llvm-tools"])),
-        "kani" => (vec![KANI], None),
-        "fuzz" => (vec![FUZZ], Some(vec![])),
-        _ => return None,
-    })
-}
-
-/// What a task needs installed: what it runs, and for the fuzzing cargo deny too, which checks the dependencies of the
-/// fuzz targets before they are built.
-fn needs(task: &str) -> Option<Needs> {
-    if task == "all" {
-        return Some((TOOLS.to_vec(), Some(COMPONENTS.to_vec())));
-    }
-    let (mut tools, nightly) = uses(task)?;
-    if task == "fuzz" {
-        tools.push(DENY);
-    }
-    Some((tools, nightly))
-}
-
-/// The pinned versions `task` runs, as run.txt keeps them: "cargo-fuzz 0.13.2, nightly-2026-10-28".
-pub fn versions(task: &str) -> String {
-    let (tools, nightly) = uses(task).unwrap_or_default();
-    let mut versions: Vec<String> = tools.iter().map(|tool| format!("{} {}", tool.krate, tool.version)).collect();
-    if nightly.is_some() {
-        versions.push(NIGHTLY.to_owned());
-    }
-    versions.join(", ")
-}
-
-/// The version of `tool` cargo install has installed, if any. From cargo's list and not from the tool, which may do
-/// more than say its version (`cargo kani --version` sets Kani up first, a large download).
-fn installed(tool: Tool) -> Option<String> {
-    let output = cargo(None, &["install", "--list"]).output().ok()?;
-    // "cargo-deny v0.20.2:" for each crate, then its programs indented.
-    String::from_utf8_lossy(&output.stdout).lines().find_map(|line| {
-        let mut words = line.split_whitespace();
-        (!line.starts_with(char::is_whitespace) && words.next() == Some(tool.krate))
-            .then(|| words.next()?.trim_end_matches(':').strip_prefix('v').map(str::to_owned))
-            .flatten()
-    })
-}
-
-/// Whether Kani has set up its own toolchain and CBMC, which `cargo kani setup` does.
-fn kani_set_up() -> bool {
-    let home = env::var_os("KANI_HOME")
-        .map(PathBuf::from)
-        .or_else(|| env::var_os("HOME").map(|home| PathBuf::from(home).join(".kani")));
-    home.is_some_and(|home| home.join(format!("kani-{}", KANI.version)).is_dir())
-}
-
-/// Whether the nightly is installed with `components`.
-fn nightly_ready(components: &[&str]) -> bool {
-    let Ok(output) = Command::new("rustup").args(["component", "list", "--installed", "--toolchain", NIGHTLY]).output()
-    else {
-        return false;
-    };
-    let text = String::from_utf8_lossy(&output.stdout);
-    // "rust-src", "miri-x86_64-unknown-linux-gnu"
-    output.status.success()
-        && components
-            .iter()
-            .all(|component| text.lines().any(|line| line == *component || line.starts_with(&format!("{component}-"))))
-}
-
-/// What is missing for `task`, as lines to show; none if it can run.
-pub fn missing(task: &str) -> Vec<String> {
-    let (tools, nightly) = needs(task).unwrap_or_default();
-    let mut missing = Vec::new();
-    for tool in tools {
-        match installed(tool) {
-            Some(version) if version == tool.version => {}
-            Some(version) => missing.push(format!("{} is {version}, not {}", tool.krate, tool.version)),
-            None => missing.push(format!("{} {} is not installed", tool.krate, tool.version)),
+/// Fails unless the tools and the toolchain `task` needs are the pinned ones.
+pub fn check(task: &str) -> Result<(), String> {
+    let installed = installed();
+    for sub in subcommands(task) {
+        let Some((krate, version, _)) = TOOLS.iter().find(|t| t.2 == sub) else { continue };
+        let found = installed.get(*krate).map_or("not installed", String::as_str);
+        if found != *version {
+            return Err(format!(
+                "`{task}` needs {krate} {version} ({found}); run `cargo xtask setup {task}`"
+            ));
         }
-        if tool == KANI && !kani_set_up() {
-            missing.push(format!("Kani {} is not set up", KANI.version));
+        if sub == "kani" && !kani_ready(version) {
+            return Err(format!(
+                "`{task}` needs Kani's own toolchain and cbmc; run `cargo xtask setup {task}`"
+            ));
         }
     }
-    if let Some(components) = nightly
-        && !nightly_ready(&components)
-    {
-        let with = if components.is_empty() { String::new() } else { format!(" with {}", components.join(", ")) };
-        missing.push(format!("{NIGHTLY}{with} is not installed"));
-    }
-    missing
-}
-
-/// `cargo xtask setup [task…]`: installs what `tasks` need (every task by default) that is missing or at another
-/// version.
-pub fn setup(tasks: &[String]) -> Result<()> {
-    let tasks = if tasks.is_empty() { vec!["all".to_owned()] } else { tasks.to_vec() };
-    let mut tools: Vec<Tool> = Vec::new();
-    let mut nightly = false;
-    for task in &tasks {
-        let (needed, needs_nightly) = needs(task).ok_or_else(|| format!("no task {task}"))?;
-        for tool in needed {
-            if !tools.contains(&tool) {
-                tools.push(tool);
-            }
+    if let Some(components) = needs(task).1 {
+        let installed = nightly_components();
+        if let Some(missing) = components.iter().find(|c| !installed.contains(**c)) {
+            return Err(format!(
+                "`{task}` needs {NIGHTLY} with {missing}; run `cargo xtask setup {task}`"
+            ));
         }
-        nightly |= needs_nightly.is_some();
-    }
-    // Out of the repository, so that no cargo configuration of it applies to the installing; and cargo() leaves out
-    // the toolchain rustup set for xtask, which the tools would be built with otherwise.
-    let away = env::temp_dir();
-    for tool in tools {
-        if installed(tool).as_deref() != Some(tool.version) {
-            println!("installing {} {}", tool.krate, tool.version);
-            let mut install = cargo(None, &["install", "--locked", "--version", tool.version, tool.krate]);
-            succeed(install.current_dir(&away))?;
-        }
-        if tool == KANI && !kani_set_up() {
-            succeed(cargo(None, &["kani", "setup"]).current_dir(&away))?;
+        if installed.is_empty() {
+            return Err(format!("`{task}` needs {NIGHTLY}; run `cargo xtask setup {task}`"));
         }
     }
-    if nightly && !nightly_ready(&COMPONENTS) {
-        println!("installing {NIGHTLY}");
-        if !install_nightly(NIGHTLY) {
-            return Err(format!("cannot install {NIGHTLY} with {}", COMPONENTS.join(", ")).into());
-        }
-    }
-    println!("setup: everything {} needs is installed", tasks.join(", "));
     Ok(())
 }
 
-/// Installs `toolchain` with the components the nightly needs; false if it cannot (one of them may be missing that
-/// day).
-pub fn install_nightly(toolchain: &str) -> bool {
-    Command::new("rustup")
-        .args(["toolchain", "install", toolchain, "--profile", "minimal", "--component", &COMPONENTS.join(",")])
-        .status()
-        .is_ok_and(|status| status.success())
+/// Installs the pinned tools and toolchain that `tasks` need (all, if none is named),
+/// leaving those already in place.
+pub fn setup(tasks: &[String]) -> Result<(), String> {
+    let tasks: Vec<&str> =
+        if tasks.is_empty() { TASKS.to_vec() } else { tasks.iter().map(String::as_str).collect() };
+    if let Some(t) = tasks.iter().find(|t| !TASKS.contains(t)) {
+        return Err(format!("unknown task {t}\n\n{USAGE}"));
+    }
+    // First, since the tools are built with it.
+    status(&mut install_toolchain(STABLE, &BTreeSet::new()))?;
+    for (krate, version, sub) in TOOLS {
+        if !tasks.iter().any(|t| subcommands(t).contains(&sub)) {
+            continue;
+        }
+        if installed().get(krate).is_none_or(|v| v != version) {
+            status(tool_cargo(&["install", "--locked", "--version", version, krate]))?;
+        }
+        if sub == "kani" {
+            // Kani's own toolchain and cbmc; quick when they are there already.
+            status(tool_cargo(&["kani", "setup"]))?;
+        }
+    }
+    let components: BTreeSet<&str> =
+        tasks.iter().filter_map(|t| needs(t).1).flatten().copied().collect();
+    if tasks.iter().any(|t| needs(t).1.is_some()) {
+        status(&mut install_toolchain(NIGHTLY, &components))?;
+    }
+    Ok(())
 }
 
-fn succeed(command: &mut Command) -> Result<()> {
-    let status = command.status()?;
-    if status.success() { Ok(()) } else { Err(format!("{command:?} failed: {status}").into()) }
+/// cargo for installing the tools: with the stable toolchain pinned for them, and outside
+/// the repository, whose .cargo/config.toml would otherwise have crates come from vendor/
+/// alone, offline.
+fn tool_cargo(args: &[&str]) -> Command {
+    let mut cmd = Command::new("cargo");
+    cmd.arg(format!("+{STABLE}")).args(args).current_dir(env::temp_dir());
+    cmd
+}
+
+/// `rustup toolchain install` for `toolchain` with `components`, quick when it is there.
+pub fn install_toolchain(toolchain: &str, components: &BTreeSet<&str>) -> Command {
+    let mut install = Command::new("rustup");
+    install.args(["toolchain", "install", toolchain, "--profile", "minimal"]);
+    for c in components {
+        install.args(["--component", c]);
+    }
+    install
+}
+
+/// The nightly components some task needs.
+pub fn nightly_needs() -> BTreeSet<&'static str> {
+    TASKS.iter().filter_map(|t| needs(t).1).flatten().copied().collect()
+}
+
+/// The crates `cargo install` put in place, with their versions. Read from its list rather
+/// than from `--version`: `cargo kani --version` first downloads Kani's toolchain when it
+/// is not there.
+fn installed() -> BTreeMap<String, String> {
+    let Ok(out) = Command::new("cargo").args(["install", "--list"]).output() else {
+        return BTreeMap::new();
+    };
+    // `cargo-deny v0.20.2:`, then the binaries, indented.
+    String::from_utf8_lossy(&out.stdout)
+        .lines()
+        .filter(|l| !l.starts_with(char::is_whitespace))
+        .filter_map(|l| {
+            let (krate, rest) = l.split_once(' ')?;
+            let version = rest.strip_prefix('v')?.split([':', ' ']).next()?;
+            Some((krate.to_owned(), version.to_owned()))
+        })
+        .collect()
+}
+
+/// Whether `cargo kani setup` has been run for this version.
+fn kani_ready(version: &str) -> bool {
+    env::var_os("HOME")
+        .is_some_and(|home| Path::new(&home).join(".kani").join(format!("kani-{version}")).is_dir())
+}
+
+/// The pinned nightly's installed components (names without the target), empty when it
+/// is not installed.
+fn nightly_components() -> BTreeSet<String> {
+    let Ok(out) = Command::new("rustup")
+        .args(["component", "list", "--installed", "--toolchain", NIGHTLY])
+        .output()
+    else {
+        return BTreeSet::new();
+    };
+    if !out.status.success() {
+        return BTreeSet::new();
+    }
+    let mut names = BTreeSet::new();
+    for line in String::from_utf8_lossy(&out.stdout).lines() {
+        names.insert(line.to_owned());
+        // `miri-x86_64-unknown-linux-gnu`, but `rust-src` has no target.
+        let mut parts: Vec<&str> = line.split('-').collect();
+        while parts.len() > 1 {
+            parts.pop();
+            names.insert(parts.join("-"));
+        }
+    }
+    names
 }

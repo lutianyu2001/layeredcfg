@@ -1,144 +1,158 @@
-//! The Kani proofs, one at a time, each in a scope of its own where its peak of memory is measured.
-
-use std::fmt::Write as _;
 use std::fs;
-use std::os::unix::process::ExitStatusExt;
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, ExitCode};
 use std::time::Instant;
 
-use super::{Kind, Plan, succeed};
 use crate::json::{self, Value};
-use crate::pins::KANI;
-use crate::record::Run;
-use crate::run::{Log, Result, capped, cargo, cgroup, memory, no_scope, root, size, this};
+use crate::record;
+use crate::run::{
+    capped, cargo, cgroup, oom_policy, scoped, scopes, shown, size, status, this_program,
+};
+use crate::tasks::limit;
 
-const TIMEOUT: &str = "1800s";
-/// The cap of a proof without `RUST_XTASK_MEMORY`: the larger of 4G and 1.5 times the largest peak of memory.peak of a
-/// proof (scope and all), measured with `RUST_XTASK_MEMORY=16G cargo xtask kani --no-record`; to be measured again
-/// when the proofs change. The largest was 10.8 GiB (`parse_int_is_exact_past_u64`, 2026-11-01), 16.2 GiB times 1.5.
-const MEMORY: u64 = 17 << 30;
+// Per project: the limit, and where the most a proof took was read.
+/// The memory limit of each Kani proof, unless `RUST_XTASK_MEMORY` says otherwise: 4G, or
+/// 1.5 times the most a proof took, whichever is larger. The most was 11024 MiB
+/// (`proofs::parse_int_is_exact_past_u64`'s, in target/audit/kani/harnesses.txt of
+/// 2026-11-01); set it again when the proofs change.
+pub const MEMORY: &str = "17G";
 
-pub fn plan(args: &[String], recorded: bool) -> Result<std::result::Result<Plan, String>> {
-    if !args.is_empty() && recorded {
-        return Ok(Err("some proofs only may be run with --no-record: they are not the results of all".into()));
-    }
-    Ok(Ok(Plan { task: "kani", cap: memory(MEMORY)?, kind: Kind::Kani { only: args.to_vec() } }))
+/// How a proof's peak memory is reported, as the last line of its log.
+const PEAK: &str = "xtask: peak memory in bytes:";
+
+// Per project: the features and targets the proofs are built with, for example without
+// default features that are heavy to build and that no proof needs.
+/// What the proofs are built with, when they are listed and when each runs. `cargo kani
+/// list` takes these only before `list`, and its own `-Z` after it. The proofs are the core
+/// crate's; the binding would build `PyO3` for nothing.
+const BUILD: [&str; 3] = ["-p", "layeredconf", "--lib"];
+
+// Per project: Kani's unstable features the proofs use, for listing them and running them;
+// for example `-Z function-contracts` for `#[kani::proof_for_contract]`.
+const UNSTABLE: [&str; 0] = [];
+
+/// How Kani runs one proof (after `cargo kani`, given its name).
+fn proof(harness: &str) -> Vec<&str> {
+    let mut args = BUILD.to_vec();
+    args.extend(UNSTABLE);
+    args.extend(["--harness", harness, "--exact"]);
+    args.extend(["-Z", "unstable-options", "--harness-timeout", "1800s"]);
+    args
 }
 
-pub fn run(cap: u64, only: &[String], run: &Run) -> Result<()> {
-    let log = &run.log;
-    // Lists the proofs of every member, from the root (the manifest is virtual); it takes no cargo arguments.
-    let list = cargo(None, &[KANI.command, "list", "--format", "json"]);
-    succeed(log.run(capped(list, cap, false))?.success(), "cargo kani list failed")?;
-    let listed = run.dir.join("kani-list.json");
-    fs::rename(root().join("kani-list.json"), &listed)?;
-    let text = fs::read_to_string(&listed)?;
-    let value = json::parse(&text).ok_or("kani-list.json is not JSON")?;
+/// The Kani proofs named (every one when none is), one at a time, each in a scope of its
+/// own that measures its peak memory.
+pub fn run(root: &Path, dir: &Path, named: &[String]) -> Result<(), String> {
+    let memory = limit("kani");
+    let mut list = cargo(root, &["kani"]);
+    list.args(BUILD).args(["list", "--format", "json"]).args(UNSTABLE);
+    status(capped(list, &memory))?;
+    let listed = root.join("kani-list.json");
+    let text = fs::read_to_string(&listed).map_err(|e| format!("{}: {e}", listed.display()))?;
+    let _ = fs::rename(&listed, dir.join("kani-list.json"));
+    let json: Value = json::parse(&text).map_err(|e| format!("kani-list.json: {e}"))?;
     let mut harnesses = Vec::new();
     for kind in ["standard-harnesses", "contract-harnesses"] {
-        let Some(Value::Object(files)) = value.get(kind) else {
-            return Err(format!("kani-list.json has no {kind}").into());
-        };
-        for (file, names) in files {
-            let krate = package(Path::new(file))?;
-            for name in names.as_array().iter().filter_map(Value::as_str) {
-                harnesses.push((krate.clone(), name.to_owned()));
-            }
+        for names in json[kind].as_object().into_iter().flat_map(|files| files.values()) {
+            harnesses.extend(names.as_array().into_iter().flatten().filter_map(Value::as_str));
         }
     }
     if harnesses.is_empty() {
-        return Err("cargo kani list found no harness".into());
+        return Err("cargo kani list found no proof".to_owned());
     }
-    if let Some(unknown) = only.iter().find(|name| !harnesses.iter().any(|(_, harness)| harness == *name)) {
-        return Err(format!("no harness {unknown}").into());
+    if let Some(unknown) = named.iter().find(|n| !harnesses.contains(&n.as_str())) {
+        return Err(format!("no proof {unknown}; there are {}", harnesses.join(", ")));
     }
-    harnesses.retain(|(_, harness)| only.is_empty() || only.contains(harness));
+    if !named.is_empty() {
+        harnesses.retain(|h| named.iter().any(|n| n == h));
+    }
     let mut table = String::new();
     let mut failed = Vec::new();
-    for (krate, harness) in &harnesses {
-        let mut args = vec![KANI.command, "-p", krate, "--harness", harness, "--exact", "--output-format", "terse"];
-        args.extend(["-Z", "unstable-options", "--harness-timeout", TIMEOUT]);
-        // Compiled first with the same arguments (the crate is compiled for each proof), in a scope of its own: the
-        // peak of a scope is from its start, and would be the compiling's.
-        let mut codegen = cargo(None, &args);
-        codegen.arg("--only-codegen");
-        let compiled = log.run(capped(codegen, cap, false))?.success();
-        let harness_log = run.dir.join(format!("kani-{}.log", harness.replace("::", ".")));
-        let measured = Log::create(&harness_log, false)?;
-        let started = Instant::now();
-        let status = if !compiled {
-            None
-        } else if no_scope() {
-            Some(measured.run(cargo(None, &args))?)
-        } else {
-            // This program in the scope runs the proof and says, once it ends, the peak of the scope.
-            let mut inner = Command::new(this());
-            inner.arg("__kani-harness").arg("cargo").args(&args);
-            inner.env_remove("RUSTUP_TOOLCHAIN").env_remove("RUSTUP_TOOLCHAIN_SOURCE");
-            Some(measured.run(capped(inner, cap, true))?)
-        };
-        let seconds = started.elapsed().as_secs();
-        let text = fs::read_to_string(&harness_log).unwrap_or_default();
-        let peak = text.lines().rev().find_map(|line| line.strip_prefix("memory.peak: ")?.parse::<u64>().ok());
-        let verdict = match status {
-            None => "failed: does not compile",
-            Some(status) if status.success() && text.contains("VERIFICATION:- SUCCESSFUL") => "succeeded",
-            Some(_) if text.contains("timed out") => "failed: timed out",
-            Some(status)
-                if status.signal().is_some()
-                    || peak.is_some_and(|peak| peak >= cap)
-                    || text.contains("killed by signal") =>
-            {
-                "failed: killed at the cap of memory"
-            }
-            Some(_) => "failed",
-        };
-        if verdict != "succeeded" {
-            failed.push(harness.as_str());
+    // One failing, even before it runs, stops none of the others.
+    for harness in harnesses {
+        let (ok, outcome) = measure(root, dir, harness, &memory)
+            .unwrap_or_else(|e| (false, format!("failed before it ran ({e})")));
+        if !ok {
+            failed.push(harness.to_owned());
         }
-        let memory = peak.map_or("unknown".to_owned(), size);
-        let line = format!("{harness}: {verdict}, {seconds}s, {memory}");
-        log.say(&format!("kani: {line}"));
-        table += &line;
+        let line = format!("{harness}: {outcome}");
+        record::say(&line);
+        table.push_str(&line);
         table.push('\n');
     }
-    let _ = writeln!(table, "cap of memory: {}; the time and memory of the proof alone, compiled before", size(cap));
-    fs::write(run.dir.join("harnesses.txt"), table)?;
+    let _ = fs::write(dir.join("harnesses.txt"), table);
     if failed.is_empty() {
         Ok(())
     } else {
-        Err(format!("{} of {} proofs failed: {}", failed.len(), harnesses.len(), failed.join(", ")).into())
+        Err(format!("Kani proofs failed: {}", failed.join(", ")))
     }
 }
 
-/// The name of the package `file` (relative to the root) is in.
-fn package(file: &Path) -> Result<String> {
-    for dir in file.ancestors().skip(1) {
-        let Ok(manifest) = fs::read_to_string(root().join(dir).join("Cargo.toml")) else { continue };
-        let mut in_package = false;
-        for line in manifest.lines().map(str::trim) {
-            if line.starts_with('[') {
-                in_package = line == "[package]";
-            } else if in_package && let Some(name) = line.strip_prefix("name") {
-                return Ok(name.trim_start().trim_start_matches('=').trim().trim_matches('"').to_owned());
-            }
+/// Runs one proof in a scope of its own: whether it succeeded, and how it ended, with its
+/// time and peak memory, as harnesses.txt has them.
+fn measure(root: &Path, dir: &Path, harness: &str, memory: &str) -> Result<(bool, String), String> {
+    // Built beforehand, so that its time and memory include no compiling: Kani builds the
+    // crate again for each proof, and the dependencies for the first.
+    let mut build = cargo(root, &["kani"]);
+    build.args(proof(harness)).arg("--only-codegen");
+    status(capped(build, memory))?;
+    let name = format!("kani-{}.log", harness.replace("::", "."));
+    let path = dir.join(&name);
+    let log = fs::File::create(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let err = log.try_clone().map_err(|e| format!("{}: {e}", path.display()))?;
+    let mut cmd = Command::new(this_program());
+    cmd.args(["__kani-harness", harness]).current_dir(root);
+    if scopes() {
+        cmd.arg("--peak");
+    }
+    // When the proof runs out of memory, systemd's default policy would end the whole
+    // scope, this program's peak report included; with this one the kernel ends cbmc.
+    // Before systemd 253 a scope takes no such policy, and the report may then be lost.
+    let policy: &[&str] = if oom_policy() { &["OOMPolicy=continue"] } else { &[] };
+    let mut cmd = scoped(cmd, memory, policy);
+    cmd.stdout(log).stderr(err);
+    record::say(&format!("$ {} > {name}", shown(&cmd)));
+    let started = Instant::now();
+    let exit = cmd.status().map_err(|e| e.to_string())?;
+    let secs = started.elapsed().as_secs();
+    let peak = fs::read_to_string(&path)
+        .unwrap_or_default()
+        .lines()
+        .find_map(|l| l.strip_prefix(PEAK)?.trim().parse::<u64>().ok());
+    let full = peak.is_some_and(|p| size(memory).is_ok_and(|limit| p >= limit));
+    let peak = peak.map_or_else(|| "unknown".to_owned(), mib);
+    let outcome = if exit.success() {
+        "succeeded".to_owned()
+    } else {
+        let full = if full { ", at the memory limit" } else { "" };
+        format!("failed ({exit}{full}; see {name})")
+    };
+    Ok((exit.success(), format!("{outcome}, {secs} s, peak memory {peak}")))
+}
+
+fn mib(bytes: u64) -> String {
+    format!("{} MiB", bytes.div_ceil(1 << 20))
+}
+
+/// `__kani-harness <name> [--peak]`, run inside the proof's scope: the proof, then with
+/// `--peak` (when this is a scope of its own) the most memory the scope used.
+pub fn harness(root: &Path, args: &[String]) -> ExitCode {
+    let Some(harness) = args.first() else { return ExitCode::FAILURE };
+    let mut cmd = cargo(root, &["kani"]);
+    cmd.args(proof(harness));
+    eprintln!("$ {}", shown(&cmd));
+    let status = cmd.status();
+    if args.iter().any(|a| a == "--peak")
+        && let Some(peak) = cgroup("memory.peak")
+    {
+        eprintln!("{PEAK} {peak}");
+    }
+    match status {
+        Ok(s) if s.success() => ExitCode::SUCCESS,
+        Ok(_) => ExitCode::FAILURE,
+        Err(e) => {
+            eprintln!("{harness}: {e}");
+            ExitCode::FAILURE
         }
     }
-    Err(format!("no package has {}", file.display()).into())
-}
-
-/// `cargo xtask __kani-harness <command>…`, which `run` runs in the scope of a proof: runs the command and, once it
-/// ends, writes the peak of memory of the scope (every process in it), which Linux keeps from 5.19.
-pub fn harness(command: &[String]) -> Result<i32> {
-    let (program, args) = command.split_first().ok_or("__kani-harness <command>…")?;
-    let status = Command::new(program).args(args).status()?;
-    if let Some(signal) = status.signal() {
-        println!("killed by signal {signal}");
-    }
-    // Not there before Linux 5.19: the peak is then unknown, the proof's result the same.
-    if let Ok(peak) = cgroup().and_then(|dir| Ok(fs::read_to_string(dir.join("memory.peak"))?)) {
-        println!("memory.peak: {}", peak.trim());
-    }
-    Ok(status.code().unwrap_or(1))
 }

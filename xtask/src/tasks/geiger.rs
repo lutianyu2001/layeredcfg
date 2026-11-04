@@ -1,21 +1,161 @@
-//! cargo geiger: the unsafe code of the dependencies, counted.
-
+use std::ffi::OsStr;
 use std::fs;
+use std::io;
+use std::os::unix::ffi::OsStrExt as _;
+use std::os::unix::fs::symlink;
+use std::path::{Path, PathBuf};
+use std::process::Command;
 
-use super::succeed;
-use crate::pins::GEIGER;
-use crate::record::Run;
-use crate::run::{Result, capped, cargo, root};
+use crate::record;
+use crate::run::{capped, cargo, shown, status};
+use crate::tasks::{limit, own_target};
 
-pub fn run(cap: u64, run: &Run) -> Result<()> {
-    // cargo geiger runs offline, on the sources of the dependencies, which a library does not vendor.
-    succeed(run.log.run(cargo(None, &["fetch", "--locked"]))?.success(), "cargo fetch failed")?;
-    // From the binding, whose dependencies are all those of the library and more.
-    let mut command = cargo(None, &[GEIGER.command, "--locked", "--offline"]);
-    command.current_dir(root().join("crates/layeredconf-python"));
-    let table = run.dir.join("geiger.txt");
-    run.log.run_into(capped(command, cap, false), &table)?;
-    // cargo geiger 0.14 ends in failure for files it did not scan (the README the crates include): it ran if it wrote
-    // its table. A count to read, not a check.
-    succeed(fs::read_to_string(&table)?.contains("Metric output format"), "cargo geiger wrote no table")
+/// Where the copy of the work tree that geiger scans is made.
+const COPY: &str = "target/geiger-src";
+
+/// The members scanned, each into a table of its own, `geiger-<directory>.txt`: the root
+/// manifest is a virtual one, which cargo-geiger 0.14.0 does not take (nor `-p`). The
+/// binding's dependencies are the core crate's and `PyO3`'s; xtask is not shipped.
+const MEMBERS: [&str; 2] = ["crates/layeredconf", "crates/layeredconf-python"];
+
+pub fn run(root: &Path, dir: &Path) -> Result<(), String> {
+    // geiger reads the dependencies' sources, which a build without vendor/ has fetched
+    // only for the host's targets.
+    status(cargo(root, &["fetch", "--locked"]))?;
+    own_target(root, "geiger")?;
+    let copy = copy(root)?;
+    for member in MEMBERS {
+        scan(root, &copy, dir, member)?;
+    }
+    Ok(())
+}
+
+/// Scans `member` of the copy into its table in `dir`.
+fn scan(root: &Path, copy: &Path, dir: &Path, member: &str) -> Result<(), String> {
+    let name = format!("geiger-{}.txt", member.rsplit('/').next().unwrap_or(member));
+    let path = dir.join(&name);
+    let file = fs::File::create(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let manifest = copy.join(member).join("Cargo.toml");
+    // geiger cleans before it builds; in target/debug that would take everyone's build.
+    let mut scan = cargo(copy, &["geiger", "--locked", "--offline", "--output-format", "Ascii"]);
+    scan.arg("--manifest-path").arg(&manifest);
+    scan.env("CARGO_TARGET_DIR", root.join("target/geiger"));
+    // It colours the table as cargo's own output is coloured, and CI sets that to always.
+    scan.env("CARGO_TERM_COLOR", "never");
+    let mut cmd = capped(scan, &limit("geiger"));
+    record::say(&format!("$ {} > {name}", shown(&cmd)));
+    let ended = record::exec(&mut cmd, Some(file)).map_err(|e| format!("cargo geiger: {e}"))?;
+    let table = fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+    // geiger exits non-zero when files it was shown are not Rust (READMEs, included
+    // text), so the table itself tells whether it ran; a signal says it did not finish.
+    if ended.code().is_none() {
+        return Err(format!("cargo geiger did not finish on {member}: {ended}"));
+    }
+    if !complete(&table) {
+        return Err(format!("cargo geiger wrote no whole table of {member}: {ended}"));
+    }
+    if !ended.success() {
+        record::say(&format!("cargo geiger: {ended}, with a whole table of {member}"));
+    }
+    Ok(())
+}
+
+/// A copy of the work tree in [`COPY`], what git ignores in it (vendor/) linked rather
+/// than copied. geiger counts every `.rs` file under a package's directory as that
+/// package's, and follows no link (cargo-geiger 0.14.0, `src/scan/find.rs`): scanning
+/// the root package where vendor/ is a directory inside it would count every
+/// dependency's code a second time, as the root package's, and the totals twice. cargo
+/// follows the link, so the build is the same.
+fn copy(root: &Path) -> Result<PathBuf, String> {
+    let to = root.join(COPY);
+    match fs::remove_dir_all(&to) {
+        Err(e) if e.kind() != io::ErrorKind::NotFound => {
+            return Err(format!("{}: {e}", to.display()));
+        }
+        _ => {}
+    }
+    let files = git(root, &["ls-files", "-z", "--cached", "--others", "--exclude-standard"])?;
+    for name in &files {
+        // The results, which no build reads.
+        if name.starts_with("audit") {
+            continue;
+        }
+        let from = root.join(name);
+        // Gone from the work tree, though git still has it.
+        let Ok(meta) = fs::symlink_metadata(&from) else { continue };
+        let made = parent(&to.join(name)).and_then(|()| {
+            if meta.is_symlink() {
+                symlink(fs::read_link(&from)?, to.join(name))
+            } else if meta.is_file() {
+                fs::copy(&from, to.join(name)).map(drop)
+            } else {
+                Ok(())
+            }
+        });
+        made.map_err(|e| format!("{}: {e}", to.join(name).display()))?;
+    }
+    let ignored = git(
+        root,
+        &["ls-files", "-z", "--others", "--ignored", "--exclude-standard", "--directory"],
+    )?;
+    let mut linked: Vec<&PathBuf> = Vec::new();
+    for name in &ignored {
+        // The builds, this copy among them.
+        if name.starts_with("target") {
+            continue;
+        }
+        // git 2.43 lists a directory with a .gitignore of its own (pytest's `*`), then its
+        // files as well: they are there through the directory's link, and a link made for
+        // one of them would go through it, into the work tree.
+        if linked.iter().any(|dir| name.starts_with(dir)) {
+            continue;
+        }
+        let made = parent(&to.join(name)).and_then(|()| symlink(root.join(name), to.join(name)));
+        made.map_err(|e| format!("{}: {e}", to.join(name).display()))?;
+        linked.push(name);
+    }
+    Ok(to)
+}
+
+/// Creates the directory `path` goes in.
+fn parent(path: &Path) -> io::Result<()> {
+    path.parent().map_or(Ok(()), fs::create_dir_all)
+}
+
+/// The paths `git args` lists, NUL-separated, without a trailing `/`.
+fn git(root: &Path, args: &[&str]) -> Result<Vec<PathBuf>, String> {
+    let out = Command::new("git")
+        .args(args)
+        .current_dir(root)
+        .output()
+        .map_err(|e| format!("git {}: {e}", args.join(" ")))?;
+    if !out.status.success() {
+        return Err(format!("git {}: {}", args.join(" "), out.status));
+    }
+    Ok(out
+        .stdout
+        .split(|&b| b == 0)
+        .filter(|name| !name.is_empty())
+        .map(|name| PathBuf::from(OsStr::from_bytes(name.strip_suffix(b"/").unwrap_or(name))))
+        .collect())
+}
+
+/// Whether `table` has its legend and ends in the row of totals.
+fn complete(table: &str) -> bool {
+    let last = table.lines().rfind(|line| !line.trim().is_empty());
+    table.contains("Metric output format")
+        && last.is_some_and(|line| line.starts_with(|c: char| c.is_ascii_digit()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::complete;
+
+    #[test]
+    fn a_table_is_whole_with_its_legend_and_totals() {
+        assert!(complete("Metric output format: x/y\n\n0/0  0/0 :) a 1.0\n\n1/2  3/4\n\n"));
+        assert!(!complete("Metric output format: x/y\n\nFunctions  Expressions\n"));
+        assert!(!complete("1/2  3/4\n"));
+        assert!(!complete(""));
+    }
 }

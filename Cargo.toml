@@ -1,6 +1,6 @@
 [workspace]
 members = ["crates/layeredconf", "crates/layeredconf-python", "xtask"]
-# The audit (cargo xtask) is built only when it is run.
+# The security audit (cargo xtask) is built only when it is run.
 default-members = ["crates/layeredconf", "crates/layeredconf-python"]
 # A workspace of its own, built with the nightly Rust by cargo fuzz.
 exclude = ["fuzz"]

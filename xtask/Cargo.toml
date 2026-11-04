@@ -1,16 +1,27 @@
 [package]
 name = "xtask"
 version = "0.0.0"
-edition.workspace = true
+edition = "2024"
+# Per project: the license, as the project's (or license.workspace = true).
 license.workspace = true
-rust-version.workspace = true
 publish = false
+description = "The security audit: cargo xtask <task> (see SECURITY.md)"
 
-# The standard library only: the audit adds no crate to Cargo.lock, so none to cargo vet or cargo deny either.
+# Only crates already among the project's normal dependencies, with the features these need,
+# so that the tasks add nothing to Cargo.lock, vendor/ or what cargo vet covers: each with
+# only the features the code needs, since defaults could bring in crates. Per project: the
+# versions in Cargo.lock; a crate not there is replaced by code of xtask's own or the
+# system's curl.
 [dependencies]
+# serde_json and ureq are not among them: src/json.rs and the system's curl instead. toml is,
+# but without display and serde, which would bring in serde: TOML files are hashed as git
+# hashes them (digest.rs).
+proc-macro2 = { version = "1.0.107", default-features = false }
 
 [lints.rust]
 unsafe_code = "forbid"
 
 [lints.clippy]
-pedantic = { level = "warn", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"

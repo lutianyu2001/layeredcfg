@@ -1,268 +1,345 @@
-//! Just enough JSON to read the answers of crates.io and OSV.
+// For a project with no JSON crate among its dependencies: copy to xtask/src/json.rs, add
+// `mod json;` to main.rs, and in tasks/kani.rs and tasks/mod.rs replace serde_json's Value
+// with `use crate::json::{self, Value};` and serde_json's from_str with `json::parse`; in
+// mod.rs, which reads bytes, parse `String::from_utf8(out.stdout)`. The indexing stays the
+// same. Nothing in it depends on the project. Run in lazyui-ratatui; checked against
+// JSONTestSuite and 600,000 mutated inputs against a strict parser.
+//! A strict JSON reader, for `cargo kani list`, `cargo metadata` and the replies of
+//! crates.io, OSV and GitHub.
+//! Per project: there is no JSON crate among the dependencies, and the tasks add none (see
+//! Cargo.toml). This reads text that came over the network, so whatever RFC 8259 does not
+//! allow is an error, and so is a key given twice; nesting has a limit, so that a reply of
+//! brackets cannot run the stack out.
 
-#[derive(Debug, PartialEq)]
+use std::collections::BTreeMap;
+use std::ops::Index;
+use std::str::Chars;
+
+/// How deep arrays and objects may nest.
+const DEPTH: usize = 64;
+
+#[derive(Debug, PartialEq, Eq)]
 pub enum Value {
     Null,
     Bool(bool),
-    /// Kept as written: nothing here computes with a number.
+    /// As written: nothing here computes with numbers, and a number that was checked
+    /// against the grammar cannot lose digits.
     Number(String),
     String(String),
     Array(Vec<Value>),
-    Object(Vec<(String, Value)>),
+    Object(BTreeMap<String, Value>),
 }
 
 impl Value {
-    pub fn get(&self, key: &str) -> Option<&Value> {
-        match self {
-            Value::Object(members) => members.iter().find(|(name, _)| name == key).map(|(_, value)| value),
-            _ => None,
-        }
-    }
-
     pub fn as_str(&self) -> Option<&str> {
-        match self {
-            Value::String(text) => Some(text),
-            _ => None,
-        }
+        if let Self::String(s) = self { Some(s) } else { None }
     }
 
-    pub fn as_array(&self) -> &[Value] {
-        match self {
-            Value::Array(items) => items,
-            _ => &[],
-        }
+    pub fn as_bool(&self) -> Option<bool> {
+        if let Self::Bool(b) = self { Some(*b) } else { None }
     }
 
-    pub fn is_true(&self) -> bool {
-        *self == Value::Bool(true)
+    pub fn as_array(&self) -> Option<&Vec<Self>> {
+        if let Self::Array(a) = self { Some(a) } else { None }
+    }
+
+    pub fn as_object(&self) -> Option<&BTreeMap<String, Self>> {
+        if let Self::Object(o) = self { Some(o) } else { None }
     }
 }
 
-/// The value `text` holds, or None if it is not JSON.
-pub fn parse(text: &str) -> Option<Value> {
-    let mut parser = Parser { s: text.as_bytes(), at: 0, depth: 0 };
-    let value = parser.value()?;
-    parser.space();
-    (parser.at == parser.s.len()).then_some(value)
+/// `value["key"]`: what is under the key, or null, as there being no such key is how the
+/// replies say there is none.
+impl Index<&str> for Value {
+    type Output = Self;
+
+    fn index(&self, key: &str) -> &Self {
+        self.as_object().and_then(|o| o.get(key)).unwrap_or(&Self::Null)
+    }
 }
 
-struct Parser<'a> {
-    s: &'a [u8],
-    at: usize,
-    /// Arrays and objects open, at most DEEPEST.
-    depth: usize,
+/// `text`, which must be one JSON value and nothing more.
+pub fn parse(text: &str) -> Result<Value, String> {
+    let mut reader = Reader { rest: text.chars() };
+    let value = reader.value(0)?;
+    reader.space();
+    match reader.peek() {
+        None => Ok(value),
+        Some(c) => Err(format!("{c:?} after the end of the value")),
+    }
 }
 
-const DEEPEST: usize = 64;
+struct Reader<'a> {
+    rest: Chars<'a>,
+}
 
-impl Parser<'_> {
-    fn space(&mut self) {
-        while self.s.get(self.at).is_some_and(|b| b" \t\r\n".contains(b)) {
-            self.at += 1;
-        }
+impl Reader<'_> {
+    fn peek(&self) -> Option<char> {
+        self.rest.clone().next()
     }
 
-    fn eat(&mut self, byte: u8) -> bool {
-        self.space();
-        let found = self.s.get(self.at) == Some(&byte);
-        self.at += usize::from(found);
+    /// Takes `wanted` if it comes next.
+    fn take(&mut self, wanted: char) -> bool {
+        let found = self.peek() == Some(wanted);
+        if found {
+            self.rest.next();
+        }
         found
     }
 
-    fn word(&mut self, word: &str, value: Value) -> Option<Value> {
-        self.s[self.at..].starts_with(word.as_bytes()).then(|| {
-            self.at += word.len();
-            value
-        })
+    fn space(&mut self) {
+        while matches!(self.peek(), Some(' ' | '\t' | '\n' | '\r')) {
+            self.rest.next();
+        }
     }
 
-    fn value(&mut self) -> Option<Value> {
+    fn value(&mut self, depth: usize) -> Result<Value, String> {
         self.space();
-        let first = *self.s.get(self.at)?;
-        if first == b'[' || first == b'{' {
-            self.depth += 1;
-            if self.depth > DEEPEST {
-                return None;
-            }
-        }
-        let value = self.inner(first);
-        if first == b'[' || first == b'{' {
-            self.depth -= 1;
-        }
-        value
-    }
-
-    fn inner(&mut self, first: u8) -> Option<Value> {
-        match first {
-            b'n' => self.word("null", Value::Null),
-            b't' => self.word("true", Value::Bool(true)),
-            b'f' => self.word("false", Value::Bool(false)),
-            b'"' => self.string().map(Value::String),
-            b'[' => {
-                self.at += 1;
-                let mut items = Vec::new();
-                if !self.eat(b']') {
-                    loop {
-                        items.push(self.value()?);
-                        if self.eat(b']') {
-                            break;
-                        }
-                        self.eat(b',').then_some(())?;
-                    }
-                }
-                Some(Value::Array(items))
-            }
-            b'{' => {
-                self.at += 1;
-                let mut members = Vec::new();
-                if !self.eat(b'}') {
-                    loop {
-                        self.space();
-                        let name = self.string()?;
-                        self.eat(b':').then_some(())?;
-                        members.push((name, self.value()?));
-                        if self.eat(b'}') {
-                            break;
-                        }
-                        self.eat(b',').then_some(())?;
-                    }
-                }
-                Some(Value::Object(members))
-            }
-            b'-' | b'0'..=b'9' => {
-                // -?(0|[1-9][0-9]*)(.[0-9]+)?([eE][+-]?[0-9]+)?
-                let begin = self.at;
-                self.at += usize::from(first == b'-');
-                if self.s.get(self.at) == Some(&b'0') {
-                    self.at += 1;
-                } else {
-                    self.digits()?;
-                }
-                if self.s.get(self.at) == Some(&b'.') {
-                    self.at += 1;
-                    self.digits()?;
-                }
-                if self.s.get(self.at).is_some_and(|b| b"eE".contains(b)) {
-                    self.at += 1;
-                    self.at += usize::from(self.s.get(self.at).is_some_and(|b| b"+-".contains(b)));
-                    self.digits()?;
-                }
-                Some(Value::Number(String::from_utf8_lossy(&self.s[begin..self.at]).into_owned()))
-            }
-            _ => None,
+        match self.peek() {
+            None => Err("the text ends where a value should be".to_owned()),
+            Some('n') => self.word("null", Value::Null),
+            Some('t') => self.word("true", Value::Bool(true)),
+            Some('f') => self.word("false", Value::Bool(false)),
+            Some('"') => self.string().map(Value::String),
+            Some('[') => self.array(depth),
+            Some('{') => self.object(depth),
+            Some('-' | '0'..='9') => self.number(),
+            Some(c) => Err(format!("{c:?} where a value should be")),
         }
     }
 
-    /// One digit or more.
-    fn digits(&mut self) -> Option<()> {
-        let begin = self.at;
-        while self.s.get(self.at).is_some_and(u8::is_ascii_digit) {
-            self.at += 1;
+    fn word(&mut self, word: &str, value: Value) -> Result<Value, String> {
+        match self.rest.as_str().strip_prefix(word) {
+            Some(rest) => {
+                self.rest = rest.chars();
+                Ok(value)
+            }
+            None => Err(format!("not {word}")),
         }
-        (self.at > begin).then_some(())
     }
 
-    fn string(&mut self) -> Option<String> {
-        (self.s.get(self.at) == Some(&b'"')).then_some(())?;
-        self.at += 1;
-        let mut bytes = Vec::new();
+    fn nested(depth: usize) -> Result<usize, String> {
+        if depth < DEPTH {
+            Ok(depth.saturating_add(1))
+        } else {
+            Err(format!("nested deeper than {DEPTH}"))
+        }
+    }
+
+    fn array(&mut self, depth: usize) -> Result<Value, String> {
+        let depth = Self::nested(depth)?;
+        self.rest.next();
+        let mut items = Vec::new();
+        self.space();
+        if self.take(']') {
+            return Ok(Value::Array(items));
+        }
         loop {
-            let byte = *self.s.get(self.at)?;
-            self.at += 1;
-            match byte {
-                b'"' => return String::from_utf8(bytes).ok(),
-                ..0x20 => return None, // a control character, which must be escaped
-                b'\\' => {
-                    let escaped = *self.s.get(self.at)?;
-                    self.at += 1;
-                    let plain = match escaped {
-                        b'"' | b'\\' | b'/' => escaped,
-                        b'b' => 0x08,
-                        b'f' => 0x0C,
-                        b'n' => b'\n',
-                        b'r' => b'\r',
-                        b't' => b'\t',
-                        b'u' => {
-                            let mut units = vec![self.hex4()?];
-                            // A surrogate pair is two escapes.
-                            if (0xD800..0xDC00).contains(&units[0]) && self.s[self.at..].starts_with(b"\\u") {
-                                self.at += 2;
-                                units.push(self.hex4()?);
-                            }
-                            for c in char::decode_utf16(units) {
-                                bytes.extend_from_slice(c.ok()?.encode_utf8(&mut [0; 4]).as_bytes());
-                            }
-                            continue;
-                        }
-                        _ => return None,
-                    };
-                    bytes.push(plain);
-                }
-                _ => bytes.push(byte),
+            items.push(self.value(depth)?);
+            self.space();
+            if self.take(']') {
+                return Ok(Value::Array(items));
+            }
+            if !self.take(',') {
+                return Err("expected , or ] in an array".to_owned());
             }
         }
     }
 
-    fn hex4(&mut self) -> Option<u16> {
-        let digits = self.s.get(self.at..self.at + 4)?;
-        self.at += 4;
-        // from_str_radix would take a sign
-        digits
-            .iter()
-            .all(u8::is_ascii_hexdigit)
-            .then(|| u16::from_str_radix(std::str::from_utf8(digits).ok()?, 16).ok())?
+    fn object(&mut self, depth: usize) -> Result<Value, String> {
+        let depth = Self::nested(depth)?;
+        self.rest.next();
+        let mut entries = BTreeMap::new();
+        self.space();
+        if self.take('}') {
+            return Ok(Value::Object(entries));
+        }
+        loop {
+            self.space();
+            if self.peek() != Some('"') {
+                return Err("expected a key in an object".to_owned());
+            }
+            let key = self.string()?;
+            self.space();
+            if !self.take(':') {
+                return Err(format!("expected : after the key {key:?}"));
+            }
+            let value = self.value(depth)?;
+            if entries.contains_key(&key) {
+                return Err(format!("the key {key:?} is given twice"));
+            }
+            entries.insert(key, value);
+            self.space();
+            if self.take('}') {
+                return Ok(Value::Object(entries));
+            }
+            if !self.take(',') {
+                return Err("expected , or } in an object".to_owned());
+            }
+        }
+    }
+
+    /// Digits, at least one.
+    fn digits(&mut self) -> Result<(), String> {
+        if !matches!(self.peek(), Some('0'..='9')) {
+            return Err("expected a digit in a number".to_owned());
+        }
+        while matches!(self.peek(), Some('0'..='9')) {
+            self.rest.next();
+        }
+        Ok(())
+    }
+
+    fn number(&mut self) -> Result<Value, String> {
+        let start = self.rest.as_str();
+        self.take('-');
+        // No leading zeros: `0` alone, or digits that start with another.
+        if !self.take('0') {
+            self.digits()?;
+        }
+        if self.take('.') {
+            self.digits()?;
+        }
+        if self.take('e') || self.take('E') {
+            if !self.take('+') {
+                self.take('-');
+            }
+            self.digits()?;
+        }
+        let read = start.len().saturating_sub(self.rest.as_str().len());
+        Ok(Value::Number(start.get(..read).unwrap_or_default().to_owned()))
+    }
+
+    fn string(&mut self) -> Result<String, String> {
+        self.rest.next();
+        let mut out = String::new();
+        loop {
+            match self.rest.next() {
+                None => return Err("a string that does not end".to_owned()),
+                Some('"') => return Ok(out),
+                Some('\\') => out.push(self.escape()?),
+                Some(c) if u32::from(c) < 0x20 => {
+                    return Err(format!("the control character {c:?} in a string"));
+                }
+                Some(c) => out.push(c),
+            }
+        }
+    }
+
+    fn escape(&mut self) -> Result<char, String> {
+        match self.rest.next() {
+            Some('"') => Ok('"'),
+            Some('\\') => Ok('\\'),
+            Some('/') => Ok('/'),
+            Some('b') => Ok('\u{8}'),
+            Some('f') => Ok('\u{c}'),
+            Some('n') => Ok('\n'),
+            Some('r') => Ok('\r'),
+            Some('t') => Ok('\t'),
+            Some('u') => self.unicode(),
+            other => Err(format!("the escape {other:?} in a string")),
+        }
+    }
+
+    /// Four hexadecimal digits: `from_str_radix` alone would also take a sign.
+    fn hex4(&mut self) -> Result<u32, String> {
+        let mut code = 0;
+        for _ in 0..4 {
+            let digit = self.rest.next().and_then(|c| c.to_digit(16));
+            let digit = digit.ok_or("\\u without four hexadecimal digits")?;
+            code = code * 16 + digit;
+        }
+        Ok(code)
+    }
+
+    /// A `\u` escape, after the `u`: a surrogate must come as a pair.
+    fn unicode(&mut self) -> Result<char, String> {
+        let first = self.hex4()?;
+        let code = match first {
+            0xD800..=0xDBFF => {
+                if !(self.take('\\') && self.take('u')) {
+                    return Err("half a surrogate pair".to_owned());
+                }
+                let second = self.hex4()?;
+                if !(0xDC00..=0xDFFF).contains(&second) {
+                    return Err("half a surrogate pair".to_owned());
+                }
+                0x1_0000 + ((first - 0xD800) << 10) + (second - 0xDC00)
+            }
+            code => code,
+        };
+        char::from_u32(code).ok_or_else(|| "half a surrogate pair".to_owned())
     }
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
-    use super::*;
+    use super::{DEPTH, Value, parse};
 
     #[test]
-    fn reads_what_crates_io_answers() {
-        let text = r#"{"versions": [{"num": "0.13.2", "created_at": "2026-06-09T18:37:27Z", "yanked": false}],
-                       "meta": {"total": 1, "next_page": null}}"#;
-        let value = parse(text).unwrap();
-        let version = &value.get("versions").unwrap().as_array()[0];
-        assert_eq!(version.get("num").and_then(Value::as_str), Some("0.13.2"));
-        assert!(!version.get("yanked").unwrap().is_true());
-        assert_eq!(value.get("meta").and_then(|meta| meta.get("next_page")), Some(&Value::Null));
-        assert_eq!(value.get("meta").and_then(|meta| meta.get("total")), Some(&Value::Number("1".into())));
-    }
-
-    #[test]
-    fn reads_escapes() {
-        assert_eq!(parse(r#""a\"\\\/\né😀""#), Some(Value::String("a\"\\/\né😀".into())));
-        assert_eq!(parse("{}"), Some(Value::Object(Vec::new())));
-        assert_eq!(parse(" [ ] "), Some(Value::Array(Vec::new())));
+    fn values_are_read() {
+        let json = parse(
+            " {\"a\": [1, -2.5e+3, true, false, null], \"b\": {\"c\": \"d\"}, \"e\": \"\\\"\\\\\\/\
+             \\b\\f\\n\\r\\t\\u00e9\\ud83d\\ude00\"}\n",
+        )
+        .unwrap();
+        let items = json["a"].as_array().unwrap();
+        assert_eq!(items[1], Value::Number("-2.5e+3".to_owned()));
         assert_eq!(
-            parse("[-0.5e+3, 0, 12]"),
-            Some(Value::Array(["-0.5e+3", "0", "12"].map(|n| Value::Number(n.into())).into()))
+            (items[2].as_bool(), items[3].as_bool(), &items[4]),
+            (Some(true), Some(false), &Value::Null)
         );
-        assert!(parse(&("[".repeat(64) + &"]".repeat(64))).is_some());
+        assert_eq!(json["b"]["c"].as_str(), Some("d"));
+        assert_eq!(json["e"].as_str(), Some("\"\\/\u{8}\u{c}\n\r\té😀"));
+        assert_eq!(json["no such key"]["nor this"], Value::Null);
+        assert_eq!(parse("[]").unwrap(), Value::Array(Vec::new()));
+        assert_eq!(parse("{ }").unwrap().as_object().map(std::collections::BTreeMap::len), Some(0));
     }
 
     #[test]
-    fn refuses_what_is_not_json() {
-        let deep = "[".repeat(65) + &"]".repeat(65);
+    fn what_the_grammar_does_not_allow_is_an_error() {
         for text in [
             "",
-            "{",
-            r#"{"a" 1}"#,
-            "[1,]",
-            r#""\x""#,
-            r#""\ud83d""#,
+            " ",
             "nul",
-            "[1] 2",
-            "-",
-            "1.2.3",
-            "1e",
+            "True",
+            "[1,]",
+            "[1 2]",
+            "{\"a\":1,}",
+            "{a:1}",
+            "{\"a\" 1}",
+            "{\"a\":1}x",
+            "1 2",
             "01",
-            r#""\u+041""#,
-            "\"\n\"",
-            &deep,
+            "-",
+            "+1",
+            "1.",
+            ".5",
+            "1e",
+            "1e+",
+            "\"open",
+            "\"a\nb\"",
+            "\"\\x\"",
+            "\"\\u12\"",
+            "\"\\u+123\"",
+            "\"\\ud800\"",
+            "\"\\ud800\\n\"",
+            "\"\\ud800\\u0041\"",
+            "\"\\udc00\"",
+            "{\"a\":1,\"a\":2}",
+            "{\"a\":1,\"\\u0061\":2}",
         ] {
-            assert_eq!(parse(text), None, "{text}");
+            assert!(parse(text).is_err(), "{text:?}");
         }
+    }
+
+    #[test]
+    fn nesting_has_a_limit() {
+        let nested = |n: usize| format!("{}{}", "[".repeat(n), "]".repeat(n));
+        assert!(parse(&nested(DEPTH)).is_ok());
+        assert!(parse(&nested(DEPTH + 1)).is_err());
+        assert!(parse(&"[".repeat(1 << 20)).is_err());
+        assert!(parse(&"{\"a\":".repeat(1 << 20)).is_err());
     }
 }

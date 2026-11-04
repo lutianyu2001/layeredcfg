@@ -1,429 +1,506 @@
-//! The results of the tasks, kept with the code, and whether they still hold.
+//! What the runs of each task leave in `audit/<task>/`: the latest run, and when that
+//! failed, the last that succeeded in `last_succeeded/` under it. Each holds `run.log`
+//! (what the run printed), `run.txt` (when, on which commit, with which tools, and how
+//! it ended), `inputs.txt` (the files it read, with hashes of what in them can change a
+//! run; see digest.rs) and the task's own files. A run writes into `audit/.running/<task>/`
+//! and takes the place of the latest at its end, so that an interrupted one leaves the
+//! others as they were.
 //!
-//! A run is written into a directory of its own under .running/ and, when it ends, takes the place of the task's
-//! directory in audit/ (or in target/audit/ with --no-record): the latest run, and the last that succeeded under
-//! `last_succeeded/` if the latest failed. Its run.txt says when it ran, at what commit, with what arguments and tools and
-//! how it went; its inputs.txt has the git blob of every file the task reads, which says later whether it still holds.
-//! This file, like pins.rs, is an input of no task.
+//! The results are committed with the code, so a run needs a working tree without
+//! uncommitted changes (`audit/` aside), and the paths of this machine are taken out of
+//! what it wrote. One with `--no-record` may run on any tree, and goes to
+//! `target/audit/<task>/` instead.
 
-use std::collections::BTreeMap;
-use std::env;
 use std::fmt::Write as _;
-use std::fs;
-use std::io::{self, Write};
+use std::fs::{self, File};
+use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
-use std::time::Instant;
+use std::process::{Command, ExitStatus, Stdio};
+use std::sync::Mutex;
+use std::thread;
+use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::run::{Log, Result, dir, parse_time, root, seconds, time};
-use crate::setup::{TASKS, versions};
+use crate::outdated::{civil, day};
 
-/// The modules of xtask that change neither how a task runs nor what it finds: what records the results and says
-/// whether they hold, the pinned versions (which run.txt keeps for each task), the locks, the installing of the tools
-/// and the looking for their releases.
-const NOT_INPUTS: [&str; 5] =
-    ["xtask/src/record.rs", "xtask/src/pins.rs", "xtask/src/lock.rs", "xtask/src/setup.rs", "xtask/src/outdated.rs"];
-/// The modules of xtask only some tasks use, and those tasks.
-const USED_BY: [(&str, &[&str]); 1] = [("xtask/src/json.rs", &["kani"])];
+/// The log of the run in progress, if any.
+static LOG: Mutex<Option<File>> = Mutex::new(None);
 
-/// Whether `path`, a file of xtask, is an input of `task`: each task's module of tasks/ of that task only, a module
-/// some tasks use of those, and the rest (a file added too) of every task.
-fn xtask_input(task: &str, path: &str) -> bool {
-    if NOT_INPUTS.contains(&path) {
-        return false;
-    }
-    if let Some((_, tasks)) = USED_BY.iter().find(|(file, _)| *file == path) {
-        return tasks.contains(&task);
-    }
-    match path.strip_prefix("xtask/src/tasks/").and_then(|file| file.strip_suffix(".rs")) {
-        Some(owner) if TASKS.contains(&owner) => owner == task,
-        _ => true,
-    }
+fn err(path: &Path, e: &io::Error) -> String {
+    format!("{}: {e}", path.display())
 }
 
-/// Whether `task` reads `path` (relative to the root, with "/"), so that its results stop holding when it changes.
-pub fn affects(task: &str, path: &str) -> bool {
-    let under = |dir: &str| path.strip_prefix(dir).is_some_and(|rest| rest.starts_with('/'));
-    // How every task runs: the dependencies, the toolchain, the configuration of cargo, and xtask.
-    let every = path == "Cargo.lock"
-        || (path.rsplit('/').next() == Some("Cargo.toml") && !under("fuzz"))
-        || under(".cargo")
-        || path == "rust-toolchain.toml"
-        || (under("xtask") && xtask_input(task, path));
-    if every {
-        return true;
-    }
-    // The code, which is every file but those below; one added is in, so that it is run once too often rather than
-    // not at all.
-    let code = !doc(path) && !under("xtask") && path != "deny.toml" && !under("supply-chain") && !under("tests");
-    match task {
-        "deny" => ["deny.toml", "fuzz/Cargo.toml", "fuzz/Cargo.lock"].contains(&path),
-        "vet" => under("supply-chain"),
-        "fuzz" => code,
-        "geiger" | "kani" | "miri" => code && !under("fuzz"),
-        "coverage" => (code || under("tests")) && !under("fuzz"),
-        _ => true,
-    }
-}
-
-/// Whether `path` is of the documentation, which no task reads. No file of it is read by the code: nothing of it is
-/// in an `include_str!`, `include_bytes!` or `include!`, or read by build.rs.
-fn doc(path: &str) -> bool {
-    let name = path.rsplit('/').next().unwrap_or(path);
-    Path::new(name).extension().is_some_and(|extension| extension.eq_ignore_ascii_case("md"))
-        || path.split('/').any(|part| part.starts_with("README") || part.starts_with("LICENSE"))
-        || path.starts_with(".github/")
-        || [".gitignore", "clippy.toml", "rustfmt.toml"].contains(&name)
-}
-
-/// The files of the working tree, each with its git blob: uncommitted or untracked too (ignored ones aside), as
-/// `git add --all` into an index of its own would have them, the real one left as it is.
-pub fn tree() -> Result<BTreeMap<String, String>> {
-    let index = dir("target/audit")?.join(format!("index-{}", std::process::id()));
-    let real = git(&["rev-parse", "--git-path", "index"])?;
-    if let Err(error) = fs::copy(root().join(real.trim()), &index)
-        && error.kind() != io::ErrorKind::NotFound
-    {
-        return Err(error.into());
-    }
-    let staged = git_with(&index, &["add", "--all", "--", ".", ":!audit"])
-        .and_then(|_| git_with(&index, &["ls-files", "-s", "-z", "--", ".", ":!audit"]));
-    let _ = fs::remove_file(&index);
-    let mut files = BTreeMap::new();
-    // "<mode> <blob> <stage>\t<path>\0"
-    for entry in staged?.split('\0').filter(|entry| !entry.is_empty()) {
-        let (fields, path) = entry.split_once('\t').ok_or("git ls-files: no tab")?;
-        let blob = fields.split(' ').nth(1).ok_or("git ls-files: no blob")?;
-        files.insert(path.to_owned(), blob.to_owned());
-    }
-    Ok(files)
-}
-
-/// The files of `tree` that `task` reads.
-fn inputs<'a>(task: &str, tree: &'a BTreeMap<String, String>) -> BTreeMap<&'a str, &'a str> {
-    tree.iter().filter(|(path, _)| affects(task, path)).map(|(path, blob)| (path.as_str(), blob.as_str())).collect()
-}
-
-fn git(args: &[&str]) -> Result<String> {
-    run_git(Command::new("git").args(args))
-}
-
-fn git_with(index: &Path, args: &[&str]) -> Result<String> {
-    run_git(Command::new("git").env("GIT_INDEX_FILE", index).args(args))
-}
-
-fn run_git(command: &mut Command) -> Result<String> {
-    let output = command.current_dir(root()).stderr(Stdio::inherit()).output()?;
-    if !output.status.success() {
-        return Err(format!("{command:?} failed: {}", output.status).into());
-    }
-    Ok(String::from_utf8(output.stdout)?)
-}
-
-/// Why a run may not be recorded: what is changed and not committed, which no commit's results would be of.
-pub fn uncommitted() -> Result<Option<String>> {
-    // Not trimmed: the first entry may begin with a space (" M file").
-    let status = git(&["status", "--porcelain", "-z", "--untracked-files=all", "--", ".", ":!audit"])?;
-    let mut changed = Vec::new();
-    let mut entries = status.split('\0').filter(|entry| !entry.is_empty());
-    while let Some(entry) = entries.next() {
-        // "XY path"; a rename or a copy has the path it was at in an entry of its own after it.
-        if entry.starts_with(['R', 'C']) {
-            entries.next();
-        }
-        changed.extend(entry.get(3..));
-    }
-    Ok((!changed.is_empty()).then(|| format!("uncommitted changes: {}", list(&changed))))
-}
-
-/// Whether git tracks Cargo.lock, by which the results know whether the dependencies changed.
-pub fn lock_tracked() -> Result<bool> {
-    Ok(!git(&["ls-files", "--", "Cargo.lock"])?.is_empty())
-}
-
-/// "a, b and 3 more".
-fn list(items: &[&str]) -> String {
-    match items {
-        [] => String::new(),
-        [one] => (*one).to_owned(),
-        [first, second] => format!("{first} and {second}"),
-        [first, second, third] => format!("{first}, {second} and {third}"),
-        [first, second, rest @ ..] => format!("{first}, {second} and {} more", rest.len()),
-    }
-}
-
-/// Where the runs of a task go: audit/, or target/audit/ when they are not recorded.
-fn base(recorded: bool) -> &'static str {
-    if recorded { "audit" } else { "target/audit" }
-}
-
-/// A run of a task, under way.
 pub struct Run {
-    pub task: &'static str,
-    /// The directory it is written into.
-    pub dir: PathBuf,
-    /// run.log, into which its output goes, and onto the terminal.
-    pub log: Log,
-    recorded: bool,
-    started: i64,
-    clock: Instant,
+    root: PathBuf,
+    base: PathBuf,
+    dir: PathBuf,
+    /// Kept in `audit/`, rather than in `target/audit/` (`--no-record`).
+    record: bool,
+    started: SystemTime,
     commit: String,
-    arguments: String,
+    /// The files the task reads, as inputs.txt has them.
+    inputs: String,
+    /// `audit/.running/<task>.lock`, held while the run lasts; it holds the run's memory
+    /// limit in bytes, for the tasks that would start beside it.
+    _lock: File,
+}
+
+/// Starts a run of `task`, which may use up to `bytes` of memory and reads `inputs` (as
+/// inputs.txt has them); fails when another run of it is in progress, or when the tasks
+/// running beside it leave no room.
+pub fn start(
+    root: &Path,
+    task: &str,
+    bytes: u64,
+    record: bool,
+    inputs: String,
+) -> Result<Run, String> {
+    let audit = root.join("audit");
+    // Where the run goes on its way to the latest one.
+    let home = if record { audit.clone() } else { root.join("target").join("audit") };
+    let (base, dir) = (home.join(task), home.join(".running").join(task));
+    let lock = crate::lock::task(root, task, bytes)?;
+    // What an interrupted run left.
+    let _ = fs::remove_dir_all(&dir);
+    fs::create_dir_all(&dir).map_err(|e| err(&dir, &e))?;
+    let path = dir.join("run.log");
+    let log = File::create(&path).map_err(|e| err(&path, &e))?;
+    if let Ok(mut current) = LOG.lock() {
+        *current = Some(log);
+    }
+    Ok(Run {
+        root: root.to_owned(),
+        base,
+        dir,
+        record,
+        started: SystemTime::now(),
+        commit: git(root, &["rev-parse", "HEAD"]).unwrap_or_default(),
+        inputs,
+        _lock: lock,
+    })
 }
 
 impl Run {
-    /// Starts a run of `task` with `arguments` (those of the task itself, as "seconds=3600"), the leftovers of one that
-    /// was stopped taken away first: to be called once the task's lock is held.
-    pub fn start(task: &'static str, arguments: String, recorded: bool) -> Result<Run> {
-        let dir = root().join(base(recorded)).join(".running").join(task);
-        let into = root().join(base(recorded)).join(task);
-        let last = dir.join("last_succeeded");
-        // A run stopped while it was put in place, after the results it keeps had been moved into it.
-        if !into.exists() && last.exists() {
-            fs::rename(&last, &into)?;
-        }
-        if dir.exists() {
-            fs::remove_dir_all(&dir)?;
-        }
-        fs::create_dir_all(&dir)?;
-        // When it starts, not when it ends: it does not see what changes while it runs, an hour maybe.
-        let mut listed = String::new();
-        for (path, blob) in inputs(task, &tree()?) {
-            let _ = writeln!(listed, "{blob} {path}");
-        }
-        fs::write(dir.join("inputs.txt"), listed)?;
-        let log = Log::create(&dir.join("run.log"), true)?;
-        let commit = git(&["rev-parse", "HEAD"])?.trim().to_owned();
-        Ok(Run { task, dir, log, recorded, started: seconds(), clock: Instant::now(), commit, arguments })
+    /// Where the task puts its own files.
+    pub fn dir(&self) -> &Path {
+        &self.dir
     }
 
-    /// Ends the run with how it went, and puts it in the place of the task's results; the line it says.
-    pub fn finish(self, outcome: &Result<()>) -> Result<String> {
-        let result = match outcome {
-            Ok(()) => "succeeded".to_owned(),
-            Err(error) => format!("failed: {}", error.to_string().replace('\n', " ")),
-        };
-        let Run { task, dir, log, recorded, started, clock, commit, arguments } = self;
-        drop(log);
-        // No space after a field without a value.
-        let arguments = if arguments.is_empty() { String::new() } else { format!(" {arguments}") };
-        let text = format!(
-            "started: {}\ntook: {}s\ncommit: {commit}\narguments:{arguments}\ntools: {}\nresult: {result}\n",
-            time(started),
-            clock.elapsed().as_secs(),
-            versions(task),
-        );
-        fs::write(dir.join("run.txt"), text)?;
-        scrub_dir(&dir)?;
-        let into = root().join(base(recorded)).join(task);
-        let succeeded = outcome.is_ok();
-        if recorded && !succeeded && into.exists() {
-            match read(&into) {
-                // The last that succeeded is kept.
-                Some(previous) if previous.succeeded() => fs::rename(&into, dir.join("last_succeeded"))?,
-                _ => {
-                    let last = into.join("last_succeeded");
-                    if last.exists() {
-                        fs::rename(&last, dir.join("last_succeeded"))?;
-                    }
-                }
-            }
+    /// Why the run cannot stand for the commit it started on, if so: a recorded run says what
+    /// that commit does, and the tree was only known to match it at the start.
+    pub fn moved(&self) -> Option<String> {
+        if !self.record {
+            return None;
         }
-        if into.exists() {
-            fs::remove_dir_all(&into)?;
+        let head = git(&self.root, &["rev-parse", "HEAD"]).unwrap_or_default();
+        if head != self.commit {
+            return Some(format!("the commit changed during the run, to {head}"));
         }
-        fs::rename(&dir, &into)?;
-        Ok(result)
+        let paths = uncommitted(&self.root);
+        (!paths.is_empty()).then(|| format!("files changed during the run: {}", paths.join(", ")))
+    }
+
+    /// Records how the run ended (`succeeded` or `failed: <why>`), with the task's own
+    /// parameters (as `seconds=3600`) and tools, and makes it the latest. A run that could not
+    /// be written whole, or rid of the paths of this machine, is an error, and goes no
+    /// further than `.running/`.
+    pub fn finish(self, outcome: &str, params: &str, tools: &str) -> Result<(), String> {
+        if let Ok(mut current) = LOG.lock() {
+            *current = None;
+        }
+        let seconds = self.started.elapsed().map_or(0, |d| d.as_secs());
+        let mut text = String::new();
+        let _ = writeln!(text, "result: {outcome}");
+        let _ = writeln!(text, "started: {}", time(self.started));
+        let _ = writeln!(text, "seconds: {seconds}");
+        let _ = writeln!(text, "commit: {}", self.commit);
+        let _ = writeln!(text, "args: {params}");
+        let _ = writeln!(text, "tools: {tools}");
+        for (name, contents) in [("run.txt", text.as_str()), ("inputs.txt", &self.inputs)] {
+            let path = self.dir.join(name);
+            fs::write(&path, contents).map_err(|e| err(&path, &e))?;
+        }
+        scrub(&self.dir, &self.root)?;
+        let last = self.dir.join(LAST);
+        // Without --no-record, the last success is kept beside a failure.
+        if self.record && outcome != "succeeded" {
+            // The last success: the latest run when it succeeded, else the one it kept.
+            let kept = if succeeded(&self.base) { self.base.clone() } else { self.base.join(LAST) };
+            absent_is_fine(fs::rename(&kept, &last)).map_err(|e| err(&kept, &e))?;
+        }
+        absent_is_fine(fs::remove_dir_all(&self.base)).map_err(|e| err(&self.base, &e))?;
+        fs::rename(&self.dir, &self.base).map_err(|e| err(&self.base, &e))
     }
 }
 
-/// Takes the paths of this machine out of the files of `dir`, which are committed: the repository's becomes ".",
-/// then the home directory "~".
-fn scrub_dir(dir: &Path) -> Result<()> {
-    let home = env::var("HOME").unwrap_or_default();
-    for entry in fs::read_dir(dir)? {
-        let path = entry?.path();
-        if path.is_dir() {
-            scrub_dir(&path)?;
+/// A first run, or one without a success to keep, finds nothing there.
+fn absent_is_fine(result: io::Result<()>) -> io::Result<()> {
+    match result {
+        Err(e) if e.kind() != io::ErrorKind::NotFound => Err(e),
+        _ => Ok(()),
+    }
+}
+
+/// Where the last run that succeeded is kept while the latest has failed.
+pub const LAST: &str = "last_succeeded";
+
+fn succeeded(dir: &Path) -> bool {
+    fields(dir).is_some_and(|f| f.get("result") == "succeeded")
+}
+
+/// Prints `line` and adds it to the log.
+pub fn say(line: &str) {
+    eprintln!("{line}");
+    note(line);
+}
+
+/// Adds `line` to the log, to be printed later.
+pub fn note(line: &str) {
+    log(format!("{line}\n").as_bytes());
+}
+
+fn log(bytes: &[u8]) {
+    if let Ok(mut current) = LOG.lock()
+        && let Some(file) = current.as_mut()
+    {
+        let _ = file.write_all(bytes);
+    }
+}
+
+/// Runs `cmd`, its output going to the terminal and, during a run, to the log too; its
+/// standard output into `out` instead when given.
+pub fn exec(cmd: &mut Command, out: Option<File>) -> io::Result<ExitStatus> {
+    let logging = LOG.lock().is_ok_and(|l| l.is_some());
+    if let Some(out) = out {
+        cmd.stdout(out);
+    } else if logging {
+        cmd.stdout(Stdio::piped());
+    }
+    if logging {
+        cmd.stderr(Stdio::piped());
+    }
+    let mut child = cmd.spawn()?;
+    let (out, err) = (child.stdout.take(), child.stderr.take());
+    thread::scope(|s| {
+        if let Some(out) = out {
+            s.spawn(|| pump(out, io::stdout()));
+        }
+        if let Some(err) = err {
+            s.spawn(|| pump(err, io::stderr()));
+        }
+        child.wait()
+    })
+}
+
+fn pump(mut from: impl Read, mut to: impl Write) {
+    let mut buf = [0; 8192];
+    loop {
+        match from.read(&mut buf) {
+            Ok(0) => break,
+            Ok(n) => {
+                let _ = to.write_all(&buf[..n]);
+                log(&buf[..n]);
+            }
+            Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
+            Err(_) => break,
+        }
+    }
+}
+
+/// Takes the paths of this machine out of the files a run wrote, so that they can be
+/// published: the repository becomes `.` and the home directory `~`.
+fn scrub(dir: &Path, root: &Path) -> Result<(), String> {
+    let mut pairs = vec![(root.display().to_string(), ".")];
+    if let Some(home) = std::env::var_os("HOME") {
+        pairs.push((home.to_string_lossy().into_owned(), "~"));
+    }
+    for entry in fs::read_dir(dir).map_err(|e| err(dir, &e))? {
+        let entry = entry.map_err(|e| err(dir, &e))?;
+        let path = entry.path();
+        if entry.file_type().map_err(|e| err(&path, &e))?.is_dir() {
+            scrub(&path, root)?;
             continue;
         }
-        // Its paths are relative, and the root or the home could be in one ("/root" in "src/root/a.rs").
-        if path.file_name().is_some_and(|name| name == "inputs.txt") {
-            continue;
-        }
-        let text = fs::read(&path)?;
-        let mut scrubbed = scrub(&text, root().to_string_lossy().as_bytes(), b".");
-        if home.len() > 1 {
-            scrubbed = scrub(&scrubbed, home.as_bytes(), b"~");
-        }
-        if scrubbed != text {
-            fs::write(&path, scrubbed)?;
+        let old = fs::read(&path).map_err(|e| err(&path, &e))?;
+        let new = pairs.iter().fold(old.clone(), |text, (from, to)| {
+            replace_path(&text, from.as_bytes(), to.as_bytes())
+        });
+        if new != old {
+            fs::write(&path, new).map_err(|e| err(&path, &e))?;
         }
     }
     Ok(())
 }
 
-/// `text` with `path` made `to` where it is the whole of a path, not the beginning of a longer name nor the end of one
-/// ("/home/me/rext" in "/home/me/rext/src" but not in "/home/me/rext-old" or "/mnt/home/me/rext").
-fn scrub(text: &[u8], path: &[u8], to: &[u8]) -> Vec<u8> {
-    let in_name = |b: &u8| b.is_ascii_alphanumeric() || b"-_.".contains(b);
+/// `text` with `from` replaced by `to` where it is a whole path or begins one: not where
+/// it begins a longer name, as `/home/me/rext` begins `/home/me/rext-old` and `.old` makes
+/// `/home/me/rext.old`, nor where it is the end of one, as in `/mnt/home/me/rext`. A `.` with
+/// no more of a name after it ends a sentence, not the name.
+fn replace_path(text: &[u8], from: &[u8], to: &[u8]) -> Vec<u8> {
+    if from.len() < 2 {
+        return text.to_vec();
+    }
     let mut out = Vec::with_capacity(text.len());
-    let mut at = 0;
-    while at < text.len() {
-        let whole = text[at..].starts_with(path)
-            && !text.get(at + path.len()).is_some_and(in_name)
-            && !at.checked_sub(1).and_then(|before| text.get(before)).is_some_and(|b| in_name(b) || b"/~".contains(b));
-        if whole && !path.is_empty() {
+    let mut i = 0;
+    let name = |c: &u8| c.is_ascii_alphanumeric() || b"-_".contains(c);
+    while i < text.len() {
+        let ends = |at: usize| match text.get(at) {
+            None => true,
+            Some(b'.') => !text.get(at + 1).is_some_and(name),
+            Some(c) => !name(c),
+        };
+        let starts = i == 0 || !(name(&text[i - 1]) || text[i - 1] == b'.');
+        if starts && text[i..].starts_with(from) && ends(i + from.len()) {
             out.extend_from_slice(to);
-            at += path.len();
+            i += from.len();
         } else {
-            out.push(text[at]);
-            at += 1;
+            out.push(text[i]);
+            i += 1;
         }
     }
     out
 }
 
-/// What a run.txt says.
-struct Record {
-    fields: BTreeMap<String, String>,
-}
-
-impl Record {
-    fn get(&self, field: &str) -> &str {
-        self.fields.get(field).map_or("", String::as_str)
-    }
-
-    fn succeeded(&self) -> bool {
-        self.get("result") == "succeeded"
-    }
-
-    /// "2026-10-29 14:05 UTC at 1a2b3c4".
-    fn when(&self) -> String {
-        let started = self.get("started");
-        let minutes = started.get(..16).map_or(started.to_owned(), |minutes| format!("{minutes} UTC"));
-        format!("{minutes} at {}", self.get("commit").get(..7).unwrap_or("?"))
-    }
-}
-
-fn read(dir: &Path) -> Option<Record> {
-    let text = fs::read_to_string(dir.join("run.txt")).ok()?;
-    let fields = text
-        .lines()
-        .filter_map(|line| line.split_once(':').map(|(field, value)| (field.to_owned(), value.trim().to_owned())))
-        .collect();
-    Some(Record { fields })
-}
-
-/// Whether the recorded results of `task` still hold for the working tree (as `tree` gives it) and the tools pinned
-/// now: Ok with why they hold, or Err with why they do not.
-pub fn holds(task: &str, arguments: &str, tree: &BTreeMap<String, String>) -> std::result::Result<String, String> {
-    let dir = root().join("audit").join(task);
-    let Some(record) = read(&dir) else { return Err("never run".to_owned()) };
-    if !record.succeeded() {
-        return Err("its latest run failed".to_owned());
-    }
-    if record.get("tools") != versions(task) {
-        return Err("the pinned tools changed".to_owned());
-    }
-    if record.get("arguments") != arguments {
-        return Err("recorded with different arguments".to_owned());
-    }
-    let Ok(listed) = fs::read_to_string(dir.join("inputs.txt")) else {
-        return Err("its record has no inputs.txt".to_owned());
+/// The files of the working tree as git sees them (ignored files left out, `audit/` too),
+/// with the hashes git gives their contents. Read through an index of its own, so that
+/// the real one stays as it is.
+pub fn files(root: &Path) -> Result<Vec<(String, String)>, String> {
+    let index = git(root, &["rev-parse", "--git-path", "index"])
+        .ok_or("not in a git repository: the runs are recorded by the commit they ran on")?;
+    // Under target/, not the shared temporary directory, where another user could put a
+    // link at this name beforehand.
+    let dir = root.join("target").join("audit");
+    fs::create_dir_all(&dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+    let temp = dir.join(format!("index-{}", std::process::id()));
+    // A copy keeps what git knows of the files, so that it rereads only the changed ones.
+    let _ = fs::copy(root.join(index), &temp);
+    let with_index = |args: &[&str]| {
+        Command::new("git")
+            .args(args)
+            .current_dir(root)
+            .env("GIT_INDEX_FILE", &temp)
+            .stderr(Stdio::null())
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
     };
-    let then: BTreeMap<&str, &str> =
-        listed.lines().filter_map(|line| line.split_once(' ').map(|(blob, path)| (path, blob))).collect();
-    let now = inputs(task, tree);
-    let mut changed: Vec<&str> =
-        now.iter().filter(|(path, blob)| then.get(*path) != Some(blob)).map(|(path, _)| *path).collect();
-    changed.extend(then.keys().filter(|path| !now.contains_key(*path)));
-    if !changed.is_empty() {
-        return Err(format!("changed since: {}", list(&changed)));
-    }
-    // The advisories change every day, the code or not.
-    if task == "deny" && parse_time(record.get("started")).is_none_or(|started| seconds() - started >= 86_400) {
-        return Err("over a day old".to_owned());
-    }
-    Ok(format!("its run of {} still holds", record.when()))
+    let listed = with_index(&["add", "--all"]).and_then(|_| with_index(&["ls-files", "-s", "-z"]));
+    let _ = fs::remove_file(&temp);
+    let listed = listed.ok_or("git could not list the files")?;
+    // `<mode> <hash> <stage>\t<path>`, each ended by a NUL.
+    Ok(String::from_utf8_lossy(&listed.stdout)
+        .split('\0')
+        .filter_map(|entry| {
+            let (meta, path) = entry.split_once('\t')?;
+            let hash = meta.split(' ').nth(1)?;
+            (!path.starts_with("audit/")).then(|| (path.to_owned(), hash.to_owned()))
+        })
+        .collect())
 }
 
-/// `cargo xtask status`: a line a task.
-pub fn status(arguments: impl Fn(&str) -> String) -> Result<()> {
-    let tree = tree()?;
-    let mut out = io::stdout().lock();
-    for task in TASKS {
-        let dir = root().join("audit").join(task);
-        let Some(record) = read(&dir) else {
-            // Not println!, which panics when the pipe is closed (cargo xtask status | head).
-            let _ = writeln!(out, "{task}: never run");
-            continue;
-        };
-        let mut line = format!("{task}: {}, {}", record.get("result"), record.when());
-        if let Some(last) = read(&dir.join("last_succeeded")) {
-            let _ = write!(line, "; last succeeded {}", last.when());
+/// Whether git tracks `path`.
+pub fn tracked(root: &Path, path: &str) -> bool {
+    git(root, &["ls-files", "--error-unmatch", "--", path]).is_some()
+}
+
+/// The paths with uncommitted changes, untracked files included, `audit/` aside.
+pub fn uncommitted(root: &Path) -> Vec<String> {
+    let args = ["status", "--porcelain", "-z", "--untracked-files=all", "--", ".", ":!audit"];
+    // Not trimmed, as `git` would: the first entry may start with a space.
+    let Some(out) = Command::new("git")
+        .args(args)
+        .current_dir(root)
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
+    else {
+        return vec!["(git status failed)".to_owned()];
+    };
+    // `XY <path>`, each ended by a NUL; a rename is followed by its old path.
+    let mut paths = Vec::new();
+    let mut entries = out.split('\0').filter(|e| !e.is_empty());
+    while let Some(entry) = entries.next() {
+        paths.push(entry.get(3..).unwrap_or(entry).to_owned());
+        if entry.starts_with('R') || entry.starts_with('C') {
+            entries.next();
         }
-        match holds(task, &arguments(task), &tree) {
-            Ok(_) => line += "; holds",
-            Err(why) => line += &(String::from("; to run again: ") + &why),
-        }
-        let _ = writeln!(out, "{line}");
     }
-    Ok(())
+    paths
+}
+
+/// Why `task` needs a run, given the files it reads now (as inputs.txt has them), the
+/// tools pinned for it and the parameters it would run with; empty when its latest run
+/// stands.
+pub fn needed(root: &Path, task: &str, inputs: &str, tools: &str, params: &str) -> Vec<String> {
+    let base = root.join("audit").join(task);
+    let Some(f) = fields(&base) else { return vec!["it never ran".to_owned()] };
+    let mut why = Vec::new();
+    if f.get("result") != "succeeded" {
+        why.push("its latest run failed".to_owned());
+    }
+    if f.get("tools") != tools {
+        why.push("the pinned tools changed".to_owned());
+    }
+    if !covers(f.get("args"), params) {
+        why.push(format!("recorded with different arguments (`{}`)", f.get("args")));
+    }
+    // New advisories appear whatever the code does.
+    if task == "deny" && age(f.get("started")).is_none_or(|secs| secs >= 86_400) {
+        why.push("over a day old, and advisories are published daily".to_owned());
+    }
+    let old = fs::read_to_string(base.join("inputs.txt")).unwrap_or_default();
+    let changed = changed(&old, inputs);
+    if old.is_empty() {
+        why.push("it recorded no list of the files it read".to_owned());
+    } else if old.lines().next() != inputs.lines().next() {
+        why.push("its list of the files it read was hashed another way".to_owned());
+    } else if !changed.is_empty() {
+        let shown: Vec<&str> = changed.iter().take(3).map(String::as_str).collect();
+        let more = match changed.len() {
+            n if n > 3 => format!(" and {} more", n - 3),
+            _ => String::new(),
+        };
+        why.push(format!("changed since: {}{more}", shown.join(", ")));
+    }
+    why
+}
+
+/// The paths whose contents differ between two inputs.txt.
+fn changed(old: &str, new: &str) -> Vec<String> {
+    let read = |text: &str| -> std::collections::BTreeMap<String, String> {
+        text.lines()
+            .filter_map(|l| l.split_once('\t'))
+            .map(|(hash, path)| (path.to_owned(), hash.to_owned()))
+            .collect()
+    };
+    let (old, new) = (read(old), read(new));
+    let mut paths: Vec<String> = old.keys().chain(new.keys()).cloned().collect();
+    paths.sort();
+    paths.dedup();
+    paths.retain(|p| old.get(p) != new.get(p));
+    paths
+}
+
+/// Seconds since a time as run.txt has it.
+fn age(started: &str) -> Option<u64> {
+    let days = u64::try_from(day(started)?).ok()?;
+    let hours: u64 = started.get(11..13)?.parse().ok()?;
+    let minutes: u64 = started.get(14..16)?.parse().ok()?;
+    let then = days * 86_400 + hours * 3600 + minutes * 60;
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).ok()?.as_secs();
+    now.checked_sub(then)
+}
+
+/// Whether a run recorded with the arguments `recorded` stands for one with `wanted`: the
+/// same ones, or a fuzz run at least as long (`seconds=N`), as CI's runs are longer.
+fn covers(recorded: &str, wanted: &str) -> bool {
+    let seconds = |args: &str| args.strip_prefix("seconds=").and_then(|n| n.parse::<u64>().ok());
+    recorded == wanted
+        || matches!((seconds(recorded), seconds(wanted)), (Some(r), Some(w)) if r >= w)
+}
+
+/// How the latest run of `task` ended: whether it succeeded; None when it never ran.
+pub fn latest_succeeded(root: &Path, task: &str) -> Option<bool> {
+    fields(&root.join("audit").join(task)).map(|f| f.get("result") == "succeeded")
+}
+
+/// `cargo xtask status`: how each task's latest run ended, when one last succeeded, and
+/// whether it needs a run (`needed`, given the task).
+pub fn status(root: &Path, tasks: &[&str], needed: impl Fn(&str) -> Vec<String>) {
+    for task in tasks {
+        let base = root.join("audit").join(task);
+        let mut line = String::new();
+        let shown = |f: &Fields| {
+            let commit = f.get("commit");
+            format!("{} on {}", f.get("started"), commit.get(..7).unwrap_or(commit))
+        };
+        match fields(&base) {
+            None => line.push_str("never run"),
+            Some(f) if f.get("result") == "succeeded" => {
+                let _ = write!(line, "succeeded {}", shown(&f));
+            }
+            Some(f) => {
+                let _ = write!(line, "failed {} (audit/{task}/)", shown(&f));
+                match fields(&base.join(LAST)) {
+                    Some(last) => {
+                        let _ = write!(line, "; last succeeded {}", shown(&last));
+                    }
+                    None => line.push_str("; never succeeded"),
+                }
+            }
+        }
+        let why = needed(task);
+        if why.is_empty() {
+            line.push_str("; up to date");
+        } else if base.join("run.txt").exists() {
+            let _ = write!(line, "; needs a run: {}", why.join("; "));
+        }
+        let _ = writeln!(io::stdout(), "{task:<9} {line}");
+    }
+}
+
+struct Fields(String);
+
+impl Fields {
+    fn get(&self, key: &str) -> &str {
+        self.0.lines().find_map(|l| l.strip_prefix(key)?.strip_prefix(": ")).unwrap_or_default()
+    }
+}
+
+fn fields(dir: &Path) -> Option<Fields> {
+    fs::read_to_string(dir.join("run.txt")).ok().map(Fields)
+}
+
+fn git(root: &Path, args: &[&str]) -> Option<String> {
+    let out = Command::new("git").args(args).current_dir(root).output().ok()?;
+    out.status.success().then(|| String::from_utf8_lossy(&out.stdout).trim().to_owned())
+}
+
+/// `YYYY-MM-DD HH:MM UTC`.
+fn time(t: SystemTime) -> String {
+    let secs = t.duration_since(UNIX_EPOCH).map_or(0, |d| d.as_secs());
+    let days = i64::try_from(secs / 86_400).unwrap_or(0);
+    let minutes = secs % 86_400 / 60;
+    format!("{} {:02}:{:02} UTC", civil(days), minutes / 60, minutes % 60)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{changed, covers, replace_path};
 
     #[test]
-    fn scrub_takes_whole_paths_only() {
-        let text = b"/home/me/rext/src /home/me/rext-old /home/me/rext. /home/me/rext\n/home/me/other";
-        let once = scrub(text, b"/home/me/rext", b".");
-        assert_eq!(once, b"./src /home/me/rext-old /home/me/rext. .\n/home/me/other");
-        assert_eq!(scrub(&once, b"/home/me", b"~"), b"./src ~/rext-old ~/rext. .\n~/other");
+    fn a_longer_fuzz_run_stands_for_a_shorter_one() {
+        assert!(covers("", ""));
+        assert!(covers("seconds=3600", "seconds=3600"));
+        assert!(covers("seconds=14400", "seconds=3600"));
+        assert!(!covers("seconds=3600", "seconds=14400"));
+        assert!(!covers("seconds=x", "seconds=3600"));
+        assert!(!covers("", "seconds=3600"));
+    }
+
+    #[test]
+    fn paths_are_replaced_only_where_whole() {
+        let text = b"/home/me/rext/src/a.rs /home/me/rext-old /home/me/rext: /home/me/rext";
         assert_eq!(
-            scrub(b"/mnt/home/me/x src/home/me ~/home/me", b"/home/me", b"~"),
-            b"/mnt/home/me/x src/home/me ~/home/me"
+            replace_path(text, b"/home/me/rext", b"."),
+            b"./src/a.rs /home/me/rext-old .: .".to_vec()
         );
     }
 
     #[test]
-    fn what_each_task_reads() {
-        for task in TASKS {
-            for path in
-                ["Cargo.lock", "Cargo.toml", "crates/layeredconf/Cargo.toml", ".cargo/config.toml", "xtask/src/run.rs"]
-            {
-                assert!(affects(task, path), "{task} {path}");
-            }
-            for path in ["xtask/src/record.rs", "xtask/src/pins.rs", "README.md", "README/README_CN.md", "LICENSE"] {
-                assert!(!affects(task, path), "{task} {path}");
-            }
-        }
-        assert!(affects("deny", "fuzz/Cargo.lock") && affects("deny", "deny.toml"));
-        assert!(!affects("deny", "crates/layeredconf/src/lib.rs"));
-        assert!(affects("vet", "supply-chain/config.toml") && !affects("vet", "deny.toml"));
-        assert!(affects("fuzz", "fuzz/fuzz_targets/envfile.rs") && affects("fuzz", "crates/layeredconf/src/text.rs"));
-        assert!(!affects("fuzz", "tests/python/test_config.py") && !affects("fuzz", "supply-chain/audits.toml"));
-        assert!(affects("miri", "crates/layeredconf/tests/config.rs") && affects("miri", "tools/unicode_table.py"));
-        assert!(!affects("miri", "fuzz/fuzz_targets/envfile.rs") && !affects("kani", "fuzz/Cargo.lock"));
-        assert!(affects("coverage", "tests/python/test_config.py") && !affects("kani", "tests/python/test_config.py"));
-        assert!(!affects("geiger", "SECURITY.md") && !affects("fuzz", ".gitignore"));
-        for path in ["xtask/src/lock.rs", "xtask/src/setup.rs", "xtask/src/outdated.rs"] {
-            assert!(TASKS.iter().all(|task| !affects(task, path)), "{path}");
-        }
-        for path in ["xtask/Cargo.toml", "xtask/src/main.rs", "xtask/src/tasks/mod.rs", "xtask/src/tasks/new.rs"] {
-            assert!(TASKS.iter().all(|task| affects(task, path)), "{path}");
-        }
-        assert!(affects("kani", "xtask/src/tasks/kani.rs") && !affects("fuzz", "xtask/src/tasks/kani.rs"));
-        assert!(affects("miri", "xtask/src/tasks/miri.rs") && !affects("coverage", "xtask/src/tasks/miri.rs"));
-        assert!(affects("kani", "xtask/src/json.rs") && !affects("deny", "xtask/src/json.rs"));
+    fn a_full_stop_ends_a_path_and_a_longer_path_is_left_alone() {
+        let text = b"see /home/me/rext. /home/me/rext.old /mnt/home/me/rext x=/home/me/rext";
+        assert_eq!(
+            replace_path(text, b"/home/me/rext", b"."),
+            b"see .. /home/me/rext.old /mnt/home/me/rext x=.".to_vec()
+        );
     }
 
     #[test]
-    fn lists_are_cut_short() {
-        assert_eq!(list(&["a"]), "a");
-        assert_eq!(list(&["a", "b", "c"]), "a, b and c");
-        assert_eq!(list(&["a", "b", "c", "d", "e"]), "a, b and 3 more");
+    fn changes_are_paths_whose_hash_differs() {
+        let old = "a1\tCargo.lock\nb1\tsrc/a.rs\nc1\tsrc/gone.rs\n";
+        let new = "a1\tCargo.lock\nb2\tsrc/a.rs\nd1\tsrc/new.rs\n";
+        assert_eq!(changed(old, new), ["src/a.rs", "src/gone.rs", "src/new.rs"]);
+        assert_eq!(changed(old, old), Vec::<String>::new());
     }
 }

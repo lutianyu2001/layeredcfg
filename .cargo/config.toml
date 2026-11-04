@@ -1,3 +1,3 @@
+# The security audit: cargo xtask <task> (see SECURITY.md).
 [alias]
-# The audit: cargo xtask lists its tasks.
-xtask = "run --quiet --package xtask --"
+xtask = "run --quiet --locked --package xtask --"

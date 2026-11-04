@@ -1,141 +1,147 @@
-//! Which tasks may run at once.
-//!
-//! By default one at a time: each holds audit/lock alone. With `RUST_XTASK_PARALLEL=1` they hold it shared, and run
-//! side by side while the caps of memory of those running fit in the machine, Kani and the fuzzing never together.
-//! Each task holds a lock of its own as well, audit/.running/<task>.lock, which has its cap in it; audit/budget is held
-//! while one is checked against those.
+//! The locks that keep runs apart. `audit/lock` is held while tasks run, alone, or shared
+//! with other `cargo xtask` processes when `RUST_XTASK_PARALLEL=1`; changing the tools
+//! takes it alone in any case. Each run of a task holds `audit/.running/<task>.lock` too,
+//! with its memory limit in it, so that a task starting beside it sees how much is taken.
 
-use std::env;
-use std::fs::{self, File, OpenOptions, TryLockError};
-use std::io::{Read, Seek, Write};
+use std::fs::{self, File};
+use std::io::{self, Write};
+use std::path::Path;
 
-use crate::run::{Result, dir, size};
+/// Memory left to the system and the desktop when tasks run side by side.
+const RESERVE: u64 = 4 << 30;
 
-/// What is left to the system and the desktop, past the caps of the tasks.
-const KEPT: u64 = 4 << 30;
+/// `audit/lock`, held while tasks run, `all` included.
+pub struct Session(#[allow(dead_code)] File);
 
-/// Whether the tasks may run side by side, as `RUST_XTASK_PARALLEL=1` asks.
-pub fn parallel() -> bool {
-    env::var("RUST_XTASK_PARALLEL").is_ok_and(|value| value == "1")
+pub fn session(root: &Path) -> Result<Session, String> {
+    lock(root, parallel(), false)
 }
 
-fn open(path: &str) -> Result<File> {
-    let (parent, name) = path.rsplit_once('/').unwrap_or((".", path));
-    // Not truncated: what another holder wrote is read through it.
-    Ok(OpenOptions::new().create(true).truncate(false).read(true).write(true).open(dir(parent)?.join(name))?)
+/// The lock alone, whatever `RUST_XTASK_PARALLEL` says: for changing the tools, which no
+/// task may be using meanwhile.
+pub fn exclusive(root: &Path) -> Result<Session, String> {
+    lock(root, false, true)
 }
 
-/// audit/lock: alone, or shared if `shared`; an error if that cannot be had now.
-pub fn audit(shared: bool) -> Result<File> {
-    let file = open("audit/lock")?;
-    let locked = if shared { file.try_lock_shared() } else { file.try_lock() };
-    match locked {
-        Ok(()) => Ok(file),
-        Err(TryLockError::WouldBlock) => Err(format!(
-            "the audit is in use: another task, setup or outdated holds audit/lock{}",
-            if shared { "" } else { " (RUST_XTASK_PARALLEL=1 lets tasks run side by side)" }
-        )
-        .into()),
-        Err(TryLockError::Error(error)) => Err(error.into()),
+fn lock(root: &Path, shared: bool, tools: bool) -> Result<Session, String> {
+    let audit = root.join("audit");
+    fs::create_dir_all(&audit).map_err(|e| err(&audit, &e))?;
+    let path = audit.join("lock");
+    let lock = File::create(&path).map_err(|e| err(&path, &e))?;
+    let held = if shared { lock.try_lock_shared() } else { lock.try_lock() };
+    if held.is_err() {
+        let hint = if tools {
+            "; the tools change only while no task runs"
+        } else {
+            "; RUST_XTASK_PARALLEL=1 for both lets tasks run side by side when the memory allows"
+        };
+        return Err(format!("another cargo xtask is running ({}){hint}", path.display()));
     }
+    Ok(Session(lock))
 }
 
-/// The lock of `task` while it runs, with its cap of memory written into it; Err with why it may not run now.
-pub fn task(task: &str, cap: u64) -> Result<std::result::Result<File, String>> {
-    let mut file = open(&format!("audit/.running/{task}.lock"))?;
-    match file.try_lock() {
-        Ok(()) => {}
-        Err(TryLockError::WouldBlock) => {
-            // A task checking its budget holds this one shared for a moment, and checks only with audit/budget held:
-            // once that is had, nobody checks.
-            let budget = open("audit/budget")?;
-            budget.lock()?;
-            let again = file.try_lock();
-            drop(budget);
-            match again {
-                Ok(()) => {}
-                Err(TryLockError::WouldBlock) => return Ok(Err(format!("{task} is running already"))),
-                Err(TryLockError::Error(error)) => return Err(error.into()),
-            }
-        }
-        Err(TryLockError::Error(error)) => return Err(error.into()),
+fn parallel() -> bool {
+    std::env::var_os("RUST_XTASK_PARALLEL").is_some_and(|v| v == "1")
+}
+
+/// Takes `audit/.running/<task>.lock` for a run of `task` that may use up to `bytes` of
+/// memory, and writes that in it; fails when another run of it is in progress, or when
+/// the tasks running beside it leave no room.
+pub fn task(root: &Path, task: &str, bytes: u64) -> Result<File, String> {
+    let audit = root.join("audit");
+    let running = audit.join(".running");
+    fs::create_dir_all(&running).map_err(|e| err(&running, &e))?;
+    let path = running.join(format!("{task}.lock"));
+    let mut lock = File::options()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(&path)
+        .map_err(|e| err(&path, &e))?;
+    if lock.try_lock().is_err() && !retried(&audit, &lock) {
+        return Err(format!("another run of {task} is in progress"));
     }
-    file.set_len(0)?;
-    file.write_all(cap.to_string().as_bytes())?;
-    file.flush()?;
+    // Truncated only now that it is ours: another run of it may have been writing.
+    lock.set_len(0)
+        .and_then(|()| lock.write_all(bytes.to_string().as_bytes()))
+        .map_err(|e| err(&path, &e))?;
     if parallel() {
-        let budget = open("audit/budget")?;
-        budget.lock()?;
-        let fits = fits(task, cap)?;
-        drop(budget);
-        if let Err(why) = fits {
-            return Ok(Err(why));
-        }
+        // One task at a time looks at the others.
+        let budget = audit.join("budget");
+        let held = File::create(&budget).map_err(|e| err(&budget, &e))?;
+        held.lock().map_err(|e| err(&budget, &e))?;
+        room(&running, task, bytes)?;
     }
-    Ok(Ok(file))
+    Ok(lock)
 }
 
-/// Whether `task`, capped at `cap`, fits beside the tasks running.
-fn fits(task: &str, cap: u64) -> Result<std::result::Result<(), String>> {
-    let total = meminfo("MemTotal:")?;
-    let mut running = Vec::new();
-    for entry in fs::read_dir(dir("audit/.running")?)? {
-        let path = entry?.path();
-        let Some(other) = path.file_name().and_then(|name| name.to_str()).and_then(|name| name.strip_suffix(".lock"))
-        else {
+/// Whether `lock` is ours at a second try, made holding `audit/budget`: a task checking
+/// its room holds a run's lock shared for a moment, and only while it holds that.
+fn retried(audit: &Path, lock: &File) -> bool {
+    let budget = audit.join("budget");
+    let Ok(held) = File::create(&budget) else { return false };
+    held.lock().is_ok() && lock.try_lock().is_ok()
+}
+
+/// Fails unless `task`, using up to `bytes`, can run beside the tasks running now:
+/// Kani and fuzzing never together, and all their limits within the memory there is.
+fn room(running: &Path, task: &str, bytes: u64) -> Result<(), String> {
+    let (total, available) = meminfo();
+    let mut used: u64 = 0;
+    for entry in fs::read_dir(running).map_err(|e| err(running, &e))?.flatten() {
+        let path = entry.path();
+        let Some(other) = path.file_name().and_then(|n| n.to_str()?.strip_suffix(".lock")) else {
             continue;
         };
-        if other == task {
+        let Ok(file) = File::open(&path) else { continue };
+        // Lockable: nothing holds it, whatever an interrupted run left.
+        if other == task || file.try_lock_shared().is_ok() {
             continue;
         }
-        let mut file = File::open(&path)?;
-        // One that nobody holds was left by a run that was stopped.
-        match file.try_lock_shared() {
-            Ok(()) => continue,
-            Err(TryLockError::WouldBlock) => {}
-            Err(TryLockError::Error(error)) => return Err(error.into()),
+        if ["kani", "fuzz"].contains(&task) && ["kani", "fuzz"].contains(&other) {
+            return Err(format!("{other} is running, and kani and fuzz never run together"));
         }
-        let mut text = String::new();
-        file.rewind()?;
-        file.read_to_string(&mut text)?;
-        // Empty or unreadable: it has not written its cap yet, so it is taken to want everything.
-        running.push((other.to_owned(), text.trim().parse::<u64>().unwrap_or(total)));
+        // Empty, or not a number: it has not written its limit yet, so it may take all.
+        used += fs::read_to_string(&path)
+            .ok()
+            .and_then(|s| s.trim().parse::<u64>().ok())
+            .unwrap_or(total);
     }
-    let heavy = |name: &str| name == "kani" || name == "fuzz";
-    if heavy(task)
-        && let Some((other, _)) = running.iter().find(|(other, _)| heavy(other))
-    {
-        return Ok(Err(format!("{other} is running, and Kani and the fuzzing never run at once")));
+    let mib = |b: u64| format!("{} MiB", b >> 20);
+    if used.saturating_add(bytes) > total.saturating_sub(RESERVE) {
+        return Err(format!(
+            "the tasks running have {} as their limits; with {} more for {task} that comes \
+             within {} of the {} of memory",
+            mib(used),
+            mib(bytes),
+            mib(RESERVE),
+            mib(total)
+        ));
     }
-    let taken: u64 = running.iter().map(|(_, cap)| cap).sum();
-    let room = total.saturating_sub(KEPT);
-    if taken.saturating_add(cap) > room {
-        let names: Vec<&str> = running.iter().map(|(name, _)| name.as_str()).collect();
-        return Ok(Err(format!(
-            "{} running ({}) and {} for {task} are past the {} the tasks may have (the memory less {}), by {}",
-            size(taken),
-            names.join(", "),
-            size(cap),
-            size(room),
-            size(KEPT),
-            size(taken + cap - room)
-        )));
+    if bytes > available {
+        return Err(format!(
+            "{task} may use {}, and only {} is free now",
+            mib(bytes),
+            mib(available)
+        ));
     }
-    let available = meminfo("MemAvailable:")?;
-    if cap > available {
-        return Ok(Err(format!("{task} is capped at {}, and {} of memory is available", size(cap), size(available))));
-    }
-    Ok(Ok(()))
+    Ok(())
 }
 
-/// A field of /proc/meminfo, in bytes.
-fn meminfo(field: &str) -> Result<u64> {
-    let text = fs::read_to_string("/proc/meminfo")?;
-    let kilobytes = text
-        .lines()
-        .find_map(|line| line.strip_prefix(field))
-        .and_then(|rest| rest.trim().strip_suffix("kB"))
-        .and_then(|number| number.trim().parse::<u64>().ok())
-        .ok_or_else(|| format!("no {field} in /proc/meminfo"))?;
-    Ok(kilobytes * 1024)
+/// `MemTotal` and `MemAvailable`, in bytes.
+fn meminfo() -> (u64, u64) {
+    let text = fs::read_to_string("/proc/meminfo").unwrap_or_default();
+    let field = |name: &str| {
+        text.lines()
+            .find_map(|l| {
+                l.strip_prefix(name)?.trim().strip_suffix("kB")?.trim().parse::<u64>().ok()
+            })
+            .map_or(0, |kb| kb * 1024)
+    };
+    (field("MemTotal:"), field("MemAvailable:"))
+}
+
+fn err(path: &Path, e: &io::Error) -> String {
+    format!("{}: {e}", path.display())
 }

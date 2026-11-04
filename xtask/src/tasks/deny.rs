@@ -1,23 +1,33 @@
-//! cargo deny: advisories, licenses, duplicates and sources, of the workspace and of the fuzz targets.
+use std::path::Path;
+use std::process::Command;
 
-use crate::pins::DENY;
-use crate::run::{Log, Result, cargo};
+use crate::run::{cargo, status};
 
-pub fn run(log: &Log) -> Result<()> {
-    // --workspace: every member is a root of the graph, xtask too, which no crate depends on. --locked: cargo deny runs
-    // cargo metadata, which would rewrite a lock out of date and pass.
-    let main = log.run(cargo(None, &[DENY.command, "--locked", "--workspace", "check"]))?.success();
-    // The fuzz targets are not built by a user of the library, but are built and run here.
-    let fuzz = log
-        .run(cargo(
-            None,
-            &[DENY.command, "--locked", "--manifest-path", "fuzz/Cargo.toml", "check", "advisories", "sources"],
-        ))?
-        .success();
-    match (main, fuzz) {
-        (true, true) => Ok(()),
-        (false, true) => Err("cargo deny found problems in the workspace".into()),
-        (true, false) => Err("cargo deny found problems in the dependencies of the fuzz targets".into()),
-        (false, false) => Err("cargo deny found problems in the workspace and the fuzz targets".into()),
+pub fn run(root: &Path) -> Result<(), String> {
+    // Every member: from the root package alone, xtask, which nothing depends on, would
+    // be left out. Locked, as everywhere: cargo deny would rewrite a stale lock file and
+    // pass, leaving the tree dirty for the tasks after it.
+    status(cargo(root, &["deny", "--locked", "--workspace", "check"]))?;
+    if !crate::tasks::TASKS.contains(&"fuzz") {
+        return Ok(());
     }
+    // fuzz/ is a workspace of its own, outside cargo vet: at least no known
+    // vulnerability and no foreign source.
+    status(fuzz_workspace(root))
+}
+
+/// cargo deny over the fuzz workspace: its advisories and sources.
+pub fn fuzz_workspace(root: &Path) -> Command {
+    cargo(
+        root,
+        &[
+            "deny",
+            "--locked",
+            "--manifest-path",
+            "fuzz/Cargo.toml",
+            "check",
+            "advisories",
+            "sources",
+        ],
+    )
 }

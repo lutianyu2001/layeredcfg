@@ -1,21 +1,29 @@
-//! Branch coverage of the tests of the core.
+use std::fs;
+use std::path::Path;
 
-use super::{CORE, succeed};
-use crate::pins::{LLVM_COV, NIGHTLY};
-use crate::record::Run;
-use crate::run::{Result, capped, cargo};
+use crate::record;
+use crate::run::{capped, nightly, shown, status};
+use crate::tasks::{limit, own_target};
 
-pub fn run(cap: u64, run: &Run) -> Result<()> {
-    let log = &run.log;
-    // --no-report implies --no-clean: the profiles of earlier runs, of code since changed, would be merged in.
-    succeed(log.run(cargo(Some(NIGHTLY), &[LLVM_COV.command, "clean", "--workspace"]))?.success(), "cleaning failed")?;
-    let test = cargo(Some(NIGHTLY), &[LLVM_COV.command, "--branch", "--no-report", "--locked", "-p", CORE]);
-    succeed(log.run(capped(test, cap, false))?.success(), "a test failed")?;
-    let report = cargo(Some(NIGHTLY), &[LLVM_COV.command, "report", "--branch", "-p", CORE]);
-    succeed(log.run_into(report, &run.dir.join("summary.txt"))?.success(), "cargo llvm-cov report failed")?;
-    // Hundreds of files, nearly all changed every time: kept in target/ to look at, not committed.
-    let html = cargo(Some(NIGHTLY), &[LLVM_COV.command, "report", "--branch", "-p", CORE, "--html"]);
-    succeed(log.run(html)?.success(), "cargo llvm-cov report --html failed")?;
-    log.say("coverage: the lines and branches not run are marked in target/llvm-cov/html/index.html");
-    Ok(())
+/// The tests under coverage, then the HTML for reading (in target/, not committed) and
+/// the table per file into the run.
+pub fn run(root: &Path, dir: &Path) -> Result<(), String> {
+    // --no-report keeps what earlier runs left in target/, and report would merge it in:
+    // branches only older code or removed tests reached would count as covered.
+    own_target(root, "llvm-cov-target")?;
+    status(nightly(root, &["llvm-cov", "clean", "--workspace"]))?;
+    status(capped(
+        nightly(root, &["llvm-cov", "--locked", "--branch", "--no-report"]),
+        &limit("coverage"),
+    ))?;
+    status(nightly(root, &["llvm-cov", "report", "--html"]))?;
+    let path = dir.join("summary.txt");
+    let file = fs::File::create(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let mut cmd = nightly(root, &["llvm-cov", "report"]);
+    record::say(&format!("$ {} > summary.txt", shown(&cmd)));
+    match record::exec(&mut cmd, Some(file)) {
+        Ok(s) if s.success() => Ok(()),
+        Ok(s) => Err(format!("{}: {s}", shown(&cmd))),
+        Err(e) => Err(format!("{}: {e}", shown(&cmd))),
+    }
 }

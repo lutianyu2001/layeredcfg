@@ -1,10 +1,8 @@
-//! cargo vet: every dependency audited or exempted.
+use std::path::Path;
 
-use super::succeed;
-use crate::pins::VET;
-use crate::run::{Log, Result, cargo};
+use crate::run::{cargo, status};
 
-pub fn run(log: &Log) -> Result<()> {
-    // --locked: without it cargo vet writes supply-chain/imports.lock anew.
-    succeed(log.run(cargo(None, &[VET.command, "--locked"]))?.success(), "cargo vet found crates not vetted")
+pub fn run(root: &Path) -> Result<(), String> {
+    // Locked: cargo vet would otherwise update supply-chain/imports.lock after it passes.
+    status(cargo(root, &["vet", "--locked"]))
 }
