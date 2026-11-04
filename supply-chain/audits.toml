@@ -1,4 +1,132 @@
 
 # cargo-vet audits file
 
-[audits]
+[[audits.bitflags]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "2.13.2"
+
+[[audits.cfg-if]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "1.0.5"
+
+[[audits.equivalent]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "1.0.3"
+
+[[audits.hashbrown]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "0.17.1"
+
+[[audits.indexmap]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "2.14.2"
+
+[[audits.libc]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "0.2.191"
+
+[[audits.nix]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "0.31.3"
+
+[[audits.once_cell]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "1.21.4"
+
+[[audits.portable-atomic]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "1.15.0"
+
+[[audits.proc-macro2]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "1.0.107"
+
+[[audits.pyo3]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "0.30.1"
+
+[[audits.pyo3-build-config]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "0.30.1"
+
+[[audits.pyo3-ffi]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "0.30.1"
+
+[[audits.pyo3-macros]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "0.30.1"
+
+[[audits.pyo3-macros-backend]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "0.30.1"
+
+[[audits.serde_core]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "1.0.229"
+
+[[audits.serde_derive]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "1.0.229"
+
+[[audits.serde_spanned]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "1.1.2"
+
+[[audits.syn]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "3.0.9"
+
+[[audits.target-lexicon]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "0.13.5"
+
+[[audits.toml]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "1.1.8+spec-1.1.0"
+
+[[audits.toml_datetime]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "1.1.2+spec-1.1.0"
+
+[[audits.toml_parser]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "1.1.5+spec-1.1.0"
+
+[[audits.toml_writer]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "1.1.3+spec-1.1.0"
+
+[[audits.unicode-ident]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "1.0.27"
+
+[[audits.winnow]]
+who = "Tianyu (Sky) Lu <tianyu@lu.fm>"
+criteria = "safe-to-deploy"
+version = "1.0.4"

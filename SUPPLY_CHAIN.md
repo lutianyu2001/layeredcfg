@@ -8,7 +8,7 @@ this is a library, and `Cargo.lock` (committed) pins every crate's version and c
 | Command | What it checks | Configuration |
 |---|---|---|
 | `cargo xtask deny` | `cargo deny --workspace check` (xtask too): known vulnerabilities and unmaintained or yanked crates (RustSec), licenses, duplicate crates, sources; and for the fuzz workspace, vulnerabilities and sources | `deny.toml` |
-| `cargo xtask vet` | `cargo vet`: that every crate is audited, by an audit of this project or one imported from another organisation, or exempted | `supply-chain/` |
+| `cargo xtask vet` | `cargo vet`: that every crate is audited, by an audit of this project or one imported from another organisation | `supply-chain/` |
 | `cargo xtask geiger` | `cargo geiger` of each crate of this project, `crates/layeredconf` and `crates/layeredconf-python`, a table each: how much `unsafe` code each dependency has and uses | none |
 
 `cargo xtask setup` installs these tools at the versions `xtask/src/pins.rs` pins, and `cargo xtask outdated` says
@@ -25,9 +25,10 @@ dependencies have; crates come from crates.io only.
 ## Audits
 
 `cargo vet` imports the audits of Mozilla, Google, the Bytecode Alliance, Zcash, ISRG, Embark Studios and Ariel OS.
-Three crates are covered by them (cfg_aliases, heck, quote); the other 26 are **exemptions**, listed in
-`supply-chain/config.toml`, which nobody has audited for this project yet. To audit one, read its code at the locked
-version and record it with `cargo vet certify <crate> <version>`, which takes it out of the exemptions.
+Three crates are covered by them (cfg_aliases, heck, quote); the maintainer certified the other 26 at their locked
+versions, for `safe-to-deploy`, in `supply-chain/audits.toml`. There are no exemptions. A crate added or updated
+later is audited the same way (`cargo vet certify <crate> <version>`, or `<crate> <old> <new>` for the changes
+between two versions).
 
 ## Unsafe Code
 

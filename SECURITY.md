@@ -42,7 +42,7 @@ wheel runs any of it. `cargo xtask` runs it, with the versions of its tools and 
 | Kani | For every input up to 6 bytes: UTF-8 decoded as the standard library does, whitespace stripped once and for all and only between characters, integers without panic or overflow and as `str::parse` reads them, booleans without panic, lists cut at their commas and nowhere else; integers of 21 bytes at the edges of 64 bits | `cargo xtask kani` | Kani's own |
 | Fuzzing | Each target an hour on a workstation, four hours in CI (see below) | `cargo xtask fuzz` | nightly |
 | cargo deny | Known vulnerabilities, unmaintained and yanked crates, licenses, sources; for the fuzz workspace, vulnerabilities and sources | `cargo xtask deny` | stable |
-| cargo vet | That every dependency is audited or exempted | `cargo xtask vet` | stable |
+| cargo vet | That every dependency is audited | `cargo xtask vet` | stable |
 | cargo geiger | The `unsafe` code of the dependencies, of each crate of this project: a count to read, which fails nothing | `cargo xtask geiger` | stable |
 
 The fuzz targets, and what they assert of every input:

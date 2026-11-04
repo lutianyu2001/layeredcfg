@@ -73,8 +73,8 @@ to run them, and what each covers, is in [SECURITY.md](SECURITY.md); the depende
 - **`unsafe` code.** None in either crate of this project, which `#![forbid(unsafe_code)]`; the dependencies' is
   counted by cargo geiger, and PyO3, which calls Python's C API, has most of it.
 - **Dependencies.** 29 crates, from crates.io only, checked by cargo deny for known vulnerabilities, unmaintained or
-  yanked crates, licenses and sources. In cargo vet, 3 are covered by audits imported from other organisations, none
-  by an audit of this project's, and 26 are exempted, still to be audited. They are not vendored: this is a library,
+  yanked crates, licenses and sources. In cargo vet, 3 are covered by audits imported from other organisations and
+  the other 26 by the maintainer's own certification, none exempted. They are not vendored: this is a library,
   and `Cargo.lock` pins every version and checksum.
 - **Miri.** The 44 tests of the Rust library (the layers, persist, env-style files, the readers of text) run under Miri
   without undefined behaviour; not the binding, which calls Python's C API.
