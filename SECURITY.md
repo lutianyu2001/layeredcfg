@@ -27,23 +27,23 @@ What it holds against:
 
 What it does not hold against is under [Design Decisions](#design-decisions).
 
-## Checks
+## Security Audit
 
-The audit runs apart from the build and the tests, with `cargo xtask` (see the README). The versions of its tools are
-pinned in `xtask/src/pins.rs`; the latest run of each check is committed in `audit/<task>/`, with the commit it ran at
-and whether it succeeded, and `cargo xtask status` says whether it still holds for the code as it is.
+The security audit runs apart from the build and the tests: neither `pixi run test`, `cargo test` nor a build of the
+wheel runs any of it. `cargo xtask` runs it, with the versions of its tools and of the nightly Rust it needs pinned in
+`xtask/src/pins.rs`. It is the maintainer's own audit, not one by a third party.
 
-| Check | What it covers | Command |
-|---|---|---|
-| `#![forbid(unsafe_code)]` | Neither crate of this project has `unsafe` code; the dependencies' is counted in [SUPPLY_CHAIN.md](SUPPLY_CHAIN.md) | built in |
-| Tests | The layers, the conversions, persist, the readers of text and of env-style files; each condition of the masking of secrets and of the checks persist makes before writing | `pixi run test` |
-| Miri | The Rust tests of `layeredconf` without undefined behaviour (not the binding, which calls the C API of Python) | `cargo xtask miri` |
-| Branch coverage | Which branches the Rust tests do not take, to find conditions left untested | `cargo xtask coverage` |
-| Kani | For every input up to 6 bytes: UTF-8 decoded as the standard library does, whitespace stripped once and for all and only between characters, integers without panic or overflow and as `str::parse` reads them, booleans without panic, lists cut at their commas and nowhere else; integers of 21 bytes at the edges of 64 bits | `cargo xtask kani` |
-| Fuzzing | Each target an hour (see below) | `cargo xtask fuzz` |
-| cargo deny | Known vulnerabilities, unmaintained and yanked crates, licenses, sources; for the fuzz workspace, vulnerabilities and sources | `cargo xtask deny` |
-| cargo vet | That every dependency is audited or exempted | `cargo xtask vet` |
-| cargo geiger | The `unsafe` code of the dependencies: a count to read, which fails nothing | `cargo xtask geiger` |
+| Check | What it covers | Command | Toolchain |
+|---|---|---|---|
+| `#![forbid(unsafe_code)]` | Neither crate of this project has `unsafe` code; the dependencies' is counted in [SUPPLY_CHAIN.md](SUPPLY_CHAIN.md) | built in | |
+| Tests | The layers, the conversions, persist, the readers of text and of env-style files; each condition of the masking of secrets and of the checks persist makes before writing | `pixi run test` | stable |
+| Miri | The 44 integration tests of `layeredconf` without undefined behaviour (not the binding, which calls the C API of Python) | `cargo xtask miri` | nightly |
+| Branch coverage | Which branches the Rust tests do not take, to find conditions left untested | `cargo xtask coverage` | nightly |
+| Kani | For every input up to 6 bytes: UTF-8 decoded as the standard library does, whitespace stripped once and for all and only between characters, integers without panic or overflow and as `str::parse` reads them, booleans without panic, lists cut at their commas and nowhere else; integers of 21 bytes at the edges of 64 bits | `cargo xtask kani` | Kani's own |
+| Fuzzing | Each target an hour on a workstation, four hours in CI (see below) | `cargo xtask fuzz` | nightly |
+| cargo deny | Known vulnerabilities, unmaintained and yanked crates, licenses, sources; for the fuzz workspace, vulnerabilities and sources | `cargo xtask deny` | stable |
+| cargo vet | That every dependency is audited or exempted | `cargo xtask vet` | stable |
+| cargo geiger | The `unsafe` code of the dependencies, of each crate of this project: a count to read, which fails nothing | `cargo xtask geiger` | stable |
 
 The fuzz targets, and what they assert of every input:
 
@@ -56,6 +56,73 @@ The fuzz targets, and what they assert of every input:
 Not proved, and covered by the tests and the fuzzing instead: `parse_float` (it builds the text it gives
 `str::parse`, past what Kani can unroll), the reader of env-style files (a loop with some nine loops inside, past 16 GB
 of memory at 4 bytes), and what is above the readers of text (the layers, persist).
+
+### Running the Audit
+
+| Command | Description |
+|---|---|
+| `cargo xtask setup [task…]` | Installs the pinned tools a task needs, all of them by default: cargo-deny, cargo-vet, cargo-geiger, cargo-fuzz, cargo-llvm-cov, Kani, and the nightly Rust with Miri and the LLVM tools |
+| `cargo xtask <task>` | Runs one task: `deny`, `vet`, `geiger`, `miri`, `coverage`, `kani [proof…]` or `fuzz [seconds]` |
+| `cargo xtask all` | Each task in that order, the cheap ones first, the next after one that fails too |
+| `cargo xtask status` | The latest result of each task, when and at what commit it ran, and whether it still holds |
+| `cargo xtask needed <task> [args]` | Whether the task is to run again, and why: exit 0 if it is, 1 if its results hold, 2 on an error |
+| `cargo xtask outdated [--vulns]` | The pinned tools, nightly and GitHub actions due an update, and in a terminal, updates those agreed to: one with a known vulnerability at once, one whose latest release came out a month or more after it, a nightly a month old; each to a release at least a week old with no known vulnerability (`--vulns`: the vulnerabilities only) |
+| `pixi run audit <task>` | The same, from the environment of pixi |
+
+Each heavy task runs in a systemd user scope with a cap of memory and no swap, so that one going too far is killed and
+not the machine: 4 GB (`RUST_XTASK_MEMORY` changes it), 17 GB for each Kani proof, and 1.25 GB for each fuzz target
+running at once (`RUST_XTASK_FUZZ_MEMORY`; `RUST_XTASK_JOBS` for how many at once). Without a scope that caps, the
+heavy tasks do not run, unless `RUST_XTASK_NO_SCOPE=1` (in CI, where each job has a machine of its own). One task runs
+at a time, and a second started in another terminal is refused; with `RUST_XTASK_PARALLEL=1` another may run beside it
+while their caps fit in the memory, Kani and the fuzzing never together. The other tasks check for a known
+vulnerability in a pinned tool once a day, and for releases once a week, and say so in a line.
+
+After a change to a proof, to what it proves or to a fuzz target, try it first with `cargo xtask kani --no-record`
+(and `cargo xtask fuzz 600 --no-record`): in `all`, the fuzzing runs its hour even when Kani failed.
+
+### Results
+
+The latest run of each task is committed in `audit/<task>/`: `run.txt` (when it started, how long it took, the commit
+it ran at, its arguments, the tools and how it went), `run.log` (all it wrote), `inputs.txt` (the files it read) and
+what the task makes: the tables of `geiger`, `coverage/summary.txt`, the proofs' `kani/harnesses.txt` and each proof's
+log, the fuzz targets' logs. When the latest run failed, the last that succeeded is kept in
+`audit/<task>/last_succeeded/`.
+
+A run is recorded only from a working tree with everything committed (untracked files too, `audit/` aside), so that it
+is of a commit, and fails if the tree or HEAD changed while it ran. Its results hold, for `cargo xtask status`,
+`needed` and the badges, as long as it succeeded, the tools pinned for it and its arguments are the same, none of the
+files it reads changed, and, for `deny`, whose advisories change every day, for a day. Rust files are compared by
+their tokens, so that a change to a comment or to the layout changes nothing; the others as they are. Which files a
+task reads is `affects` in `xtask/src/main.rs`: documentation reads none of them, a task's own module in `xtask/src/tasks/`
+only that task, the proofs only `kani`, the Python tests only `coverage`.
+
+`--if-needed` (`cargo xtask all --if-needed`) skips the tasks whose results hold. `--no-record` runs a task on any
+working tree, into `target/audit/<task>/`, with `audit/` left as it is; some proofs only (`kani <proof…>`) or fuzzing
+for less than an hour run only so. To record: commit the code, run on the clean tree, then commit `audit/`.
+
+### CI
+
+`.github/workflows/verify.yml` runs the tasks on GitHub, each in a job of its own, as on a workstation, with the same
+pinned tools:
+
+- At each release published on GitHub: `deny`, `vet`, `geiger`, `coverage` and `fuzz`, whose length is known before
+  they start. The fuzzing runs four hours a target, all of them at once, from the corpus of the last run.
+- Kani and Miri never by themselves: one new proof or test can take them from seconds to hours. They run on a
+  workstation, or when the workflow is started by hand (Actions, Verify, Run workflow) with the tasks `kani miri`.
+- Never on a push.
+
+Only the tasks whose committed results no longer hold run. The last jobs commit the results to `audit/` on `main`, as
+the results of the release's commit (results committed there since that commit are newer, and stay), and start
+`.github/workflows/advisories.yml`, which writes the badges of the README. Advisories also runs daily (`cargo xtask
+deny --no-record` against the advisories of that day, and the pinned tools' and actions' vulnerabilities) and weekly
+(`cargo xtask outdated`).
+
+The workflows can read the repository, and little more. The jobs that build and run the project's code, whose
+dependencies' build scripts and macros run with them, cannot write. Three jobs can, and run none of it: `record` in
+Verify commits `audit/` and nothing else; `badges` in Advisories pushes the badges to the `badges` branch, which holds
+nothing else, after checking each is one of the few files and words a badge can be; and `badges` in Verify can only
+start Advisories. Every action is pinned to a commit, and `cargo xtask outdated` checks them against their releases
+and advisories.
 
 ## Design Decisions
 

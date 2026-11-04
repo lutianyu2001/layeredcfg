@@ -1,22 +1,23 @@
 # Supply Chain
 
-What the Rust dependencies are, how they are checked, and what is left to review. The dependencies are not vendored:
+What the Rust dependencies are, how the security audit checks them, and what is left to review. The dependencies are not vendored:
 this is a library, and `Cargo.lock` (committed) pins every crate's version and checksum.
 
-## Checks
+## Security Audit
 
 | Command | What it checks | Configuration |
 |---|---|---|
 | `cargo xtask deny` | `cargo deny --workspace check` (xtask too): known vulnerabilities and unmaintained or yanked crates (RustSec), licenses, duplicate crates, sources; and for the fuzz workspace, vulnerabilities and sources | `deny.toml` |
 | `cargo xtask vet` | `cargo vet`: that every crate is audited, by an audit of this project or one imported from another organisation, or exempted | `supply-chain/` |
-| `cargo xtask geiger` | `cargo geiger` in `crates/layeredconf-python`: how much `unsafe` code each crate has and uses | none |
+| `cargo xtask geiger` | `cargo geiger` of each crate of this project, `crates/layeredconf` and `crates/layeredconf-python`, a table each: how much `unsafe` code each dependency has and uses | none |
 
 `cargo xtask setup` installs these tools at the versions `xtask/src/pins.rs` pins, and `cargo xtask outdated` says
 when one is due an upgrade (a known vulnerability in it, or a latest release that came out a month or more after it,
-with a release a week old to upgrade to). `xtask/` is a member of
-the workspace with no dependency but the standard library, so it adds no crate to `Cargo.lock`; it is not a default
-member, so that `cargo build` and `cargo test` do not build it, and it is not in the package. It asks crates.io and
-[OSV](https://osv.dev) about the versions through `curl`.
+with a release a week old to upgrade to), and so for the GitHub actions the workflows use. `xtask/` is a member of the
+workspace whose only dependency, proc-macro2 (to compare Rust files by their tokens), is one PyO3's macros already
+have, so it adds no crate to `Cargo.lock`; it is not a default member, so that `cargo build` and `cargo test` do not
+build it, and it is not in the package. It asks crates.io, [OSV](https://osv.dev) and GitHub about the versions
+through `curl`, and reads their JSON with a parser of its own.
 
 The licenses allowed are Apache-2.0 (with or without the LLVM exception), MIT and Unicode-3.0, which are those the
 dependencies have; crates come from crates.io only.
@@ -82,7 +83,7 @@ interpreter to write the table of Unicode digits and whitespace.
 own `Cargo.lock`. It adds `libfuzzer-sys` (which builds libFuzzer, C++ code) and is not part of what a user of the
 library builds: `cargo vet` does not cover it, and `cargo xtask deny` checks its vulnerabilities and sources only,
 before it is built and run. Its `Cargo.lock` is started from the main one, so that the crates both have are at the
-versions a user builds; after the main one changes, the same again (`cargo xtask fuzz` says when they differ):
+versions a user builds; after the main one changes, the same again:
 
 ```bash
 cp Cargo.lock fuzz/ && (cd fuzz && cargo metadata --offline > /dev/null)
