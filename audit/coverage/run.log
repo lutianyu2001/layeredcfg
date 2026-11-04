@@ -1,10 +1,16 @@
 $ cargo +nightly-2026-10-28 llvm-cov clean --workspace
-[exit status: 0]
-$ systemd-run --user --scope --quiet -p MemoryMax=4294967296 -p MemorySwapMax=0 -- cargo +nightly-2026-10-28 llvm-cov --branch --no-report --locked -p layeredconf
+warning: process didn't exit successfully: `~/.rustup/toolchains/nightly-2026-10-28-x86_64-unknown-linux-gnu/bin/cargo clean --target-dir ./target/llvm-cov-target --package layeredconf --package layeredconf-python --package xtask` (exit status: 101)
+--- stderr
+error: cannot clean `./target/llvm-cov-target`: missing or invalid `CACHEDIR.TAG` file
+  |
+  = note: cleaning has been aborted to prevent accidental deletion of unrelated files
+
+$ systemd-run --user --scope --quiet -p MemoryMax=4G -p MemorySwapMax=0 -- cargo +nightly-2026-10-28 llvm-cov --locked --branch --no-report
 warning: --branch option is unstable
 info: cargo-llvm-cov currently setting cfg(coverage) and cfg(coverage_nightly); you can opt-out it by passing --no-cfg-coverage and --no-cfg-coverage-nightly
    Compiling layeredconf v0.1.0 (./crates/layeredconf)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.20s
+   Compiling layeredconf-python v0.1.0 (./crates/layeredconf-python)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.50s
      Running unittests src/lib.rs (target/llvm-cov-target/debug/build/layeredconf/76a08f9b9dfdf7bb/out/layeredconf-76a08f9b9dfdf7bb)
 
 running 0 tests
@@ -15,32 +21,32 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 running 25 tests
 test a_key_written_twice_is_the_setting_its_first_one_says ... ok
-test a_secret_value_is_kept_out_of_the_message_of_its_error ... ok
 test a_path_setting_has_the_home_expanded_and_a_relative_one_joined_to_the_root ... ok
+test a_secret_value_is_kept_out_of_the_message_of_its_error ... ok
 test a_file_is_found_from_a_directory_upwards ... ok
 test an_override_is_checked_as_it_is_set_and_kept_in_the_order_first_set_as_text_that_sets_it_again ... ok
 test defaults_that_no_other_layer_could_write_are_refused ... ok
 test keys_in_tomllib_order ... ok
 test overrides_of_a_snapshot_of_another_configuration_are_left_out_without_a_panic ... ok
 test files_that_are_not_there_or_are_no_files_are_passed_over ... ok
-test secrets_are_shown_masked_when_they_have_a_value ... ok
+test found_upwards_from_where_a_path_really_is ... ok
 test the_process_environment_has_no_variable_of_a_name_none_can_have ... ok
+test secrets_are_shown_masked_when_they_have_a_value ... ok
 test each_layer_wins_over_the_one_below_and_each_value_is_converted_to_its_default_type ... ok
 test the_defaults_say_which_settings_there_are_in_the_file_order_and_their_types ... ok
 test a_snapshot_keeps_which_file_each_value_came_from ... ok
-test found_upwards_from_where_a_path_really_is ... ok
-test text_not_utf8_is_no_value_the_defaults_file_must_be_a_file_a_float_of_minus_2_pow_63_is_an_integer ... ok
 test persist_refuses_a_name_no_env_style_file_can_have ... ok
 test problems_are_the_values_of_the_environment_and_the_files_that_do_not_convert_with_where_they_are ... ok
-test persist_refuses_a_line_a_quote_never_closed_would_take_in ... ok
+test text_not_utf8_is_no_value_the_defaults_file_must_be_a_file_a_float_of_minus_2_pow_63_is_an_integer ... ok
 test persist_writes_the_target_of_a_link_whose_target_is_not_there_yet ... ok
 test persist_into_a_file_that_a_later_file_outranks_does_not_claim_the_value ... ok
 test persist_keeps_the_permissions_but_not_the_special_bits_and_writes_no_file_it_cannot_look_at ... ok
+test persist_refuses_a_line_a_quote_never_closed_would_take_in ... ok
 test persist_writes_a_link_target_and_keeps_the_link ... ok
 test persist_replaces_the_setting_line_keeps_the_file_other_lines_and_permissions_and_holds_at_once ... ok
 test writers_at_the_same_time_leave_a_whole_file_and_no_temporary_ones ... ok
 
-test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
 
      Running tests/envfile.rs (target/llvm-cov-target/debug/build/layeredconf/6499f4c327d29b46/out/envfile-6499f4c327d29b46)
 
@@ -73,22 +79,14 @@ test utf8_is_checked ... ok
 
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-[exit status: 0]
-$ cargo +nightly-2026-10-28 llvm-cov report --branch -p layeredconf
-warning: --branch option is unstable
-Filename                      Regions    Missed Regions     Cover   Functions  Missed Functions  Executed       Lines      Missed Lines     Cover    Branches   Missed Branches     Cover
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-config.rs                         557                89    84.02%          72                10    86.11%         399                50    87.47%          70                12    82.86%
-envfile.rs                        323                 9    97.21%          30                 0   100.00%         241                 5    97.93%          94                 4    95.74%
-files.rs                          159                39    75.47%          20                 4    80.00%         120                23    80.83%          32                10    68.75%
-lib.rs                            122                34    72.13%          26                 6    76.92%         111                33    70.27%           8                 1    87.50%
-text.rs                           313                 5    98.40%          32                 0   100.00%         222                 0   100.00%          90                 1    98.89%
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-TOTAL                            1474               176    88.06%         180                20    88.89%        1093               111    89.84%         294                28    90.48%
-[exit status: 0]
-$ cargo +nightly-2026-10-28 llvm-cov report --branch -p layeredconf --html
-warning: --branch option is unstable
+     Running unittests src/lib.rs (target/llvm-cov-target/debug/build/layeredconf-python/c1a36f70911ec526/out/_core-c1a36f70911ec526)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+$ cargo +nightly-2026-10-28 llvm-cov report --html
 
     Finished report saved to ./target/llvm-cov/html
-[exit status: 0]
-coverage: the lines and branches not run are marked in target/llvm-cov/html/index.html
+$ cargo +nightly-2026-10-28 llvm-cov report > summary.txt
+xtask: coverage: succeeded

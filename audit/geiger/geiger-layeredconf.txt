@@ -1,0 +1,30 @@
+
+Metric output format: x/y
+    x = unsafe code used by the build
+    y = total unsafe code found in the crate
+
+Symbols:
+    :) = No `unsafe` usage found, declares #![forbid(unsafe_code)]
+    ?  = No `unsafe` usage found, missing #![forbid(unsafe_code)]
+    !  = `unsafe` usage found
+
+Functions  Expressions  Impls  Traits  Methods  Dependency
+
+0/0        0/0          0/0    0/0     0/0      :) layeredconf 0.1.0
+0/16       57/2054      0/6    0/1     0/33     !  |-- nix 0.31.3
+0/0        0/0          0/0    0/0     0/0      ?  |   |-- bitflags 2.13.2
+0/0        0/0          0/0    0/0     0/0      ?  |   |-- cfg-if 1.0.5
+0/93       76/859       2/10   0/0     21/142   !  |   `-- libc 0.2.191
+0/0        0/0          0/0    0/0     0/0      :) `-- toml 1.1.8+spec-1.1.0
+0/0        80/85        0/0    0/0     0/0      !      |-- indexmap 2.14.2
+0/0        0/0          0/0    0/0     0/0      ?      |   |-- equivalent 1.0.3
+1/1        1343/1612    18/23  1/1     86/99    !      |   `-- hashbrown 0.17.1
+0/0        0/0          0/0    0/0     0/0      ?      |       `-- equivalent 1.0.3
+0/0        0/0          0/0    0/0     0/0      :)     |-- serde_spanned 1.1.2
+0/0        0/0          0/0    0/0     0/0      :)     |-- toml_datetime 1.1.2+spec-1.1.0
+0/0        66/66        0/0    0/0     8/8      !      |-- toml_parser 1.1.5+spec-1.1.0
+0/0        66/70        0/0    0/0     16/18    !      |   `-- winnow 1.0.4
+0/0        66/70        0/0    0/0     16/18    !      `-- winnow 1.0.4
+
+1/110      1688/4746    20/39  1/2     131/300
+
