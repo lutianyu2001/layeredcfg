@@ -22,15 +22,20 @@ pub fn run(root: &Path, dir: &Path) -> Result<(), String> {
     let members = members(root)?;
     let copy = copy(root)?;
     for (package, manifest) in &members {
-        scan(root, &copy, dir, package, manifest)?;
+        // A table for each member when there are several.
+        let name = match members.len() {
+            1 => "geiger.txt".to_owned(),
+            _ => format!("geiger-{package}.txt"),
+        };
+        scan(root, &copy, dir, &name, package, manifest)?;
     }
     Ok(())
 }
 
-/// The workspace's default members, each scanned into a table of its own: the root
-/// manifest is a virtual one, which cargo-geiger 0.14.0 does not take (nor `-p`). Each
-/// one's package name, and its manifest relative to the root; xtask, which is not
-/// shipped, is no default member.
+/// The workspace's default members, each scanned on its own: the root package where there
+/// is one, the members a virtual manifest lists otherwise, which cargo-geiger 0.14.0 does
+/// not take (nor `-p`). Each one's package name, and its manifest relative to the root;
+/// xtask, which is not shipped, is no default member.
 fn members(root: &Path) -> Result<Vec<(String, PathBuf)>, String> {
     let out = cargo(root, &["metadata", "--no-deps", "--format-version", "1", "--locked"])
         .output()
@@ -66,16 +71,16 @@ fn members(root: &Path) -> Result<Vec<(String, PathBuf)>, String> {
     Ok(members)
 }
 
-/// Scans `package` of the copy, whose manifest is `manifest`, into its table in `dir`.
+/// Scans `package` of the copy, whose manifest is `manifest`, into the table `name` in `dir`.
 fn scan(
     root: &Path,
     copy: &Path,
     dir: &Path,
+    name: &str,
     package: &str,
     manifest: &Path,
 ) -> Result<(), String> {
-    let name = format!("geiger-{package}.txt");
-    let path = dir.join(&name);
+    let path = dir.join(name);
     let file = fs::File::create(&path).map_err(|e| format!("{}: {e}", path.display()))?;
     // geiger cleans before it builds; in target/debug that would take everyone's build.
     let mut scan = cargo(copy, &["geiger", "--locked", "--offline", "--output-format", "Ascii"]);

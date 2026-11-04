@@ -6,15 +6,12 @@ use crate::tasks::limit;
 // Per project: the modules, the features and the skipped tests.
 /// The modules whose tests Miri runs: those that start no process, open no socket and
 /// wait on no worker thread. The names end in `::`, since test filters match parts of
-/// names, and an interface test whose name merely contains one would time out.
-///
-/// The core crate's tests are all integration tests, whose names have no module, and none
-/// of them starts a process or opens a socket: the empty filter runs every one.
+/// names, and an interface test whose name merely contains one would time out. Where a
+/// package's tests are all integration tests, whose names have no module, BUILD picks
+/// their programs (`-p <crate> --tests`) and `""` runs every test in them.
 const MODULES: &[&str] = &[""];
-/// What the tests are built with: the core crate's test programs, a new one too. Not its
-/// doctests, nor the binding, a cdylib on Python's C API, which Miri cannot run (the
-/// Python tests cover it).
-const BUILD: &[&str] = &["-p", "layeredconf", "--tests"];
+/// What the tests are built with: `--lib`, or the integration tests (see MODULES).
+pub const BUILD: &[&str] = &["-p", "layeredconf", "--tests"];
 /// Tests too slow under Miri.
 const SKIP: &[&str] = &[];
 

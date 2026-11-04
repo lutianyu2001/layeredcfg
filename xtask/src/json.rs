@@ -1,8 +1,8 @@
 // For a project with no JSON crate among its dependencies: copy to xtask/src/json.rs, add
-// `mod json;` to main.rs, and in tasks/kani.rs and tasks/mod.rs replace serde_json's Value
-// with `use crate::json::{self, Value};` and serde_json's from_str with `json::parse`; in
-// mod.rs, which reads bytes, parse `String::from_utf8(out.stdout)`. The indexing stays the
-// same. Nothing in it depends on the project. Run in lazyui-ratatui; checked against
+// `mod json;` to main.rs, and in tasks/kani.rs, tasks/mod.rs and tasks/geiger.rs replace
+// serde_json's Value with `use crate::json::{self, Value};` and serde_json's from_str with
+// `json::parse`; in mod.rs and geiger.rs, which read bytes, parse
+// `String::from_utf8(out.stdout)`. The indexing stays the same. Nothing in it depends on the project. Run in lazyui-ratatui; checked against
 // JSONTestSuite and 600,000 mutated inputs against a strict parser.
 //! A strict JSON reader, for `cargo kani list`, `cargo metadata` and the replies of
 //! crates.io, OSV and GitHub.

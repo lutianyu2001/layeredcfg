@@ -94,7 +94,10 @@ is of a commit, and fails if the tree or HEAD changed while it ran. Its results 
 files it reads changed, and, for `deny`, whose advisories change every day, for a day. Rust files are compared by
 their tokens, so that a change to a comment or to the layout changes nothing; the others as they are. Which files a
 task reads is `affects` in `xtask/src/main.rs`: documentation reads none of them, a task's own module in `xtask/src/tasks/`
-only that task, the proofs only `kani`, the Python tests only `coverage`.
+only that task, the proofs only `kani`, the integration tests `miri` and `coverage`, the binding `geiger` and `coverage`
+(the others do not build it), the Python tests only `coverage`. The Unicode version of the Python that `build.rs` runs,
+from whose `unicodedata` the table of digits and whitespace is written, counts for `miri`, `coverage`, `kani` and
+`fuzz`; the crate's own version, which only the Python tests see, for none.
 
 `--if-needed` (`cargo xtask all --if-needed`) skips the tasks whose results hold. `--no-record` runs a task on any
 working tree, into `target/audit/<task>/`, with `audit/` left as it is; some proofs only (`kani <proof…>`) or fuzzing
