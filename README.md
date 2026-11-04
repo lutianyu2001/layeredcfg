@@ -1,11 +1,11 @@
 # layeredcfg
 <p align="right">
-    <strong>English</strong> | <a href="./README/README_CN.md">中文</a>
+    <strong>English</strong> | <a href="https://github.com/lutianyu2001/layeredcfg/blob/main/README/README_CN.md">中文</a>
 </p>
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)<br>
-[![audit](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Faudit.json)](SECURITY.md#ci)
-[![pins](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fpins.json)](xtask/src/pins.rs)
+[![audit](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Faudit.json)](https://github.com/lutianyu2001/layeredcfg/blob/main/SECURITY.md#ci)
+[![pins](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fpins.json)](https://github.com/lutianyu2001/layeredcfg/blob/main/xtask/src/pins.rs)
 
 A lightweight layered configuration library with a Rust core and a Python binding, that takes each setting from a TOML
 file of defaults, env-style files, the environment or the command line, and converts it to its default's type.
@@ -51,19 +51,19 @@ dots made underscores: with the prefix `APP_`, `server.port` is `APP_SERVER_PORT
 ## Security Audit
 
 [![deny](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fdeny.json)](https://github.com/lutianyu2001/layeredcfg/actions/workflows/advisories.yml)
-[![vet](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fvet.json)](audit/vet)
-[![geiger](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fgeiger.json)](audit/geiger)
-[![miri](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fmiri.json)](audit/miri)
-[![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fcoverage.json)](audit/coverage)
-[![kani](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fkani.json)](audit/kani)
-[![fuzz](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Ffuzz.json)](audit/fuzz)
+[![vet](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fvet.json)](https://github.com/lutianyu2001/layeredcfg/tree/main/audit/vet)
+[![geiger](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fgeiger.json)](https://github.com/lutianyu2001/layeredcfg/tree/main/audit/geiger)
+[![miri](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fmiri.json)](https://github.com/lutianyu2001/layeredcfg/tree/main/audit/miri)
+[![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fcoverage.json)](https://github.com/lutianyu2001/layeredcfg/tree/main/audit/coverage)
+[![kani](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fkani.json)](https://github.com/lutianyu2001/layeredcfg/tree/main/audit/kani)
+[![fuzz](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Ffuzz.json)](https://github.com/lutianyu2001/layeredcfg/tree/main/audit/fuzz)
 
 The maintainer's own security audit of the code, not one by a third party: it says what was checked and how, not that
-nothing is wrong. The latest results of each check are committed in [`audit/`](audit) with the commit they ran at, and
+nothing is wrong. The latest results of each check are committed in [`audit/`](https://github.com/lutianyu2001/layeredcfg/tree/main/audit) with the commit they ran at, and
 the badges above say whether each still holds for the code on `main`. The checks whose length is known beforehand
 (deny, vet, geiger, coverage and the fuzzing) run again on GitHub at each release; Kani and Miri are run by hand. How
-to run them, and what each covers, is in [SECURITY.md](SECURITY.md); the dependencies are in
-[SUPPLY_CHAIN.md](SUPPLY_CHAIN.md).
+to run them, and what each covers, is in [SECURITY.md](https://github.com/lutianyu2001/layeredcfg/blob/main/SECURITY.md); the dependencies are in
+[SUPPLY_CHAIN.md](https://github.com/lutianyu2001/layeredcfg/blob/main/SUPPLY_CHAIN.md).
 
 - **Review against a threat model.** Text in every layer, from any bytes; secrets in what is shown, in the messages of
   errors and in Python's exceptions; `persist` writing files that other users of the machine can reach (permissions,
@@ -120,7 +120,7 @@ whitespace character it has), `parse_float`, the reader of env-style files, and 
 ## Prerequisites
 
 - [rustup](https://rustup.rs), which installs the Rust version `rust-toolchain.toml` pins (1.99.1) when it is first
-  needed
+  needed; the crates themselves need Rust 1.88 or later
 - [pixi](https://pixi.sh), which brings the rest into the environment of this directory:
   - [maturin](https://www.maturin.rs) ≥1.9
   - Python 3.12, for the binding and its tests

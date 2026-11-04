@@ -10,11 +10,30 @@ readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
+authors = [{ name = "Tianyu (Sky) Lu" }]
+keywords = ["configuration", "config", "dotenv", "env", "toml"]
 classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Operating System :: POSIX",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS",
   "Programming Language :: Rust",
   "Programming Language :: Python :: 3",
-  "Operating System :: POSIX",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Topic :: Software Development :: Libraries",
 ]
+
+[project.urls]
+Repository = "https://github.com/lutianyu2001/layeredcfg"
+Issues = "https://github.com/lutianyu2001/layeredcfg/issues"
+Security = "https://github.com/lutianyu2001/layeredcfg/blob/main/SECURITY.md"
 
 # The version is the Cargo workspace's (Cargo.toml).
 [tool.maturin]
@@ -23,3 +42,5 @@ python-source = "python"
 module-name = "layeredcfg._core"
 locked = true
 strip = true
+# The Python tests go into the source distribution, for those who build from it (conda-forge) to run.
+include = [{ path = "tests/python/**/*.py", format = "sdist" }]

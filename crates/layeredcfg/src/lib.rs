@@ -27,12 +27,13 @@ pub mod text;
 #[cfg(kani)]
 mod proofs;
 
-// The Rust examples of the READMEs, compiled as doctests (`cargo test`), so that they stay right.
+// The Rust examples of the READMEs, compiled as doctests (`cargo test`), so that they stay right. The READMEs are
+// links in the crate's directory, so that the package has them.
 #[cfg(doctest)]
-#[doc = include_str!("../../../README.md")]
+#[doc = include_str!("../README.md")]
 pub struct ReadmeDoctests;
 #[cfg(doctest)]
-#[doc = include_str!("../../../README/README_CN.md")]
+#[doc = include_str!("../README_CN.md")]
 pub struct ReadmeCnDoctests;
 
 use std::collections::{BTreeMap, BTreeSet};

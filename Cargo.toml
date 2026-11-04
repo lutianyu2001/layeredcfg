@@ -10,7 +10,10 @@ resolver = "3"
 version = "0.1.0"
 edition = "2024"
 license = "Apache-2.0"
-rust-version = "1.99"
+repository = "https://github.com/lutianyu2001/layeredcfg"
+# The oldest Rust the crates build and pass their tests with (let chains); rust-toolchain.toml pins the one
+# this repository is worked on with.
+rust-version = "1.88"
 
 # An integer that overflows panics, in the wheel too, instead of wrapping.
 [profile.release]

@@ -85,7 +85,7 @@
 
 ## 前置要求
 
-- [rustup](https://rustup.rs)：第一次用到时会装上 `rust-toolchain.toml` 固定的 Rust 版本（1.99.1）
+- [rustup](https://rustup.rs)：第一次用到时会装上 `rust-toolchain.toml` 固定的 Rust 版本（1.99.1）；crate 本身要求 Rust 1.88 或更新
 - [pixi](https://pixi.sh)，其余的都由它装进这个目录的环境：
   - [maturin](https://www.maturin.rs) ≥1.9
   - Python 3.12：给绑定层和它的测试用
