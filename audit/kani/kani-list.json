@@ -2,7 +2,7 @@
   "kani-version": "0.68.0",
   "file-version": "0.1",
   "standard-harnesses": {
-    "crates/layeredconf/src/proofs.rs": [
+    "crates/layeredcfg/src/proofs.rs": [
       "proofs::decode_past_the_end_is_no_character",
       "proofs::decode_reads_utf8_as_the_standard_library_does",
       "proofs::parse_bool_does_not_panic",

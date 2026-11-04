@@ -1,26 +1,20 @@
-$ systemd-run --user --scope --quiet -p MemoryMax=4G -p MemorySwapMax=0 -- cargo +nightly-2026-10-28 miri test --locked -p layeredconf --tests -- 
-   Compiling libc v0.2.191
-   Compiling cfg_aliases v0.2.2
-   Compiling equivalent v1.0.3
-   Compiling hashbrown v0.17.1
-   Compiling winnow v1.0.4
-   Compiling layeredconf v0.1.0 (./crates/layeredconf)
-   Compiling serde_spanned v1.1.2
-   Compiling bitflags v2.13.2
-   Compiling cfg-if v1.0.5
-   Compiling toml_datetime v1.1.2+spec-1.1.0
-   Compiling nix v0.31.3
-   Compiling toml_parser v1.1.5+spec-1.1.0
-   Compiling indexmap v2.14.2
-   Compiling toml v1.1.8+spec-1.1.0
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.82s
-     Running unittests src/lib.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredconf/1e533aac0a29b58b/out/layeredconf-1e533aac0a29b58b)
+$ systemd-run --user --scope --quiet -p MemoryMax=4G -p MemorySwapMax=0 -- cargo +nightly-2026-10-28 miri test --locked -p layeredcfg --tests -- 
+   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.51s
+     Running unittests src/lib.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/a869f2d12c91db27/out/layeredcfg-a869f2d12c91db27)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
 
-     Running tests/config.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredconf/3bd5403dc216d77a/out/config-3bd5403dc216d77a)
+     Running tests/beyond_ascii.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/93dcd1647bb80454/out/beyond_ascii-93dcd1647bb80454)
+
+running 1 test
+test digits_and_whitespace_beyond_ascii_are_read_as_set ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+     Running tests/config.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/58b84e0784a7aae9/out/config-58b84e0784a7aae9)
 
 running 25 tests
 test a_file_is_found_from_a_directory_upwards ... ok
@@ -49,9 +43,9 @@ test the_defaults_say_which_settings_there_are_in_the_file_order_and_their_types
 test the_process_environment_has_no_variable_of_a_name_none_can_have ... ok
 test writers_at_the_same_time_leave_a_whole_file_and_no_temporary_ones ... ok
 
-test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 87.33s
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 88.87s
 
-     Running tests/envfile.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredconf/18b7ace216e50e50/out/envfile-18b7ace216e50e50)
+     Running tests/envfile.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/fad40428f2ca0c02/out/envfile-fad40428f2ca0c02)
 
 running 11 tests
 test a_comment_after_the_equals_sign_a_byte_order_mark_other_line_ends_form_feeds ... ok
@@ -66,20 +60,20 @@ test replace_takes_a_quoted_value_lines_as_one_and_keeps_every_other_byte ... ok
 test what_names_put_into_values_is_bounded ... ok
 test whitespace_beyond_ascii_is_whitespace_as_python_dotenv_takes_it ... ok
 
-test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 40.86s
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 38.81s
 
-     Running tests/text.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredconf/43d98ab602b982b7/out/text-43d98ab602b982b7)
+     Running tests/text.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/ba37f8ffcfb2cc49/out/text-ba37f8ffcfb2cc49)
 
 running 8 tests
 test a_boolean_is_one_of_its_words ... ok
 test a_list_is_comma_separated_each_item_stripped_and_the_empty_ones_left_out ... ok
-test digits_and_whitespace_beyond_ascii_are_read_as_python_reads_them ... ok
 test floats_are_read_as_python_float_reads_them ... ok
 test floats_are_written_as_python_repr_writes_them ... ok
 test integers_are_read_as_python_int_reads_them ... ok
 test strip_booleans_and_lists_take_off_python_whitespace ... ok
 test utf8_is_checked ... ok
+test whitespace_beyond_ascii_is_unicodes_and_digits_are_ascii ... ok
 
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.57s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.42s
 
 xtask: miri: succeeded
