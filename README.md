@@ -85,14 +85,26 @@ to run them, and what each covers, is in [SECURITY.md](SECURITY.md); the depende
 - **Kani.** 13 proofs: for every input up to 6 bytes, UTF-8 is decoded as the standard library does, whitespace is
   stripped once and for all and only between characters, integers are read without panic or overflow and as
   `str::parse` reads them, booleans without panic, and lists are cut at their commas and nowhere else; and integers of
-  21 bytes are read exactly at the edges of 64 bits. Each proof ran alone, compiled before, on KANI_DATE at KANI_COMMIT,
+  21 bytes are read exactly at the edges of 64 bits. Each proof ran alone, compiled before, on 2026-11-02 at e7ac67d,
   on an AMD Ryzen 9 5950X with 32 GB:
 
   | Proof | Time | Peak memory |
   |---|---|---|
-KANI_ROWS
-- **Branch coverage.** COV_BRANCHES of the branches of the Rust code are taken by its Rust tests (the binding's by the
-  Python tests instead), as `audit/coverage/summary.txt` has it.
+  | `decode_past_the_end_is_no_character` | 1 s | 81 MiB |
+  | `decode_reads_utf8_as_the_standard_library_does` | 42 s | 1.3 GiB |
+  | `parse_bool_does_not_panic` | 16 s | 650 MiB |
+  | `parse_int_does_not_panic_or_overflow` | 42 s | 1.7 GiB |
+  | `parse_int_is_exact_at_the_largest_i64` | 15 min 11 s | 9.7 GiB |
+  | `parse_int_is_exact_at_the_smallest_i64` | 15 min 41 s | 9.7 GiB |
+  | `parse_int_is_exact_past_u64` | 16 min 25 s | 10.8 GiB |
+  | `parse_int_is_exact_past_u64_negative` | 14 min 24 s | 10.2 GiB |
+  | `parse_int_reads_plain_numbers_as_the_standard_library_does` | 1 min 27 s | 2.5 GiB |
+  | `space_at_stays_in_the_text` | 1 s | 99 MiB |
+  | `split_list_cuts_at_the_commas_and_nowhere_else` | 54 s | 2.1 GiB |
+  | `strip_str_cuts_at_the_boundaries_of_characters` | 24 s | 1.1 GiB |
+  | `strip_takes_whitespace_off_once_and_for_all` | 27 s | 906 MiB |
+- **Branch coverage.** The Rust tests take 85.81 % of the 310 branches of the Rust code, 90.48 % of the library's 294
+  (`audit/coverage/summary.txt`); the binding's 16 are left to the Python tests.
 - **Two reviews.** Every change went through a code review, and the most sensitive code (the reader of env-style files,
   `persist`, the masking of secrets) was read whole by separate reviewers who were given the threat model, not the
   findings.
