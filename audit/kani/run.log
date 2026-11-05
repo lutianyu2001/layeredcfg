@@ -1,7 +1,6 @@
 $ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -- cargo kani -p layeredcfg --lib list --format json
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
-   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
 warning: trailing semicolon in macro used in expression position
   --> crates/layeredcfg/src/proofs.rs:53:20
    |
@@ -38,14 +37,13 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.86s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
 Wrote list results to ./kani-list.json
 $ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -- cargo kani -p layeredcfg --lib --harness proofs::decode_past_the_end_is_no_character --exact -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
-   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
 warning: trailing semicolon in macro used in expression position
   --> crates/layeredcfg/src/proofs.rs:53:20
    |
@@ -82,15 +80,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.68s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
-$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/1395882/exe __kani-harness proofs::decode_past_the_end_is_no_character --peak > kani-proofs.decode_past_the_end_is_no_character.log
-proofs::decode_past_the_end_is_no_character: succeeded, 1 s, peak memory 81 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2087288/exe __kani-harness proofs::decode_past_the_end_is_no_character --peak > kani-proofs.decode_past_the_end_is_no_character.log
+proofs::decode_past_the_end_is_no_character: succeeded, 1 s, peak memory 95 MiB
 $ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -- cargo kani -p layeredcfg --lib --harness proofs::decode_reads_utf8_as_the_standard_library_does --exact -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
-   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
 warning: trailing semicolon in macro used in expression position
   --> crates/layeredcfg/src/proofs.rs:53:20
    |
@@ -127,15 +124,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.74s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
-$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/1395882/exe __kani-harness proofs::decode_reads_utf8_as_the_standard_library_does --peak > kani-proofs.decode_reads_utf8_as_the_standard_library_does.log
-proofs::decode_reads_utf8_as_the_standard_library_does: succeeded, 37 s, peak memory 1383 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2087288/exe __kani-harness proofs::decode_reads_utf8_as_the_standard_library_does --peak > kani-proofs.decode_reads_utf8_as_the_standard_library_does.log
+proofs::decode_reads_utf8_as_the_standard_library_does: succeeded, 56 s, peak memory 1364 MiB
 $ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -- cargo kani -p layeredcfg --lib --harness proofs::parse_bool_does_not_panic --exact -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
-   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
 warning: trailing semicolon in macro used in expression position
   --> crates/layeredcfg/src/proofs.rs:53:20
    |
@@ -172,15 +168,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.87s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
-$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/1395882/exe __kani-harness proofs::parse_bool_does_not_panic --peak > kani-proofs.parse_bool_does_not_panic.log
-proofs::parse_bool_does_not_panic: succeeded, 15 s, peak memory 664 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2087288/exe __kani-harness proofs::parse_bool_does_not_panic --peak > kani-proofs.parse_bool_does_not_panic.log
+proofs::parse_bool_does_not_panic: succeeded, 19 s, peak memory 614 MiB
 $ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -- cargo kani -p layeredcfg --lib --harness proofs::parse_int_does_not_panic_or_overflow --exact -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
-   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
 warning: trailing semicolon in macro used in expression position
   --> crates/layeredcfg/src/proofs.rs:53:20
    |
@@ -217,15 +212,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.75s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
-$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/1395882/exe __kani-harness proofs::parse_int_does_not_panic_or_overflow --peak > kani-proofs.parse_int_does_not_panic_or_overflow.log
-proofs::parse_int_does_not_panic_or_overflow: succeeded, 32 s, peak memory 1381 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2087288/exe __kani-harness proofs::parse_int_does_not_panic_or_overflow --peak > kani-proofs.parse_int_does_not_panic_or_overflow.log
+proofs::parse_int_does_not_panic_or_overflow: succeeded, 43 s, peak memory 1374 MiB
 $ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -- cargo kani -p layeredcfg --lib --harness proofs::parse_int_is_exact_at_the_largest_i64 --exact -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
-   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
 warning: trailing semicolon in macro used in expression position
   --> crates/layeredcfg/src/proofs.rs:53:20
    |
@@ -262,15 +256,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.86s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
-$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/1395882/exe __kani-harness proofs::parse_int_is_exact_at_the_largest_i64 --peak > kani-proofs.parse_int_is_exact_at_the_largest_i64.log
-proofs::parse_int_is_exact_at_the_largest_i64: succeeded, 892 s, peak memory 9790 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2087288/exe __kani-harness proofs::parse_int_is_exact_at_the_largest_i64 --peak > kani-proofs.parse_int_is_exact_at_the_largest_i64.log
+proofs::parse_int_is_exact_at_the_largest_i64: succeeded, 1140 s, peak memory 9787 MiB
 $ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -- cargo kani -p layeredcfg --lib --harness proofs::parse_int_is_exact_at_the_smallest_i64 --exact -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
-   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
 warning: trailing semicolon in macro used in expression position
   --> crates/layeredcfg/src/proofs.rs:53:20
    |
@@ -307,15 +300,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.88s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
-$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/1395882/exe __kani-harness proofs::parse_int_is_exact_at_the_smallest_i64 --peak > kani-proofs.parse_int_is_exact_at_the_smallest_i64.log
-proofs::parse_int_is_exact_at_the_smallest_i64: succeeded, 905 s, peak memory 9806 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2087288/exe __kani-harness proofs::parse_int_is_exact_at_the_smallest_i64 --peak > kani-proofs.parse_int_is_exact_at_the_smallest_i64.log
+proofs::parse_int_is_exact_at_the_smallest_i64: succeeded, 973 s, peak memory 9799 MiB
 $ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -- cargo kani -p layeredcfg --lib --harness proofs::parse_int_is_exact_past_u64 --exact -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
-   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
 warning: trailing semicolon in macro used in expression position
   --> crates/layeredcfg/src/proofs.rs:53:20
    |
@@ -352,15 +344,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.07s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
-$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/1395882/exe __kani-harness proofs::parse_int_is_exact_past_u64 --peak > kani-proofs.parse_int_is_exact_past_u64.log
-proofs::parse_int_is_exact_past_u64: succeeded, 842 s, peak memory 9803 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2087288/exe __kani-harness proofs::parse_int_is_exact_past_u64 --peak > kani-proofs.parse_int_is_exact_past_u64.log
+proofs::parse_int_is_exact_past_u64: succeeded, 868 s, peak memory 9787 MiB
 $ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -- cargo kani -p layeredcfg --lib --harness proofs::parse_int_is_exact_past_u64_negative --exact -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
-   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
 warning: trailing semicolon in macro used in expression position
   --> crates/layeredcfg/src/proofs.rs:53:20
    |
@@ -397,15 +388,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.88s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
-$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/1395882/exe __kani-harness proofs::parse_int_is_exact_past_u64_negative --peak > kani-proofs.parse_int_is_exact_past_u64_negative.log
-proofs::parse_int_is_exact_past_u64_negative: succeeded, 851 s, peak memory 9790 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2087288/exe __kani-harness proofs::parse_int_is_exact_past_u64_negative --peak > kani-proofs.parse_int_is_exact_past_u64_negative.log
+proofs::parse_int_is_exact_past_u64_negative: succeeded, 859 s, peak memory 9786 MiB
 $ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -- cargo kani -p layeredcfg --lib --harness proofs::parse_int_reads_plain_numbers_as_the_standard_library_does --exact -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
-   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
 warning: trailing semicolon in macro used in expression position
   --> crates/layeredcfg/src/proofs.rs:53:20
    |
@@ -442,15 +432,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.08s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
-$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/1395882/exe __kani-harness proofs::parse_int_reads_plain_numbers_as_the_standard_library_does --peak > kani-proofs.parse_int_reads_plain_numbers_as_the_standard_library_does.log
-proofs::parse_int_reads_plain_numbers_as_the_standard_library_does: succeeded, 58 s, peak memory 2279 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2087288/exe __kani-harness proofs::parse_int_reads_plain_numbers_as_the_standard_library_does --peak > kani-proofs.parse_int_reads_plain_numbers_as_the_standard_library_does.log
+proofs::parse_int_reads_plain_numbers_as_the_standard_library_does: succeeded, 59 s, peak memory 2258 MiB
 $ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -- cargo kani -p layeredcfg --lib --harness proofs::space_at_stays_in_the_text --exact -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
-   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
 warning: trailing semicolon in macro used in expression position
   --> crates/layeredcfg/src/proofs.rs:53:20
    |
@@ -487,15 +476,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.69s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
-$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/1395882/exe __kani-harness proofs::space_at_stays_in_the_text --peak > kani-proofs.space_at_stays_in_the_text.log
-proofs::space_at_stays_in_the_text: succeeded, 1 s, peak memory 105 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2087288/exe __kani-harness proofs::space_at_stays_in_the_text --peak > kani-proofs.space_at_stays_in_the_text.log
+proofs::space_at_stays_in_the_text: succeeded, 1 s, peak memory 103 MiB
 $ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -- cargo kani -p layeredcfg --lib --harness proofs::split_list_cuts_at_the_commas_and_nowhere_else --exact -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
-   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
 warning: trailing semicolon in macro used in expression position
   --> crates/layeredcfg/src/proofs.rs:53:20
    |
@@ -532,15 +520,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.83s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
-$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/1395882/exe __kani-harness proofs::split_list_cuts_at_the_commas_and_nowhere_else --peak > kani-proofs.split_list_cuts_at_the_commas_and_nowhere_else.log
-proofs::split_list_cuts_at_the_commas_and_nowhere_else: succeeded, 51 s, peak memory 2125 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2087288/exe __kani-harness proofs::split_list_cuts_at_the_commas_and_nowhere_else --peak > kani-proofs.split_list_cuts_at_the_commas_and_nowhere_else.log
+proofs::split_list_cuts_at_the_commas_and_nowhere_else: succeeded, 53 s, peak memory 2119 MiB
 $ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -- cargo kani -p layeredcfg --lib --harness proofs::strip_str_cuts_at_the_boundaries_of_characters --exact -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
-   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
 warning: trailing semicolon in macro used in expression position
   --> crates/layeredcfg/src/proofs.rs:53:20
    |
@@ -577,15 +564,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.85s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
-$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/1395882/exe __kani-harness proofs::strip_str_cuts_at_the_boundaries_of_characters --peak > kani-proofs.strip_str_cuts_at_the_boundaries_of_characters.log
-proofs::strip_str_cuts_at_the_boundaries_of_characters: succeeded, 24 s, peak memory 1162 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2087288/exe __kani-harness proofs::strip_str_cuts_at_the_boundaries_of_characters --peak > kani-proofs.strip_str_cuts_at_the_boundaries_of_characters.log
+proofs::strip_str_cuts_at_the_boundaries_of_characters: succeeded, 23 s, peak memory 1165 MiB
 $ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -- cargo kani -p layeredcfg --lib --harness proofs::strip_takes_whitespace_off_once_and_for_all --exact -Z unstable-options --harness-timeout 1800s --only-codegen
 Kani Rust Verifier 0.68.0 (cargo plugin)
 CBMC 6.11.0
-   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
 warning: trailing semicolon in macro used in expression position
   --> crates/layeredcfg/src/proofs.rs:53:20
    |
@@ -622,9 +608,9 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.71s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
-$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/1395882/exe __kani-harness proofs::strip_takes_whitespace_off_once_and_for_all --peak > kani-proofs.strip_takes_whitespace_off_once_and_for_all.log
-proofs::strip_takes_whitespace_off_once_and_for_all: succeeded, 19 s, peak memory 1010 MiB
+$ systemd-run --user --scope --quiet -p MemoryMax=17G -p MemorySwapMax=0 -p OOMPolicy=continue -- /proc/2087288/exe __kani-harness proofs::strip_takes_whitespace_off_once_and_for_all --peak > kani-proofs.strip_takes_whitespace_off_once_and_for_all.log
+proofs::strip_takes_whitespace_off_once_and_for_all: succeeded, 19 s, peak memory 1042 MiB
 xtask: kani: succeeded

@@ -4026,34 +4026,34 @@ aborting path on assume(false) at file crates/layeredcfg/src/lib.rs line 0 colum
 Not unwinding loop _RNvMsr_NtCs8xvirJzNMvV_4core3numx27from_ascii_bytes_radix_implCskhgOewzrZDf_10layeredcfg.3 iteration 22 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/mod.rs line 1835 column 29 function core::num::<impl i64>::from_ascii_bytes_radix_impl thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs line 714 column 15 function std::result::Result::<i64, std::num::ParseIntError>::ok thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 2439 column 15 function <std::option::Option<i64> as std::cmp::PartialEq>::eq thread 0
-Runtime Symex: 535.326s
+Runtime Symex: 597.073s
 size of program expression: 1753640 steps
 slicing removed 1455618 assignments
 Generated 30586 VCC(s), 16310 remaining after simplification
-Runtime Postprocess Equation: 8.39988s
+Runtime Postprocess Equation: 8.95803s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 19.6148s
+Runtime Convert SSA: 20.0785s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 4.76022s
+Runtime Post-process: 4.85244s
 Solving with CaDiCaL 3.0.0
 4148150 variables, 33658576 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 295.747s
-Runtime decision procedure: 315.548s
+Runtime Solver: 300.895s
+Runtime decision procedure: 321.183s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 4148151 variables, 33658577 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.368345s
-Runtime decision procedure: 0.460487s
+Runtime Solver: 0.569389s
+Runtime decision procedure: 0.656577s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 4148152 variables, 33658578 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 1.20966s
-Runtime decision procedure: 1.23387s
+Runtime Solver: 1.23429s
+Runtime decision procedure: 1.25777s
 
 RESULTS:
 Check 1: <std::option::Option<u64> as std::ops::FromResidual<std::option::Option<std::convert::Infallible>>>::from_residual.unreachable.1
@@ -8828,8 +8828,8 @@ SUMMARY:
  ** 0 of 959 failed (40 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 904.19275s
+Verification Time: 972.1257s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 10281426944
+xtask: peak memory in bytes: 10274746368

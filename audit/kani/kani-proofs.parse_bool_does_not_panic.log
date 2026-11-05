@@ -22,7 +22,7 @@ warning: trailing semicolon in macro used in expression position
    = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
    = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-    Finishedwarning: use of an unstable feature
+warning: use of an unstable feature
  --> <crate attribute>:1:12
   |
 1 | #![feature(register_tool)]
@@ -30,7 +30,6 @@ warning: trailing semicolon in macro used in expression position
   |
   = note: requested on the command line with `--force-warn unstable-features`
 
- `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (2)
@@ -38,6 +37,7 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
 Checking harness proofs::parse_bool_does_not_panic...
@@ -456,52 +456,52 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 Not unwinding loop _RINvXs2J_NtNtCs8xvirJzNMvV_4core5slice4iterINtB7_4IterhENtNtNtNtBb_4iter6traits8iterator8Iterator4folduNCINvNtNtBY_8adapters3map8map_foldRhhuNCNvMs_NtCs6xMQmN1AWUs_5alloc5sliceSh18to_ascii_lowercase0NCINvNvBS_8for_each4callhNCINvMsk_NtB2o_3vecINtB3J_3VechE14extend_trustedINtB1I_3MapBF_B2f_EE0E0E0ECs3GJ6w2eqr8A_3std.0 iteration 7 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs line 271 column 17 function <std::slice::Iter<'_, u8> as std::iter::Iterator>::fold::<(), {closure@std::iter::adapters::map::map_fold<&u8, u8, (), {closure@std::slice::<impl [u8]>::to_ascii_lowercase::{closure#0}}, {closure@std::iter::Iterator::for_each::call<u8, {closure@std::vec::Vec<u8>::extend_trusted<std::iter::Map<std::slice::Iter<'_, u8>, {closure@std::slice::<impl [u8]>::to_ascii_lowercase::{closure#0}}>>::{closure#0}}>::{closure#0}}>::{closure#0}}> thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/raw_vec/mod.rs line 872 column 5 function alloc::raw_vec::RawVecInner::deallocate thread 0
-Runtime Symex: 3.93578s
+Runtime Symex: 4.75027s
 size of program expression: 124021 steps
 slicing removed 87468 assignments
 Generated 5219 VCC(s), 1376 remaining after simplification
-Runtime Postprocess Equation: 0.0728213s
+Runtime Postprocess Equation: 0.0947904s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 0.395822s
+Runtime Convert SSA: 0.742921s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 0.363118s
+Runtime Post-process: 0.435257s
 Solving with CaDiCaL 3.0.0
 489554 variables, 1336878 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.393494s
-Runtime decision procedure: 0.802474s
+Runtime Solver: 0.474909s
+Runtime decision procedure: 1.23407s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 489555 variables, 1336879 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.421026s
-Runtime decision procedure: 0.427283s
+Runtime Solver: 0.574441s
+Runtime decision procedure: 0.581366s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 489556 variables, 1336880 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0283651s
-Runtime decision procedure: 0.033769s
+Runtime Solver: 0.03419s
+Runtime decision procedure: 0.0421186s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 489557 variables, 1336881 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0248593s
-Runtime decision procedure: 0.029298s
+Runtime Solver: 0.0280413s
+Runtime decision procedure: 0.0324638s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 489558 variables, 1336882 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.183751s
-Runtime decision procedure: 0.189071s
+Runtime Solver: 0.205718s
+Runtime decision procedure: 0.211587s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 489559 variables, 1336883 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 6.21641s
-Runtime decision procedure: 6.22027s
+Runtime Solver: 8.44808s
+Runtime decision procedure: 8.45184s
 
 RESULTS:
 Check 1: std::ptr::copy_nonoverlapping::<u8>.safety_check.1
@@ -4024,8 +4024,8 @@ SUMMARY:
  ** 0 of 704 failed (6 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 14.010043s
+Verification Time: 18.08928s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 696086528
+xtask: peak memory in bytes: 643624960

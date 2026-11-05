@@ -102,46 +102,46 @@ aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 co
 Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
-Runtime Symex: 0.360751s
+Runtime Symex: 0.361012s
 size of program expression: 16084 steps
 slicing removed 11195 assignments
 Generated 545 VCC(s), 123 remaining after simplification
-Runtime Postprocess Equation: 0.00401077s
+Runtime Postprocess Equation: 0.00391478s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 0.034022s
+Runtime Convert SSA: 0.033209s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 0.00871828s
+Runtime Post-process: 0.00887667s
 Solving with CaDiCaL 3.0.0
 48445 variables, 110146 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.104884s
-Runtime decision procedure: 0.140139s
+Runtime Solver: 0.107128s
+Runtime decision procedure: 0.141563s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 48446 variables, 110147 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.00363465s
-Runtime decision procedure: 0.00481856s
+Runtime Solver: 0.00371109s
+Runtime decision procedure: 0.00487482s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 48447 variables, 110148 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0183267s
-Runtime decision procedure: 0.0189503s
+Runtime Solver: 0.0183157s
+Runtime decision procedure: 0.0189158s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 48448 variables, 110149 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.00455372s
-Runtime decision procedure: 0.00515769s
+Runtime Solver: 0.00454921s
+Runtime decision procedure: 0.00514732s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 48449 variables, 110150 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 0.018218s
-Runtime decision procedure: 0.0184148s
+Runtime Solver: 0.0181916s
+Runtime decision procedure: 0.0183831s
 
 RESULTS:
 Check 1: text::decode.assertion.1
@@ -1279,8 +1279,8 @@ SUMMARY:
  ** 0 of 226 failed (1 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.92125195s
+Verification Time: 0.91991776s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 109498368
+xtask: peak memory in bytes: 107728896

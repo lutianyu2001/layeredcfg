@@ -899,70 +899,70 @@ aborting path on assume(false) at file crates/layeredcfg/src/lib.rs line 0 colum
 Not unwinding loop _RNvMsr_NtCs8xvirJzNMvV_4core3numx27from_ascii_bytes_radix_implCskhgOewzrZDf_10layeredcfg.3 iteration 7 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/mod.rs line 1835 column 29 function core::num::<impl i64>::from_ascii_bytes_radix_impl thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs line 714 column 15 function std::result::Result::<i64, std::num::ParseIntError>::ok thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 2439 column 15 function <std::option::Option<i64> as std::cmp::PartialEq>::eq thread 0
-Runtime Symex: 12.9376s
+Runtime Symex: 12.6079s
 size of program expression: 285584 steps
 slicing removed 212546 assignments
 Generated 9416 VCC(s), 3549 remaining after simplification
-Runtime Postprocess Equation: 0.263743s
+Runtime Postprocess Equation: 0.256695s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 1.07338s
+Runtime Convert SSA: 1.0433s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 1.03156s
+Runtime Post-process: 1.03403s
 Solving with CaDiCaL 3.0.0
 1268722 variables, 4754036 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 11.8516s
-Runtime decision procedure: 12.9619s
+Runtime Solver: 13.1917s
+Runtime decision procedure: 14.2718s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1268723 variables, 4754037 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 6.07521s
-Runtime decision procedure: 6.10418s
+Runtime Solver: 5.98622s
+Runtime decision procedure: 6.01669s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1268724 variables, 4754038 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.119683s
-Runtime decision procedure: 0.139558s
+Runtime Solver: 0.122372s
+Runtime decision procedure: 0.142483s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1268725 variables, 4754039 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0711503s
-Runtime decision procedure: 0.0916524s
+Runtime Solver: 0.0729836s
+Runtime decision procedure: 0.092982s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1268726 variables, 4754040 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0796744s
-Runtime decision procedure: 0.10243s
+Runtime Solver: 0.078543s
+Runtime decision procedure: 0.102234s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1268727 variables, 4754041 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 1.59381s
-Runtime decision procedure: 1.61559s
+Runtime Solver: 1.55806s
+Runtime decision procedure: 1.58394s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1268728 variables, 4754042 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.277667s
-Runtime decision procedure: 0.304603s
+Runtime Solver: 0.281569s
+Runtime decision procedure: 0.30931s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1268729 variables, 4754043 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.085235s
-Runtime decision procedure: 0.106179s
+Runtime Solver: 0.0813049s
+Runtime decision procedure: 0.102248s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1268730 variables, 4754044 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 12.8228s
-Runtime decision procedure: 12.827s
+Runtime Solver: 12.9533s
+Runtime decision procedure: 12.9576s
 
 RESULTS:
 Check 1: kani::rustc_intrinsics::ptr_offset_from_unsigned::<u8>.safety_check.1
@@ -5486,8 +5486,8 @@ SUMMARY:
  ** 0 of 909 failed (36 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 57.228188s
+Verification Time: 58.17232s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 2388938752
+xtask: peak memory in bytes: 2367373312

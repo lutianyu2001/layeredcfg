@@ -100,28 +100,28 @@ Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file c
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
 Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
-Runtime Symex: 0.273516s
+Runtime Symex: 0.365711s
 size of program expression: 14786 steps
 slicing removed 10238 assignments
 Generated 497 VCC(s), 116 remaining after simplification
-Runtime Postprocess Equation: 0.00304936s
+Runtime Postprocess Equation: 0.00575563s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 0.0311138s
+Runtime Convert SSA: 0.062892s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 0.00862039s
+Runtime Post-process: 0.0105596s
 Solving with CaDiCaL 3.0.0
 46983 variables, 106934 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.107454s
-Runtime decision procedure: 0.139687s
+Runtime Solver: 0.226317s
+Runtime decision procedure: 0.290421s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 46984 variables, 106935 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 0.00244684s
-Runtime decision procedure: 0.00265372s
+Runtime Solver: 0.00438938s
+Runtime decision procedure: 0.00468133s
 
 RESULTS:
 Check 1: core::slice::index::slice_index_fail::do_panic::runtime.assertion.4
@@ -914,8 +914,8 @@ SUMMARY:
  ** 0 of 157 failed (8 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.54608065s
+Verification Time: 0.8346893s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 84799488
+xtask: peak memory in bytes: 98586624

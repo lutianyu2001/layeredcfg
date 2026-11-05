@@ -1,6 +1,7 @@
+$ cargo +nightly-2026-10-28 miri setup
+A sysroot for Miri is already available in `~/.cache/miri`.
 $ systemd-run --user --scope --quiet -p MemoryMax=4G -p MemorySwapMax=0 -- cargo +nightly-2026-10-28 miri test --locked -p layeredcfg --tests -- 
-   Compiling layeredcfg v0.1.0 (./crates/layeredcfg)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.51s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s
      Running unittests src/lib.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/a869f2d12c91db27/out/layeredcfg-a869f2d12c91db27)
 
 running 0 tests
@@ -12,7 +13,7 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 running 1 test
 test digits_and_whitespace_beyond_ascii_are_read_as_set ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
 
      Running tests/config.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/58b84e0784a7aae9/out/config-58b84e0784a7aae9)
 
@@ -43,7 +44,7 @@ test the_defaults_say_which_settings_there_are_in_the_file_order_and_their_types
 test the_process_environment_has_no_variable_of_a_name_none_can_have ... ok
 test writers_at_the_same_time_leave_a_whole_file_and_no_temporary_ones ... ok
 
-test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 88.87s
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 95.67s
 
      Running tests/envfile.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/fad40428f2ca0c02/out/envfile-fad40428f2ca0c02)
 
@@ -60,7 +61,7 @@ test replace_takes_a_quoted_value_lines_as_one_and_keeps_every_other_byte ... ok
 test what_names_put_into_values_is_bounded ... ok
 test whitespace_beyond_ascii_is_whitespace_as_python_dotenv_takes_it ... ok
 
-test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 38.81s
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 40.10s
 
      Running tests/text.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/ba37f8ffcfb2cc49/out/text-ba37f8ffcfb2cc49)
 
@@ -74,6 +75,6 @@ test strip_booleans_and_lists_take_off_python_whitespace ... ok
 test utf8_is_checked ... ok
 test whitespace_beyond_ascii_is_unicodes_and_digits_are_ascii ... ok
 
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.42s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.48s
 
 xtask: miri: succeeded

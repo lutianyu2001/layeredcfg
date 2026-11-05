@@ -805,82 +805,82 @@ aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1130 column 30 function std::option::Option::<&u8>::unwrap_unchecked thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1162 column 15 function std::option::Option::<u32>::map::<char, {closure@<std::str::Chars<'_> as std::iter::Iterator>::next::{closure#0}}> thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/lib.rs line 0 column 0 function proofs::decode_reads_utf8_as_the_standard_library_does thread 0
-Runtime Symex: 12.4889s
+Runtime Symex: 17.8332s
 size of program expression: 233736 steps
 slicing removed 172561 assignments
 Generated 5316 VCC(s), 3788 remaining after simplification
-Runtime Postprocess Equation: 0.315049s
+Runtime Postprocess Equation: 0.446443s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 1.01365s
+Runtime Convert SSA: 2.47628s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 0.147166s
+Runtime Post-process: 0.168309s
 Solving with CaDiCaL 3.0.0
 847801 variables, 3294536 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 6.86296s
-Runtime decision procedure: 7.90979s
+Runtime Solver: 12.444s
+Runtime decision procedure: 14.9583s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847802 variables, 3294537 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 1.26729s
-Runtime decision procedure: 1.29152s
+Runtime Solver: 2.44827s
+Runtime decision procedure: 2.47662s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847803 variables, 3294538 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0614105s
-Runtime decision procedure: 0.0739149s
+Runtime Solver: 0.0909909s
+Runtime decision procedure: 0.10888s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847804 variables, 3294539 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.219014s
-Runtime decision procedure: 0.228503s
+Runtime Solver: 0.343448s
+Runtime decision procedure: 0.354909s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847805 variables, 3294540 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0606024s
-Runtime decision procedure: 0.0730831s
+Runtime Solver: 0.0831576s
+Runtime decision procedure: 0.0963875s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847806 variables, 3294541 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.101721s
-Runtime decision procedure: 0.111263s
+Runtime Solver: 0.13738s
+Runtime decision procedure: 0.146706s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847807 variables, 3294542 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.203814s
-Runtime decision procedure: 0.212875s
+Runtime Solver: 0.269938s
+Runtime decision procedure: 0.279446s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847808 variables, 3294543 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0934394s
-Runtime decision procedure: 0.102515s
+Runtime Solver: 0.127847s
+Runtime decision procedure: 0.137317s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847809 variables, 3294544 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 3.67666s
-Runtime decision procedure: 3.69148s
+Runtime Solver: 5.02455s
+Runtime decision procedure: 5.03998s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847810 variables, 3294545 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.19547s
-Runtime decision procedure: 0.214376s
+Runtime Solver: 0.363335s
+Runtime decision procedure: 0.382973s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847811 variables, 3294546 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 3.65671s
-Runtime decision procedure: 3.65824s
+Runtime Solver: 5.44348s
+Runtime decision procedure: 5.44512s
 
 RESULTS:
 Check 1: std::panic::Location::<'_>::caller.unsupported_construct.1
@@ -2603,8 +2603,8 @@ SUMMARY:
  ** 0 of 343 failed (8 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 36.513123s
+Verification Time: 54.997s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 1450156032
+xtask: peak memory in bytes: 1429741568

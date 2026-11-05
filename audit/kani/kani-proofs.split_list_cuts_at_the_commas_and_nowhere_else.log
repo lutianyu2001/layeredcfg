@@ -1185,70 +1185,70 @@ Not unwinding loop _RINvYINtNtNtCs8xvirJzNMvV_4core5slice4iter4IterhENtNtNtNtBa_
 aborting path on assume(false) at file crates/layeredcfg/src/lib.rs line 0 column 0 function <std::ops::ControlFlow<()> as std::cmp::PartialEq>::eq thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 709 column 15 function std::option::Option::<&u8>::is_none_or::<{closure@crates/layeredcfg/src/proofs.rs:169:62: 169:66}> thread 0
 Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg6proofs46split_list_cuts_at_the_commas_and_nowhere_else.0 iteration 8 file crates/layeredcfg/src/proofs.rs line 166 column 5 function proofs::split_list_cuts_at_the_commas_and_nowhere_else thread 0
-Runtime Symex: 13.6834s
+Runtime Symex: 13.5922s
 size of program expression: 354062 steps
 slicing removed 266623 assignments
 Generated 11502 VCC(s), 3753 remaining after simplification
-Runtime Postprocess Equation: 0.338173s
+Runtime Postprocess Equation: 0.339972s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 1.41693s
+Runtime Convert SSA: 1.4463s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 0.595391s
+Runtime Post-process: 0.593277s
 Solving with CaDiCaL 3.0.0
 1227080 variables, 4522005 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 10.7994s
-Runtime decision procedure: 12.2624s
+Runtime Solver: 12.1549s
+Runtime decision procedure: 13.6476s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227081 variables, 4522006 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 1.42251s
-Runtime decision procedure: 1.44708s
+Runtime Solver: 1.48094s
+Runtime decision procedure: 1.50336s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227082 variables, 4522007 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.313895s
-Runtime decision procedure: 0.328718s
+Runtime Solver: 0.311469s
+Runtime decision procedure: 0.325761s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227083 variables, 4522008 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.315363s
-Runtime decision procedure: 0.326041s
+Runtime Solver: 0.313445s
+Runtime decision procedure: 0.324219s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227084 variables, 4522009 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.702774s
-Runtime decision procedure: 0.71353s
+Runtime Solver: 0.698253s
+Runtime decision procedure: 0.709135s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227085 variables, 4522010 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.552845s
-Runtime decision procedure: 0.563685s
+Runtime Solver: 0.561317s
+Runtime decision procedure: 0.572268s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227086 variables, 4522011 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 5.83959s
-Runtime decision procedure: 5.85709s
+Runtime Solver: 5.84834s
+Runtime decision procedure: 5.86596s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227087 variables, 4522012 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.135453s
-Runtime decision procedure: 0.155761s
+Runtime Solver: 0.135081s
+Runtime decision procedure: 0.154921s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227088 variables, 4522013 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 7.89249s
-Runtime decision procedure: 7.89432s
+Runtime Solver: 7.8954s
+Runtime decision procedure: 7.8973s
 
 RESULTS:
 Check 1: core::panicking::panic_nounwind_fmt::runtime.unsupported_construct.1
@@ -3311,8 +3311,8 @@ SUMMARY:
  ** 0 of 411 failed (7 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 50.896496s
+Verification Time: 52.36277s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 2227851264
+xtask: peak memory in bytes: 2221445120

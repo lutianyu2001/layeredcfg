@@ -761,40 +761,40 @@ Unwinding loop memcmp.0 iteration 4 file <builtin-library-memcmp> line 25 functi
 Unwinding loop memcmp.0 iteration 5 file <builtin-library-memcmp> line 25 function memcmp thread 0
 Unwinding loop memcmp.0 iteration 6 file <builtin-library-memcmp> line 25 function memcmp thread 0
 Not unwinding loop memcmp.0 iteration 7 file <builtin-library-memcmp> line 25 function memcmp thread 0
-Runtime Symex: 7.74225s
+Runtime Symex: 7.74739s
 size of program expression: 204799 steps
 slicing removed 148058 assignments
 Generated 7984 VCC(s), 1780 remaining after simplification
-Runtime Postprocess Equation: 0.126905s
+Runtime Postprocess Equation: 0.127188s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 0.725226s
+Runtime Convert SSA: 0.737174s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 0.788048s
+Runtime Post-process: 0.791715s
 Solving with CaDiCaL 3.0.0
 688993 variables, 1949167 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.835755s
-Runtime decision procedure: 1.58297s
+Runtime Solver: 0.841045s
+Runtime decision procedure: 1.6006s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 688994 variables, 1949168 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.773842s
-Runtime decision procedure: 0.779446s
+Runtime Solver: 0.750699s
+Runtime decision procedure: 0.756497s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 688995 variables, 1949169 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.218754s
-Runtime decision procedure: 0.230643s
+Runtime Solver: 0.222443s
+Runtime decision procedure: 0.23508s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 688996 variables, 1949170 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 6.38213s
-Runtime decision procedure: 6.38636s
+Runtime Solver: 6.2444s
+Runtime decision procedure: 6.24903s
 
 RESULTS:
 Check 1: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.1
@@ -2107,8 +2107,8 @@ SUMMARY:
  ** 0 of 261 failed (7 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 18.910156s
+Verification Time: 18.745714s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 1058254848
+xtask: peak memory in bytes: 1092022272

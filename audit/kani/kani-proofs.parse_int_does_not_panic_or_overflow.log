@@ -526,100 +526,100 @@ aborting path on assume(false) at file crates/layeredcfg/src/lib.rs line 0 colum
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs line 714 column 15 function std::result::Result::<i64, std::num::TryFromIntError>::ok thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/raw_vec/mod.rs line 872 column 5 function alloc::raw_vec::RawVecInner::deallocate thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/raw_vec/mod.rs line 872 column 5 function alloc::raw_vec::RawVecInner::deallocate thread 0
-Runtime Symex: 4.91689s
+Runtime Symex: 5.66185s
 size of program expression: 156262 steps
 slicing removed 113093 assignments
 Generated 6542 VCC(s), 1751 remaining after simplification
-Runtime Postprocess Equation: 0.093788s
+Runtime Postprocess Equation: 0.127298s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 0.535765s
+Runtime Convert SSA: 0.988012s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 0.795673s
+Runtime Post-process: 1.22306s
 Solving with CaDiCaL 3.0.0
 884791 variables, 3153881 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.901043s
-Runtime decision procedure: 1.45803s
+Runtime Solver: 1.46616s
+Runtime decision procedure: 2.47765s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 884792 variables, 3153882 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 1.08728s
-Runtime decision procedure: 1.09595s
+Runtime Solver: 1.51279s
+Runtime decision procedure: 1.52405s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 884793 variables, 3153883 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.254009s
-Runtime decision procedure: 0.263837s
+Runtime Solver: 0.310792s
+Runtime decision procedure: 0.320791s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 884794 variables, 3153884 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.247882s
-Runtime decision procedure: 0.257415s
+Runtime Solver: 0.308074s
+Runtime decision procedure: 0.327062s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 884795 variables, 3153885 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 10.8623s
-Runtime decision procedure: 10.8806s
+Runtime Solver: 15.3252s
+Runtime decision procedure: 15.3518s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 884796 variables, 3153886 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.18365s
-Runtime decision procedure: 0.198606s
+Runtime Solver: 0.246171s
+Runtime decision procedure: 0.261508s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 884797 variables, 3153887 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.118279s
-Runtime decision procedure: 0.133097s
+Runtime Solver: 0.144698s
+Runtime decision procedure: 0.161527s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 884798 variables, 3153888 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.169594s
-Runtime decision procedure: 0.184673s
+Runtime Solver: 0.224871s
+Runtime decision procedure: 0.24189s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 884799 variables, 3153889 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.17076s
-Runtime decision procedure: 0.19366s
+Runtime Solver: 0.272233s
+Runtime decision procedure: 0.303256s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 884800 variables, 3153890 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.106193s
-Runtime decision procedure: 0.126647s
+Runtime Solver: 0.154181s
+Runtime decision procedure: 0.188474s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 884801 variables, 3153891 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.105824s
-Runtime decision procedure: 0.12984s
+Runtime Solver: 0.135897s
+Runtime decision procedure: 0.166269s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 884802 variables, 3153892 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.101153s
-Runtime decision procedure: 0.123666s
+Runtime Solver: 0.112686s
+Runtime decision procedure: 0.141698s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 884803 variables, 3153893 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 1.87747s
-Runtime decision procedure: 1.89986s
+Runtime Solver: 2.64513s
+Runtime decision procedure: 2.67622s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 884804 variables, 3153894 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 3.51655s
-Runtime decision procedure: 3.53043s
+Runtime Solver: 5.40909s
+Runtime decision procedure: 5.44457s
 
 RESULTS:
 Check 1: malloc.assertion.1
@@ -4038,8 +4038,8 @@ SUMMARY:
  ** 0 of 688 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 31.27557s
+Verification Time: 42.10248s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 1447276544
+xtask: peak memory in bytes: 1440202752

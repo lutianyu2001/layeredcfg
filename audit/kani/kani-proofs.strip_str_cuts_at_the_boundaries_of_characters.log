@@ -670,64 +670,64 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/traits.rs line 333 column 15 function core::str::traits::<impl std::slice::SliceIndex<str> for std::range::Range<usize>>::index thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/traits.rs line 335 column 21 function core::str::traits::<impl std::slice::SliceIndex<str> for std::range::Range<usize>>::index thread 0
-Runtime Symex: 8.22932s
+Runtime Symex: 8.11404s
 size of program expression: 198895 steps
 slicing removed 147111 assignments
 Generated 5907 VCC(s), 2235 remaining after simplification
-Runtime Postprocess Equation: 0.176664s
+Runtime Postprocess Equation: 0.187653s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 0.697043s
+Runtime Convert SSA: 0.691565s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 0.389743s
+Runtime Post-process: 0.389141s
 Solving with CaDiCaL 3.0.0
 664714 variables, 2245897 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 3.94316s
-Runtime decision procedure: 4.66608s
+Runtime Solver: 3.94638s
+Runtime decision procedure: 4.66401s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 664715 variables, 2245898 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.141296s
-Runtime decision procedure: 0.155291s
+Runtime Solver: 0.139471s
+Runtime decision procedure: 0.153437s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 664716 variables, 2245899 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0605377s
-Runtime decision procedure: 0.0693067s
+Runtime Solver: 0.0596368s
+Runtime decision procedure: 0.0684038s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 664717 variables, 2245900 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.292592s
-Runtime decision procedure: 0.30136s
+Runtime Solver: 0.289851s
+Runtime decision procedure: 0.298647s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 664718 variables, 2245901 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.395452s
-Runtime decision procedure: 0.403422s
+Runtime Solver: 0.39395s
+Runtime decision procedure: 0.401948s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 664719 variables, 2245902 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 2.28449s
-Runtime decision procedure: 2.29375s
+Runtime Solver: 2.27257s
+Runtime decision procedure: 2.28185s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 664720 variables, 2245903 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0567938s
-Runtime decision procedure: 0.0663498s
+Runtime Solver: 0.0574208s
+Runtime decision procedure: 0.0668574s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 664721 variables, 2245904 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 2.33093s
-Runtime decision procedure: 2.33191s
+Runtime Solver: 2.30823s
+Runtime decision procedure: 2.30924s
 
 RESULTS:
 Check 1: kani::mem::cbmc::same_allocation.unsupported_construct.1
@@ -2585,8 +2585,8 @@ SUMMARY:
  ** 0 of 370 failed (7 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 22.968817s
+Verification Time: 22.71829s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 1218220032
+xtask: peak memory in bytes: 1221087232
