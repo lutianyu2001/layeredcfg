@@ -169,6 +169,10 @@ cargo add layeredcfg
 For the crate from this repository instead of crates.io, depend on `crates/layeredcfg` by its path or by this
 repository's git URL.
 
+The files published to PyPI, the source distribution and the wheels of every platform, are built from a release's tag
+with `pixi run release-files <tag>`, into `dist/`; it needs [zig](https://ziglang.org) and the Rust targets of the
+wheels (`rustup target add`), and fails if a file names a path of the machine that built it.
+
 ## Usage
 
 ### Python
