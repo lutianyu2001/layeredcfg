@@ -111,9 +111,12 @@ for less than an hour run only so. To record: commit the code, run on the clean 
 pinned tools:
 
 - At each release published on GitHub: `deny`, `vet`, `geiger`, `coverage` and `fuzz`, whose length is known before
-  they start. The fuzzing runs four hours a target, all of them at once, from the corpus of the last run.
-- Kani and Miri never by themselves: one new proof or test can take them from seconds to hours. They run on a
-  workstation, or when the workflow is started by hand (Actions, Verify, Run workflow) with the tasks `kani miri`.
+  they start, and `miri`, which takes two minutes. The fuzzing runs four hours a target, all of them at once, from the
+  corpus of the last run.
+- Kani never by itself: it takes an hour or more, and one new proof can take it from seconds to hours (so can a test
+  for Miri, which is measured again after a change to its tests, and leaves the release's tasks when it grows long).
+  Kani runs on a workstation, or when the workflow is started by hand (Actions, Verify, Run workflow) with the task
+  `kani`.
 - Never on a push.
 
 Only the tasks whose committed results no longer hold run. The last jobs commit the results to `audit/` on `main`, as

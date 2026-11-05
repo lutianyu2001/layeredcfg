@@ -61,7 +61,8 @@ dots made underscores: with the prefix `APP_`, `server.port` is `APP_SERVER_PORT
 The maintainer's own security audit of the code, not one by a third party: it says what was checked and how, not that
 nothing is wrong. The latest results of each check are committed in [`audit/`](https://github.com/lutianyu2001/layeredcfg/tree/main/audit) with the commit they ran at, and
 the badges above say whether each still holds for the code on `main`. The checks whose length is known beforehand
-(deny, vet, geiger, coverage and the fuzzing) run again on GitHub at each release; Kani and Miri are run by hand. How
+(deny, vet, geiger, coverage and the fuzzing), and Miri, which takes minutes, run again on GitHub at each release;
+Kani is run by hand. How
 to run them, and what each covers, is in [SECURITY.md](https://github.com/lutianyu2001/layeredcfg/blob/main/SECURITY.md); the dependencies are in
 [SUPPLY_CHAIN.md](https://github.com/lutianyu2001/layeredcfg/blob/main/SUPPLY_CHAIN.md).
 

@@ -54,7 +54,7 @@
 [![kani](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fkani.json)](../audit/kani)
 [![fuzz](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Ffuzz.json)](../audit/fuzz)
 
-这是项目维护者自己对代码做的安全审计，不是第三方的审计：它说明查了什么、怎么查的，不保证没有问题。每项检查最近一次的结果和代码一起提交在 [`audit/`](../audit)，记着是在哪个提交上跑的；上面的徽章显示每项结果对 `main` 上现在的代码是否仍然有效。耗时开跑前就能知道的检查（deny、vet、geiger、覆盖率和模糊测试）在每次发版时由 GitHub 重跑；Kani 和 Miri 手动跑。怎么跑、每项覆盖什么，见 [SECURITY.md](../SECURITY.md)；依赖见 [SUPPLY_CHAIN.md](../SUPPLY_CHAIN.md)。
+这是项目维护者自己对代码做的安全审计，不是第三方的审计：它说明查了什么、怎么查的，不保证没有问题。每项检查最近一次的结果和代码一起提交在 [`audit/`](../audit)，记着是在哪个提交上跑的；上面的徽章显示每项结果对 `main` 上现在的代码是否仍然有效。耗时开跑前就能知道的检查（deny、vet、geiger、覆盖率和模糊测试），以及只要几分钟的 Miri，在每次发版时由 GitHub 重跑；Kani 手动跑。怎么跑、每项覆盖什么，见 [SECURITY.md](../SECURITY.md)；依赖见 [SUPPLY_CHAIN.md](../SUPPLY_CHAIN.md)。
 
 - **按威胁模型审查。** 每一层里的文字，任何字节都算；密钥会不会出现在显示的值、错误信息和 Python 的异常里；`persist` 写的文件同一台机器上的其他用户能不能碰到（权限、符号链接、写了一半的文件），几个进程同时写；`${NAME}` 能不能把一个小文件的值撑得很大。发现的问题都修了，没修的写明留下了什么风险，见 SECURITY.md。
 - **`unsafe` 代码。** 本项目的两个 crate 都没有（`#![forbid(unsafe_code)]`）；依赖里的由 cargo geiger 计数，大部分在调用 Python C API 的 PyO3 里。
