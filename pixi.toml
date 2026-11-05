@@ -15,7 +15,7 @@ pytest = ">=8"
 [activation.env]
 # Keep ~/.local site-packages out of the environment.
 PYTHONNOUSERSITE = "1"
-# The Unicode table is written from this environment's Python.
+# The Python PyO3's build reads.
 PYO3_PYTHON = "$CONDA_PREFIX/bin/python"
 
 [tasks]
