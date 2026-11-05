@@ -3,7 +3,10 @@
     <strong>English</strong> | <a href="https://github.com/lutianyu2001/layeredcfg/blob/main/README/README_CN.md">中文</a>
 </p>
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)<br>
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Release](https://img.shields.io/github/v/release/lutianyu2001/layeredcfg)](https://github.com/lutianyu2001/layeredcfg/releases/latest)
+[![Crates.io Version](https://img.shields.io/crates/v/layeredcfg)](https://crates.io/crates/layeredcfg)
+[![PyPI Version](https://img.shields.io/pypi/v/layeredcfg)](https://pypi.org/project/layeredcfg/)<br>
 [![audit](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Faudit.json)](https://github.com/lutianyu2001/layeredcfg/blob/main/SECURITY.md#ci)
 [![pins](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fpins.json)](https://github.com/lutianyu2001/layeredcfg/blob/main/xtask/src/pins.rs)
 
