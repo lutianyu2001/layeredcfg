@@ -131,7 +131,7 @@ cargo add layeredcfg
 
 Rust 项目不从 crates.io 而从这个仓库取 crate 时，按路径或这个仓库的 git 地址依赖 `crates/layeredcfg` 即可。
 
-发布到 PyPI 的文件（源码包和各平台的 wheel）用 `pixi run release-files <tag>` 从发布的 tag 构建，放在 `dist/`。它需要 [zig](https://ziglang.org) 和各个 wheel 的 Rust target（`rustup target add`）；构建出的文件里只要出现构建它的机器上的路径，它就失败。
+发布到 PyPI 的文件（源码包和各平台的 wheel）用 `pixi run release-files <tag>` 从发布的 tag 构建，放在 `dist/`。它需要 [zig](https://ziglang.org)、各个 wheel 的 Rust target（`rustup target add`）和 [cargo-about](https://github.com/EmbarkStudios/cargo-about) 0.9.3，后者把编进 wheel 的 crate 的协议全文收集进每个 wheel。构建出的文件里只要出现构建它的机器上的路径，或者缺了这些协议全文，它就失败。
 
 ## 用法
 

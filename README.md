@@ -171,8 +171,10 @@ For the crate from this repository instead of crates.io, depend on `crates/layer
 repository's git URL.
 
 The files published to PyPI, the source distribution and the wheels of every platform, are built from a release's tag
-with `pixi run release-files <tag>`, into `dist/`; it needs [zig](https://ziglang.org) and the Rust targets of the
-wheels (`rustup target add`), and fails if a file names a path of the machine that built it.
+with `pixi run release-files <tag>`, into `dist/`; it needs [zig](https://ziglang.org), the Rust targets of the
+wheels (`rustup target add`) and [cargo-about](https://github.com/EmbarkStudios/cargo-about) 0.9.3, which collects the
+license texts of the crates compiled into the wheels into each of them. It fails if a file names a path of the machine
+that built it, or lacks those license texts.
 
 ## Usage
 

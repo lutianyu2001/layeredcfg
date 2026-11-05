@@ -1,5 +1,6 @@
 /build/
 /dist/
+/third-party/
 /.pixi/
 __pycache__/
 *.egg-info/

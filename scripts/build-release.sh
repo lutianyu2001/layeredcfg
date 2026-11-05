@@ -5,11 +5,14 @@
 # the absolute path of the checkout, which no option rewrites: so the checkout is made in
 # a private directory of XDG_RUNTIME_DIR (/run/user/<uid>), whose path names no one. rustc
 # writes the paths of the sources into the panic messages: those under the home directory
-# and the cargo home are remapped (Cargo's trim-paths is not stable yet).
+# and the cargo home are remapped (Cargo's trim-paths is not stable yet). The wheels hold the
+# crates compiled into the extension, whose license texts must ship with them: they are
+# collected from the tag's Cargo.lock, and every file is checked to hold them.
 #
 # Usage: scripts/build-release.sh <tag>
 # Needs maturin (MATURIN, or on PATH), zig for the targets of other platforms, the targets
-# installed with rustup, and uvx for twine.
+# installed with rustup, uvx for twine, and cargo-about at the version that the project's
+# scripts/third-party-licenses.sh names.
 # Only the targets and the Python version below differ between projects (Per project).
 set -euo pipefail
 
@@ -43,6 +46,17 @@ cleanup() {
 trap cleanup EXIT
 git worktree add -q --detach "$src" "$tag"
 
+# Into the checkout's third-party/, which pyproject.toml's license-files names: maturin then
+# puts it into the sdist and into each wheel's .dist-info/licenses/. maturin 1.15.0 leaves
+# out a pattern that matches nothing without a word, hence the check below.
+licenses="third-party/rust-licenses.html"
+collect="$src/scripts/third-party-licenses.sh"
+[ -x "$collect" ] || {
+    echo "$tag has no scripts/third-party-licenses.sh to collect the license texts" >&2
+    exit 1
+}
+"$collect" "$src/third-party"
+
 # Kept between runs, outside the checkout (a few GB, more than XDG_RUNTIME_DIR holds).
 export CARGO_TARGET_DIR="$root/target/release-files"
 # Separated by 0x1f, so that a path with a space stays one argument. The last prefix that
@@ -75,6 +89,14 @@ for file in "$out"/*; do
         *.tar.gz) tar -xzf "$file" -C "$unpacked" ;;
         *) echo "$file: not a wheel or a source distribution" >&2; failed=1; continue ;;
     esac
+    case "$file" in
+        *.whl) held=("$unpacked"/*.dist-info/licenses/"$licenses") ;;
+        *) held=("$unpacked"/*/"$licenses") ;;
+    esac
+    [ -s "${held[0]}" ] || {
+        echo "$(basename "$file") does not hold $licenses (license-files in pyproject.toml)" >&2
+        failed=1
+    }
     found="$(grep -rlaF "${patterns[@]}" "$unpacked")" && status=0 || status=$?
     case "$status" in
         0)

@@ -1,0 +1,19 @@
+# cargo about generate about.hbs: the license texts of the Rust dependencies, collected by
+# scripts/third-party-licenses.sh. Copied to the repository's root as about.toml.
+#
+# Per project: the licenses accepted, only those the dependency tree uses and that the
+# project's own license can take in (compatibility.md, table A), as SPDX identifiers.
+accepted = [
+    "Apache-2.0",
+    "MIT",
+    "Unicode-3.0",
+]
+# Only what is compiled into the artifact: a build script's dependencies only run while it
+# is built, and the tests' are not built into it.
+ignore-build-dependencies = true
+ignore-dev-dependencies = true
+
+# Per project: a license accepted for one crate only, where table A says to ask (⚠) and the
+# user decided so for that crate, for example:
+# [<crate>]
+# accepted = ["MPL-2.0"]
