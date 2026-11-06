@@ -1,21 +1,93 @@
 $ cargo +nightly-2026-10-28 miri setup
-A sysroot for Miri is already available in `~/.cache/miri`.
-$ systemd-run --user --scope --quiet -p MemoryMax=4G -p MemorySwapMax=0 -- cargo +nightly-2026-10-28 miri test --locked -p layeredcfg --tests -- 
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s
-     Running unittests src/lib.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/a869f2d12c91db27/out/layeredcfg-a869f2d12c91db27)
+Preparing a sysroot for Miri (target: x86_64-unknown-linux-gnu)...
+[1m[92m    Updating[0m crates.io index
+[1m[92m Downloading[0m crates ...
+[1m[92m  Downloaded[0m addr2line v0.27.1
+[1m[92m  Downloaded[0m foldhash v0.2.0
+[1m[92m  Downloaded[0m cfg-if v1.0.4
+[1m[92m  Downloaded[0m adler2 v2.0.1
+[1m[92m  Downloaded[0m getopts v0.2.24
+[1m[92m  Downloaded[0m rustc-literal-escaper v0.0.8
+[1m[92m  Downloaded[0m rustc-demangle v0.1.28
+[1m[92m  Downloaded[0m miniz_oxide v0.9.1
+[1m[92m  Downloaded[0m memchr v2.8.3
+[1m[92m  Downloaded[0m hashbrown v0.17.1
+[1m[92m  Downloaded[0m gimli v0.34.0
+[1m[92m  Downloaded[0m object v0.39.1
+[1m[92m  Downloaded[0m libc v0.2.191
+[1m[92m   Compiling[0m compiler_builtins v0.1.160 (~/.rustup/toolchains/nightly-2026-10-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/compiler-builtins/compiler-builtins)
+[1m[92m   Compiling[0m core v0.0.0 (~/.rustup/toolchains/nightly-2026-10-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core)
+[1m[92m   Compiling[0m libc v0.2.191
+[1m[92m   Compiling[0m object v0.39.1
+[1m[92m   Compiling[0m std v0.0.0 (~/.rustup/toolchains/nightly-2026-10-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std)
+[1m[92m   Compiling[0m test v0.0.0 (~/.rustup/toolchains/nightly-2026-10-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/test)
+[1m[92m   Compiling[0m rustc-std-workspace-core v1.99.0 (~/.rustup/toolchains/nightly-2026-10-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/rustc-std-workspace-core)
+[1m[92m   Compiling[0m alloc v0.0.0 (~/.rustup/toolchains/nightly-2026-10-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc)
+[1m[92m   Compiling[0m adler2 v2.0.1
+[1m[92m   Compiling[0m memchr v2.8.3
+[1m[92m   Compiling[0m rustc-demangle v0.1.28
+[1m[92m   Compiling[0m cfg-if v1.0.4
+[1m[92m   Compiling[0m rustc-literal-escaper v0.0.8
+[1m[92m   Compiling[0m unwind v0.0.0 (~/.rustup/toolchains/nightly-2026-10-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/unwind)
+[1m[92m   Compiling[0m rustc-std-workspace-alloc v1.99.0 (~/.rustup/toolchains/nightly-2026-10-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/rustc-std-workspace-alloc)
+[1m[92m   Compiling[0m panic_abort v0.0.0 (~/.rustup/toolchains/nightly-2026-10-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/panic_abort)
+[1m[92m   Compiling[0m panic_unwind v0.0.0 (~/.rustup/toolchains/nightly-2026-10-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/panic_unwind)
+[1m[92m   Compiling[0m gimli v0.34.0
+[1m[92m   Compiling[0m std_detect v0.1.5 (~/.rustup/toolchains/nightly-2026-10-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std_detect)
+[1m[92m   Compiling[0m miniz_oxide v0.9.1
+[1m[92m   Compiling[0m hashbrown v0.17.1
+[1m[92m   Compiling[0m addr2line v0.27.1
+[1m[92m   Compiling[0m rustc-std-workspace-std v1.99.0 (~/.rustup/toolchains/nightly-2026-10-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/rustc-std-workspace-std)
+[1m[92m   Compiling[0m proc_macro v0.0.0 (~/.rustup/toolchains/nightly-2026-10-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/proc_macro)
+[1m[92m   Compiling[0m getopts v0.2.24
+[1m[92m   Compiling[0m sysroot v0.0.0 (~/.rustup/toolchains/nightly-2026-10-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/sysroot)
+[1m[92m   Compiling[0m custom-local-sysroot v0.0.0 (/tmp/rustc-build-sysroot-X1pWww)
+[1m[92m    Finished[0m `custom_sysroot` profile [optimized] target(s) in 21.85s
+A sysroot for Miri is now available in `~/.cache/miri`.
+$ cargo +nightly-2026-10-28 miri test --locked -p layeredcfg --tests -- 
+[1m[92m Downloading[0m crates ...
+[1m[92m  Downloaded[0m cfg_aliases v0.2.2
+[1m[92m  Downloaded[0m cfg-if v1.0.5
+[1m[92m  Downloaded[0m equivalent v1.0.3
+[1m[92m  Downloaded[0m serde_spanned v1.1.2
+[1m[92m  Downloaded[0m indexmap v2.14.2
+[1m[92m  Downloaded[0m toml_writer v1.1.3+spec-1.1.0
+[1m[92m  Downloaded[0m toml_datetime v1.1.2+spec-1.1.0
+[1m[92m  Downloaded[0m bitflags v2.13.2
+[1m[92m  Downloaded[0m toml_parser v1.1.5+spec-1.1.0
+[1m[92m  Downloaded[0m toml v1.1.8+spec-1.1.0
+[1m[92m  Downloaded[0m serde_core v1.0.229
+[1m[92m  Downloaded[0m winnow v1.0.4
+[1m[92m  Downloaded[0m nix v0.31.3
+[1m[92m   Compiling[0m libc v0.2.191
+[1m[92m   Compiling[0m cfg_aliases v0.2.2
+[1m[92m   Compiling[0m hashbrown v0.17.1
+[1m[92m   Compiling[0m winnow v1.0.4
+[1m[92m   Compiling[0m nix v0.31.3
+[1m[92m   Compiling[0m equivalent v1.0.3
+[1m[92m   Compiling[0m toml_parser v1.1.5+spec-1.1.0
+[1m[92m   Compiling[0m cfg-if v1.0.5
+[1m[92m   Compiling[0m serde_spanned v1.1.2
+[1m[92m   Compiling[0m toml_datetime v1.1.2+spec-1.1.0
+[1m[92m   Compiling[0m bitflags v2.13.2
+[1m[92m   Compiling[0m indexmap v2.14.2
+[1m[92m   Compiling[0m toml v1.1.8+spec-1.1.0
+[1m[92m   Compiling[0m layeredcfg v0.1.0 (./crates/layeredcfg)
+[1m[92m    Finished[0m `test` profile [unoptimized + debuginfo] target(s) in 2.45s
+[1m[92m     Running[0m unittests src/lib.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/ef76719870fe9d98/out/layeredcfg-ef76719870fe9d98)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
 
-     Running tests/beyond_ascii.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/93dcd1647bb80454/out/beyond_ascii-93dcd1647bb80454)
+[1m[92m     Running[0m tests/beyond_ascii.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/1a484d9c7caaea2d/out/beyond_ascii-1a484d9c7caaea2d)
 
 running 1 test
 test digits_and_whitespace_beyond_ascii_are_read_as_set ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
 
-     Running tests/config.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/58b84e0784a7aae9/out/config-58b84e0784a7aae9)
+[1m[92m     Running[0m tests/config.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/5b73e77ab7a0d409/out/config-5b73e77ab7a0d409)
 
 running 25 tests
 test a_file_is_found_from_a_directory_upwards ... ok
@@ -44,9 +116,9 @@ test the_defaults_say_which_settings_there_are_in_the_file_order_and_their_types
 test the_process_environment_has_no_variable_of_a_name_none_can_have ... ok
 test writers_at_the_same_time_leave_a_whole_file_and_no_temporary_ones ... ok
 
-test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 95.67s
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 109.66s
 
-     Running tests/envfile.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/fad40428f2ca0c02/out/envfile-fad40428f2ca0c02)
+[1m[92m     Running[0m tests/envfile.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/27c28c4d35ba4b58/out/envfile-27c28c4d35ba4b58)
 
 running 11 tests
 test a_comment_after_the_equals_sign_a_byte_order_mark_other_line_ends_form_feeds ... ok
@@ -61,9 +133,9 @@ test replace_takes_a_quoted_value_lines_as_one_and_keeps_every_other_byte ... ok
 test what_names_put_into_values_is_bounded ... ok
 test whitespace_beyond_ascii_is_whitespace_as_python_dotenv_takes_it ... ok
 
-test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 40.10s
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 47.10s
 
-     Running tests/text.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/ba37f8ffcfb2cc49/out/text-ba37f8ffcfb2cc49)
+[1m[92m     Running[0m tests/text.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/layeredcfg/78daf07f29474334/out/text-78daf07f29474334)
 
 running 8 tests
 test a_boolean_is_one_of_its_words ... ok
@@ -75,6 +147,6 @@ test strip_booleans_and_lists_take_off_python_whitespace ... ok
 test utf8_is_checked ... ok
 test whitespace_beyond_ascii_is_unicodes_and_digits_are_ascii ... ok
 
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.48s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.78s
 
 xtask: miri: succeeded

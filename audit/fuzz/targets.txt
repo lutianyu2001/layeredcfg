@@ -1,3 +1,0 @@
-config: succeeded, 19869881 runs ([exit status: 0])
-envfile: succeeded, 19548147 runs ([exit status: 0])
-numbers: succeeded, 127718587 runs ([exit status: 0])

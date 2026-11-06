@@ -1,5 +1,5 @@
 $ cargo deny --locked --workspace check
-advisories ok, bans ok, licenses ok, sources ok
+advisories [32mok[0m, bans [32mok[0m, licenses [32mok[0m, sources [32mok[0m
 $ cargo deny --locked --manifest-path fuzz/Cargo.toml check advisories sources
-advisories ok, sources ok
+advisories [32mok[0m, sources [32mok[0m
 xtask: deny: succeeded
