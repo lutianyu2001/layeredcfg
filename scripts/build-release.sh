@@ -10,6 +10,7 @@
 # collected from the tag's Cargo.lock, and every file is checked to hold them.
 #
 # Usage: scripts/build-release.sh <tag>
+# Runs the same way on a machine of one's own and in the release workflow.
 # Needs maturin (MATURIN, or on PATH), zig for the targets of other platforms, the targets
 # installed with rustup, uvx for twine, and cargo-about at the version that the project's
 # scripts/third-party-licenses.sh names.
@@ -35,7 +36,14 @@ targets=(
 python="python3.10"
 maturin="${MATURIN:-maturin}"
 
-base="${XDG_RUNTIME_DIR:?XDG_RUNTIME_DIR is not set: no private directory whose path names no one}"
+# In GitHub Actions the runner is a machine of its own, so /tmp serves when XDG_RUNTIME_DIR is not
+# set. Not RUNNER_TEMP: it is under the home directory, which the check below looks for.
+base="${XDG_RUNTIME_DIR:-}"
+[ -n "$base" ] || [ "${GITHUB_ACTIONS:-}" != true ] || base=/tmp
+[ -n "$base" ] || {
+    echo "XDG_RUNTIME_DIR is not set: no private directory whose path names no one" >&2
+    exit 1
+}
 work="$(mktemp -d "$base/release.XXXXXXXX")"
 src="$work/src"
 out="$work/dist"
@@ -109,7 +117,7 @@ for file in "$out"/*; do
     esac
 done
 [ "$failed" = 0 ] || exit 1
-uvx twine check --strict "$out"/*
+uvx twine==7.0.0 check --strict "$out"/*
 
 rm -rf "$root/dist"
 mkdir "$root/dist"

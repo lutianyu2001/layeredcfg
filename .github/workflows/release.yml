@@ -1,0 +1,179 @@
+# The release workflow of a Rust project with PyO3 bindings: copy it to
+# .github/workflows/release.yml, which holds all of a project's releasing. Only
+# what is marked Per project differs between projects. Not run in a project yet: watch its first
+# run. Nothing reaches the registries unless the check job, which installs from TestPyPI, passes.
+#
+# Pushing a version tag builds the sdist and the wheels with scripts/build-release.sh, checks the
+# crate with cargo publish --dry-run, uploads the Python files to TestPyPI, installs them from
+# there, then publishes to PyPI and crates.io by trusted publishing (the environments testpypi,
+# pypi and crates-io), and then creates the GitHub release. By hand, the same commands run in the
+# same order with the tokens in ~/.pypirc and cargo's credentials.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+env:
+  # Per project: the crate published to crates.io, and the Python package's import name.
+  CRATE: layeredcfg
+  IMPORT: layeredcfg
+
+jobs:
+  # Builds from the tag, with neither a secret nor a token that can write. Building runs the
+  # dependencies' build scripts and procedural macros.
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    outputs:
+      name: ${{ steps.meta.outputs.name }}
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check that the tag matches the version
+        id: meta
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          read -r name version < <(python3 -c 'import tomllib; p = tomllib.load(open("pyproject.toml", "rb"))["project"]; print(p["name"], p.get("version", ""))')
+          # maturin takes the version from Cargo.toml when pyproject.toml declares it dynamic.
+          [ -n "$version" ] || version=$(cargo metadata --no-deps --format-version 1 \
+            | python3 -c 'import json, os, sys; print(next(p["version"] for p in json.load(sys.stdin)["packages"] if p["name"] == os.environ["CRATE"]))')
+          if [ "v$version" != "$TAG" ]; then
+            echo "tag $TAG doesn't match version $version" >&2
+            exit 1
+          fi
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      # Per project: the targets build-release.sh names, and the versions it was last seen with.
+      - name: Install the tools
+        run: |
+          rustup target add x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu \
+            x86_64-unknown-linux-musl aarch64-unknown-linux-musl
+          python3 -m venv "$RUNNER_TEMP/tools"
+          "$RUNNER_TEMP/tools/bin/pip" install --quiet maturin==1.15.0 ziglang==0.16.0 uv==0.13.4
+          cargo install --locked --features cli cargo-about@0.9.3
+          echo "$RUNNER_TEMP/tools/bin" >> "$GITHUB_PATH"
+
+      # Before the build: build-release.sh writes dist/ into this checkout, which cargo would count
+      # as an uncommitted change in a crate at the repository's root.
+      - name: Check the crate
+        run: cargo publish --dry-run --locked -p "$CRATE"
+
+      - name: Build the sdist and the wheels
+        env:
+          TAG: ${{ github.ref_name }}
+        run: scripts/build-release.sh "$TAG"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  testpypi:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: testpypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist/
+      - run: pipx install uv==0.13.4
+      - run: uvx twine==7.0.0 upload --non-interactive --repository testpypi dist/*
+
+  # Installs what TestPyPI now serves, as a user would, before PyPI and crates.io get the release.
+  check:
+    needs: [build, testpypi]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      NAME: ${{ needs.build.outputs.name }}
+      VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - name: Install from TestPyPI
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          # The index can take a minute to list a new upload.
+          for _ in 1 2 3 4 5 6 7 8 9 10; do
+            "$RUNNER_TEMP/venv/bin/pip" install --only-binary :all: --index-url https://test.pypi.org/simple/ \
+              --extra-index-url https://pypi.org/simple/ "$NAME==$VERSION" && exit 0
+            sleep 30
+          done
+          exit 1
+      # Per project: a command that runs the installed package, or its Python tests.
+      - run: '"$RUNNER_TEMP/venv/bin/python" -c "import $IMPORT"'
+
+  pypi:
+    needs: check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist/
+      - run: pipx install uv==0.13.4
+      - run: uvx twine==7.0.0 upload --non-interactive dist/*
+
+  # crates.io takes only versions after the first by trusted publishing: until the first is out by
+  # hand and the crate's trusted publisher is set, leave this job out.
+  crates-io:
+    needs: check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: crates-io
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: rust-lang/crates-io-auth-action@3268eb413133e2960fa4ae0e963ca76380c54cd9 # v1.0.6
+        id: auth
+
+      # The build job's dry run built this package from the same tag and Cargo.lock, so this one
+      # only packages and uploads, and runs no build script with the token at hand.
+      - name: Publish the crate
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+        run: cargo publish --locked --no-verify -p "$CRATE"
+
+  github-release:
+    needs: [pypi, crates-io]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      # Per project: only to start verify.yml below.
+      actions: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist/
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" dist/* -R "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --generate-notes
+          # Per project: with the security audit's verify.yml, which a release made with this
+          # token would not start on its own.
+          gh workflow run verify.yml -R "$GITHUB_REPOSITORY" --ref "$TAG"
