@@ -1,15 +1,15 @@
-# Rust as tokens, the rest as git blobs, own versions left out (1)
+# Rust as tokens, the rest as git blobs, own versions and unread metadata left out (2)
 4408eff3db9961c1a2cbdc28625bd3973635e831	.cargo/config.toml
 9e6fc714decedc598c2828f49f692fec6af00d29	Cargo.lock
 c37ded6125e14d627ddbd78df0e3d21e001c71fb	Cargo.toml
 79ce8a009c8a90eacb112a5b88649807b4638772	crates/layeredcfg-python/Cargo.toml
-797b149c3a78004323a869ca7227c8cd10ae5eb9	crates/layeredcfg/Cargo.toml
+a54216ee400d0e9fc16877650a2bf2c4bd86c5d5	crates/layeredcfg/Cargo.toml
 9ec55b3b621dbc75fc68817cd51b96e407d3c94c	rust-toolchain.toml
 38db1335b776e0fea853282d76fbd6f2b061ff7f	supply-chain/audits.toml
 dc3d4f91713cfc65ab90d169d63fd1505d33dfe5	supply-chain/config.toml
 6b0e2401c585702d274adb3a5e6fb827c40120d3	supply-chain/imports.lock
-00b15a58ac01258670a5e8db7078d4a105d19d98	xtask/Cargo.toml
-ed6f8ebe2acbe38430efe64eee311f2b85f18799	xtask/src/main.rs
+6e9873f7de6067255be6b14f9fc7fe2b4a0b8893	xtask/Cargo.toml
+73eba66b9a8979e0dad6db122cd296efb24d91f8	xtask/src/main.rs
 c1930b545baab252c81e949bf4b04144be5c14e9	xtask/src/run.rs
 c329af61b0d22bfc28e08fd733e1e82a48e64a37	xtask/src/tasks/mod.rs
 c67c76e148a59e0c5aa9c4553ece4c187d56e02f	xtask/src/tasks/vet.rs

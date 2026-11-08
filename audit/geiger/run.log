@@ -1,16 +1,16 @@
 $ cargo fetch --locked
 [1m[92m Downloading[0m crates ...
-[1m[92m  Downloaded[0m toml v1.1.8+spec-1.1.0
-[1m[92m  Downloaded[0m pyo3-macros v0.30.1
-[1m[92m  Downloaded[0m toml_datetime v1.1.2+spec-1.1.0
-[1m[92m  Downloaded[0m equivalent v1.0.3
 [1m[92m  Downloaded[0m target-lexicon v0.13.5
 [1m[92m  Downloaded[0m pyo3-build-config v0.30.1
-[1m[92m  Downloaded[0m pyo3-macros-backend v0.30.1
+[1m[92m  Downloaded[0m toml_datetime v1.1.2+spec-1.1.0
+[1m[92m  Downloaded[0m toml v1.1.8+spec-1.1.0
 [1m[92m  Downloaded[0m pyo3-ffi v0.30.1
 [1m[92m  Downloaded[0m syn v3.0.9
-[1m[92m  Downloaded[0m libc v0.2.191
+[1m[92m  Downloaded[0m pyo3-macros v0.30.1
 [1m[92m  Downloaded[0m pyo3 v0.30.1
+[1m[92m  Downloaded[0m equivalent v1.0.3
+[1m[92m  Downloaded[0m pyo3-macros-backend v0.30.1
+[1m[92m  Downloaded[0m libc v0.2.191
 $ cargo geiger --locked --offline --output-format Ascii --manifest-path ./target/geiger-src/crates/layeredcfg/Cargo.toml > geiger-layeredcfg.txt
 Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
 Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
@@ -95,42 +95,42 @@ Failed to match (ignoring source) package: registry+https://github.com/rust-lang
 Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
 Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
      Removed 0 files
-   Compiling libc v0.2.191
    Compiling cfg_aliases v0.2.2
-    Checking hashbrown v0.17.1
+   Compiling libc v0.2.191
+    Checking equivalent v1.0.3
     Checking winnow v1.0.4
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/cfg_aliases-a16aca7df7f3ef5f.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/equivalent-be54af99fdf4f2bf.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libcfg_aliases-a16aca7df7f3ef5f.rmeta","emit":"metadata"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/build/libc-848495e269c9a0a5/build_script_build-848495e269c9a0a5.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libequivalent-be54af99fdf4f2bf.rmeta","emit":"metadata"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libcfg_aliases-a16aca7df7f3ef5f.rlib","emit":"link"}
    Compiling nix v0.31.3
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/winnow-52d6b94579369c19.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/build/libc-848495e269c9a0a5/build_script_build-848495e269c9a0a5.d","emit":"dep-info"}
+    Checking hashbrown v0.17.1
 {"$message_type":"artifact","artifact":"./target/geiger/debug/build/nix-95908eb474d4b5f7/build_script_build-95908eb474d4b5f7.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/winnow-52d6b94579369c19.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/hashbrown-ebef52111897676a.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libwinnow-52d6b94579369c19.rmeta","emit":"metadata"}
-    Checking equivalent v1.0.3
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/equivalent-be54af99fdf4f2bf.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libequivalent-be54af99fdf4f2bf.rmeta","emit":"metadata"}
-    Checking toml_parser v1.1.5+spec-1.1.0
 {"$message_type":"artifact","artifact":"./target/geiger/debug/build/nix-95908eb474d4b5f7/build_script_build-95908eb474d4b5f7","emit":"link"}
-    Checking toml_datetime v1.1.2+spec-1.1.0
+    Checking serde_spanned v1.1.2
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libwinnow-52d6b94579369c19.rmeta","emit":"metadata"}
+    Checking toml_parser v1.1.5+spec-1.1.0
 {"$message_type":"artifact","artifact":"./target/geiger/debug/build/libc-848495e269c9a0a5/build_script_build-848495e269c9a0a5","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/serde_spanned-62e107cb8600a309.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libserde_spanned-62e107cb8600a309.rmeta","emit":"metadata"}
+    Checking toml_datetime v1.1.2+spec-1.1.0
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/toml_datetime-f631253e44af8551.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/toml_parser-b2d815c555e46f3d.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libtoml_datetime-f631253e44af8551.rmeta","emit":"metadata"}
+    Checking cfg-if v1.0.5
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/cfg_if-67a0d44d19132074.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libcfg_if-67a0d44d19132074.rmeta","emit":"metadata"}
     Checking bitflags v2.13.2
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/bitflags-523c7805787e01d1.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libbitflags-523c7805787e01d1.rmeta","emit":"metadata"}
-    Checking cfg-if v1.0.5
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libhashbrown-ebef52111897676a.rmeta","emit":"metadata"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/cfg_if-67a0d44d19132074.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libbitflags-523c7805787e01d1.rmeta","emit":"metadata"}
     Checking indexmap v2.14.2
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libcfg_if-67a0d44d19132074.rmeta","emit":"metadata"}
-    Checking serde_spanned v1.1.2
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/serde_spanned-62e107cb8600a309.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libserde_spanned-62e107cb8600a309.rmeta","emit":"metadata"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/indexmap-054ff31577770d53.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libtoml_parser-b2d815c555e46f3d.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/indexmap-054ff31577770d53.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libc-f530465ce4b19a3b.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libindexmap-054ff31577770d53.rmeta","emit":"metadata"}
     Checking toml v1.1.8+spec-1.1.0
@@ -139,10 +139,10 @@ Failed to match (ignoring source) package: registry+https://github.com/rust-lang
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/liblibc-f530465ce4b19a3b.rmeta","emit":"metadata"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/nix-af8e072d1b9f46c2.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libnix-af8e072d1b9f46c2.rmeta","emit":"metadata"}
-    Checking layeredcfg v0.1.0 (./target/geiger-src/crates/layeredcfg)
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/layeredcfg-393196a179a58a4e.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/liblayeredcfg-393196a179a58a4e.rmeta","emit":"metadata"}
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.67s
+    Checking layeredcfg v0.2.0 (./target/geiger-src/crates/layeredcfg)
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/layeredcfg-0caa52fa22c4b5b8.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/liblayeredcfg-0caa52fa22c4b5b8.rmeta","emit":"metadata"}
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.57s
     Scanning done
 $ cargo geiger --locked --offline --output-format Ascii --manifest-path ./target/geiger-src/crates/layeredcfg-python/Cargo.toml > geiger-layeredcfg-python.txt
 Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
@@ -227,100 +227,100 @@ Failed to match (ignoring source) package: registry+https://github.com/rust-lang
 Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
 Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
 Failed to match (ignoring source) package: registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229 
-     Removed 116 files, 29.0MiB total
+     Removed 116 files, 29.3MiB total
    Compiling target-lexicon v0.13.5
    Compiling proc-macro2 v1.0.107
    Compiling libc v0.2.191
    Compiling quote v1.0.47
 {"$message_type":"artifact","artifact":"./target/geiger/debug/build/quote-cb66644ea05edbd9/build_script_build-cb66644ea05edbd9.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/build/libc-848495e269c9a0a5/build_script_build-848495e269c9a0a5.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/build/proc-macro2-a2eac87d1420dec5/build_script_build-a2eac87d1420dec5.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/build/libc-848495e269c9a0a5/build_script_build-848495e269c9a0a5.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/build/target-lexicon-747cbd95e22dd4ba/build_script_build-747cbd95e22dd4ba.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/build/quote-cb66644ea05edbd9/build_script_build-cb66644ea05edbd9","emit":"link"}
    Compiling unicode-ident v1.0.27
+{"$message_type":"artifact","artifact":"./target/geiger/debug/build/proc-macro2-a2eac87d1420dec5/build_script_build-a2eac87d1420dec5","emit":"link"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/unicode_ident-81bfb0f85f6a8742.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libunicode_ident-81bfb0f85f6a8742.rmeta","emit":"metadata"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/build/proc-macro2-a2eac87d1420dec5/build_script_build-a2eac87d1420dec5","emit":"link"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libunicode_ident-81bfb0f85f6a8742.rlib","emit":"link"}
    Compiling pyo3-macros-backend v0.30.1
 {"$message_type":"artifact","artifact":"./target/geiger/debug/build/pyo3-macros-backend-aba94ee4c8b2163c/build_script_build-aba94ee4c8b2163c.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/build/pyo3-macros-backend-aba94ee4c8b2163c/build_script_build-aba94ee4c8b2163c","emit":"link"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/proc_macro2-9c88067a247391ad.d","emit":"dep-info"}
-   Compiling cfg_aliases v0.2.2
 {"$message_type":"artifact","artifact":"./target/geiger/debug/build/libc-848495e269c9a0a5/build_script_build-848495e269c9a0a5","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/build/pyo3-macros-backend-aba94ee4c8b2163c/build_script_build-aba94ee4c8b2163c","emit":"link"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/build/target-lexicon-747cbd95e22dd4ba/build_script_build-747cbd95e22dd4ba","emit":"link"}
+   Compiling cfg_aliases v0.2.2
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/proc_macro2-9c88067a247391ad.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/cfg_aliases-a16aca7df7f3ef5f.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libcfg_aliases-a16aca7df7f3ef5f.rmeta","emit":"metadata"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libcfg_aliases-a16aca7df7f3ef5f.rlib","emit":"link"}
    Compiling nix v0.31.3
-{"$message_type":"artifact","artifact":"./target/geiger/debug/build/nix-95908eb474d4b5f7/build_script_build-95908eb474d4b5f7.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/build/target-lexicon-747cbd95e22dd4ba/build_script_build-747cbd95e22dd4ba","emit":"link"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/target_lexicon-56b568b9a6b3a98d.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/build/nix-95908eb474d4b5f7/build_script_build-95908eb474d4b5f7","emit":"link"}
-   Compiling heck v0.5.0
+{"$message_type":"artifact","artifact":"./target/geiger/debug/build/nix-95908eb474d4b5f7/build_script_build-95908eb474d4b5f7.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libtarget_lexicon-56b568b9a6b3a98d.rmeta","emit":"metadata"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libproc_macro2-9c88067a247391ad.rmeta","emit":"metadata"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/heck-c4dbf551d3f1e684.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libheck-c4dbf551d3f1e684.rmeta","emit":"metadata"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libc-f530465ce4b19a3b.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/build/nix-95908eb474d4b5f7/build_script_build-95908eb474d4b5f7","emit":"link"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libtarget_lexicon-56b568b9a6b3a98d.rlib","emit":"link"}
-   Compiling pyo3-build-config v0.30.1
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libheck-c4dbf551d3f1e684.rlib","emit":"link"}
     Checking hashbrown v0.17.1
+   Compiling pyo3-build-config v0.30.1
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libproc_macro2-9c88067a247391ad.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libc-f530465ce4b19a3b.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/pyo3_build_config-8a1f6b815f347113.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/hashbrown-ebef52111897676a.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libproc_macro2-9c88067a247391ad.rlib","emit":"link"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/quote-28a53d4f3fad2fe1.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libquote-28a53d4f3fad2fe1.rmeta","emit":"metadata"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libquote-28a53d4f3fad2fe1.rlib","emit":"link"}
-   Compiling syn v3.0.9
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libpyo3_build_config-8a1f6b815f347113.rmeta","emit":"metadata"}
+   Compiling syn v3.0.9
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libhashbrown-ebef52111897676a.rmeta","emit":"metadata"}
     Checking equivalent v1.0.3
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/equivalent-be54af99fdf4f2bf.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libequivalent-be54af99fdf4f2bf.rmeta","emit":"metadata"}
+   Compiling heck v0.5.0
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/heck-c4dbf551d3f1e684.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libheck-c4dbf551d3f1e684.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libheck-c4dbf551d3f1e684.rlib","emit":"link"}
     Checking winnow v1.0.4
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/winnow-52d6b94579369c19.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/syn-d5baaeeeb2f9f060.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libwinnow-52d6b94579369c19.rmeta","emit":"metadata"}
-    Checking toml_parser v1.1.5+spec-1.1.0
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libpyo3_build_config-8a1f6b815f347113.rlib","emit":"link"}
    Compiling pyo3-ffi v0.30.1
 {"$message_type":"artifact","artifact":"./target/geiger/debug/build/pyo3-ffi-df78c23b62399f07/build_script_build-df78c23b62399f07.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libwinnow-52d6b94579369c19.rmeta","emit":"metadata"}
+    Checking toml_parser v1.1.5+spec-1.1.0
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/toml_parser-b2d815c555e46f3d.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/build/pyo3-ffi-df78c23b62399f07/build_script_build-df78c23b62399f07","emit":"link"}
    Compiling pyo3 v0.30.1
 {"$message_type":"artifact","artifact":"./target/geiger/debug/build/pyo3-4047eba421c24a73/build_script_build-4047eba421c24a73.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libtoml_parser-b2d815c555e46f3d.rmeta","emit":"metadata"}
-    Checking indexmap v2.14.2
 {"$message_type":"artifact","artifact":"./target/geiger/debug/build/pyo3-4047eba421c24a73/build_script_build-4047eba421c24a73","emit":"link"}
-    Checking toml_datetime v1.1.2+spec-1.1.0
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/liblibc-f530465ce4b19a3b.rmeta","emit":"metadata"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/toml_datetime-f631253e44af8551.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/indexmap-054ff31577770d53.d","emit":"dep-info"}
+    Checking indexmap v2.14.2
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libtoml_parser-b2d815c555e46f3d.rmeta","emit":"metadata"}
     Checking bitflags v2.13.2
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/liblibc-f530465ce4b19a3b.rmeta","emit":"metadata"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/bitflags-523c7805787e01d1.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libtoml_datetime-f631253e44af8551.rmeta","emit":"metadata"}
-    Checking serde_spanned v1.1.2
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/serde_spanned-62e107cb8600a309.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libserde_spanned-62e107cb8600a309.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/indexmap-054ff31577770d53.d","emit":"dep-info"}
     Checking cfg-if v1.0.5
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libbitflags-523c7805787e01d1.rmeta","emit":"metadata"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/cfg_if-67a0d44d19132074.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libcfg_if-67a0d44d19132074.rmeta","emit":"metadata"}
+    Checking serde_spanned v1.1.2
+    Checking toml_datetime v1.1.2+spec-1.1.0
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/serde_spanned-62e107cb8600a309.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libserde_spanned-62e107cb8600a309.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/toml_datetime-f631253e44af8551.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libtoml_datetime-f631253e44af8551.rmeta","emit":"metadata"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/nix-af8e072d1b9f46c2.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/pyo3_ffi-bdfdfdf8a79f0e88.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libnix-af8e072d1b9f46c2.rmeta","emit":"metadata"}
     Checking once_cell v1.21.4
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libpyo3_ffi-bdfdfdf8a79f0e88.rmeta","emit":"metadata"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/once_cell-66f857127c66fbb0.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libonce_cell-66f857127c66fbb0.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libpyo3_ffi-bdfdfdf8a79f0e88.rmeta","emit":"metadata"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libindexmap-054ff31577770d53.rmeta","emit":"metadata"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libonce_cell-66f857127c66fbb0.rmeta","emit":"metadata"}
     Checking toml v1.1.8+spec-1.1.0
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/toml-98dbfbea82281d93.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libtoml-98dbfbea82281d93.rmeta","emit":"metadata"}
-    Checking layeredcfg v0.1.0 (./target/geiger-src/crates/layeredcfg)
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/layeredcfg-393196a179a58a4e.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/liblayeredcfg-393196a179a58a4e.rmeta","emit":"metadata"}
+    Checking layeredcfg v0.2.0 (./target/geiger-src/crates/layeredcfg)
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/layeredcfg-0caa52fa22c4b5b8.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/liblayeredcfg-0caa52fa22c4b5b8.rmeta","emit":"metadata"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libsyn-d5baaeeeb2f9f060.rmeta","emit":"metadata"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libsyn-d5baaeeeb2f9f060.rlib","emit":"link"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/pyo3_macros_backend-597e726583b8cf7f.d","emit":"dep-info"}
@@ -331,13 +331,13 @@ Failed to match (ignoring source) package: registry+https://github.com/rust-lang
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libpyo3_macros-65b174d557d2b8a6.so","emit":"link"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/pyo3-4c6930bb57af50bf.d","emit":"dep-info"}
 {"$message_type":"artifact","artifact":"./target/geiger/debug/deps/libpyo3-4c6930bb57af50bf.rmeta","emit":"metadata"}
-    Checking layeredcfg-python v0.1.0 (./target/geiger-src/crates/layeredcfg-python)
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/_core-73ce1ea87e42b725.d","emit":"dep-info"}
-{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/lib_core-73ce1ea87e42b725.rmeta","emit":"metadata"}
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.57s
+    Checking layeredcfg-python v0.2.0 (./target/geiger-src/crates/layeredcfg-python)
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/_core-fca4c5d0b29359e6.d","emit":"dep-info"}
+{"$message_type":"artifact","artifact":"./target/geiger/debug/deps/lib_core-fca4c5d0b29359e6.rmeta","emit":"metadata"}
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.54s
     Scanning done
-WARNING: Dependency file was never scanned: ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-0.30.1/guide/pyclass-parameters.md
 WARNING: Dependency file was never scanned: ./target/geiger/debug/build/target-lexicon-abf64f4c9dbced98/out/host.rs
+WARNING: Dependency file was never scanned: ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-0.30.1/guide/pyclass-parameters.md
 error: Found 2 warnings
 cargo geiger: exit status: 1, with a whole table of layeredcfg-python
 xtask: geiger: succeeded
