@@ -54,7 +54,7 @@ def test_settings_are_read_as_attributes_in_their_types(defaults):
     assert repr(config.server) == "<config section 'server'>"
     assert config.type("quota.hosts") == "list" and config.type("server.host") == "str"
     assert config.default("server.port") == 8420 and config.variable("server.port") == "APP_SERVER_PORT"
-    assert layeredcfg.__version__ == "0.2.0"
+    assert layeredcfg.__version__ == "0.2.1"
 
 
 def test_unknown_settings_are_errors_of_the_kinds_python_code_expects(defaults):

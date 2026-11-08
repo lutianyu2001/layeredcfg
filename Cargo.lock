@@ -32,7 +32,7 @@ dependencies = [
 
 [[package]]
 name = "layeredcfg"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "libc",
  "toml",
@@ -40,7 +40,7 @@ dependencies = [
 
 [[package]]
 name = "layeredcfg-python"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "layeredcfg",
  "pyo3",
