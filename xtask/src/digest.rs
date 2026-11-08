@@ -1,9 +1,9 @@
 //! What inputs.txt holds of each file a task reads: a hash of what can change a run. Rust
 //! files are hashed as their tokens, so that a change to their comments or layout changes
 //! none; doc comments are tokens (`#[doc]` attributes), and stay, since derive macros such
-//! as clap's and displaydoc's make the program's output of them. The rest, and a file that
-//! does not parse, are hashed as git hashes them: TOML files too, in this project, whose
-//! toml has neither the display nor the serde feature (see xtask/Cargo.toml).
+//! as clap's and displaydoc's make the program's output of them. Per project: without toml
+//! among the dependencies, TOML files are not read as values. The rest, TOML files included,
+//! and a file that does not parse, are hashed as git hashes them.
 //!
 //! A file that code reads as data (with `include_str!`, or a test's sample) is hashed as it
 //! is, whatever its kind.
@@ -110,8 +110,8 @@ pub fn hashes(
     let wanted: Vec<usize> = (0..files.len())
         .filter(|&i| !data.contains(&files[i].0.as_str()))
         .filter(|&i| {
-            let path = Path::new(&files[i].0);
-            path.extension().is_some_and(|e| e == "rs") || is_cargo_file(&files[i].0)
+            Path::new(&files[i].0).extension().is_some_and(|e| e == "rs")
+                || is_cargo_file(&files[i].0)
         })
         .collect();
     let blobs = contents(root, wanted.iter().map(|&i| files[i].1.as_str()))?;
@@ -234,11 +234,7 @@ mod tests {
         ));
         assert!(!same("a.rs", "a += b;", "a + = b;"));
         assert_eq!(normal("a.rs", b"fn a() { \"open", false), None);
-    }
-
-    #[test]
-    fn toml_is_hashed_as_it_is() {
-        assert_eq!(normal("a.toml", b"a = 1 # one\n", false), None);
+        assert_eq!(normal("a.toml", b"a = 1", false), None);
         assert_eq!(normal("a.md", b"a", false), None);
     }
 

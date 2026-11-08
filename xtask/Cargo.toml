@@ -13,8 +13,8 @@ description = "The security audit: cargo xtask <task> (see SECURITY.md)"
 # versions in Cargo.lock; a crate not there is replaced by code of xtask's own or the
 # system's curl.
 [dependencies]
-# serde_json and ureq are not among them: src/json.rs and the system's curl instead. toml is,
-# but without display and serde, which would bring in serde: TOML files are hashed as git
+# Per project: neither serde_json nor ureq is among them, nor toml with display and serde:
+# src/json.rs reads JSON, the system's curl does the HTTP, and TOML files are hashed as git
 # hashes them (digest.rs).
 proc-macro2 = { version = "1.0.107", default-features = false }
 
