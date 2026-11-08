@@ -39,7 +39,7 @@ warning: Found the following unsupported constructs:
 
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
-note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
 Checking harness proofs::parse_int_is_exact_at_the_smallest_i64...
 CBMC 6.11.0 (cbmc-6.11.0)
 CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
@@ -4026,34 +4026,34 @@ aborting path on assume(false) at file crates/layeredcfg/src/lib.rs line 0 colum
 Not unwinding loop _RNvMsr_NtCs8xvirJzNMvV_4core3numx27from_ascii_bytes_radix_implCskhgOewzrZDf_10layeredcfg.3 iteration 22 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/mod.rs line 1835 column 29 function core::num::<impl i64>::from_ascii_bytes_radix_impl thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs line 714 column 15 function std::result::Result::<i64, std::num::ParseIntError>::ok thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 2439 column 15 function <std::option::Option<i64> as std::cmp::PartialEq>::eq thread 0
-Runtime Symex: 597.073s
+Runtime Symex: 495.759s
 size of program expression: 1753640 steps
 slicing removed 1455618 assignments
 Generated 30586 VCC(s), 16310 remaining after simplification
-Runtime Postprocess Equation: 8.95803s
+Runtime Postprocess Equation: 7.69809s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 20.0785s
+Runtime Convert SSA: 64.9177s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 4.85244s
+Runtime Post-process: 4.707s
 Solving with CaDiCaL 3.0.0
 4148150 variables, 33658576 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 300.895s
-Runtime decision procedure: 321.183s
+Runtime Solver: 292.017s
+Runtime decision procedure: 357.12s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 4148151 variables, 33658577 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.569389s
-Runtime decision procedure: 0.656577s
+Runtime Solver: 0.57965s
+Runtime decision procedure: 0.666749s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 4148152 variables, 33658578 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 1.23429s
-Runtime decision procedure: 1.25777s
+Runtime Solver: 1.19585s
+Runtime decision procedure: 1.22093s
 
 RESULTS:
 Check 1: <std::option::Option<u64> as std::ops::FromResidual<std::option::Option<std::convert::Infallible>>>::from_residual.unreachable.1
@@ -8828,8 +8828,8 @@ SUMMARY:
  ** 0 of 959 failed (40 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 972.1257s
+Verification Time: 905.308s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 10274746368
+xtask: peak memory in bytes: 10276667392

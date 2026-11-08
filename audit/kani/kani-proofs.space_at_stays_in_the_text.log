@@ -30,16 +30,16 @@ warning: use of an unstable feature
   |
   = note: requested on the command line with `--force-warn unstable-features`
 
-warning: Found the following unsupported constructs:
+    Finishedwarning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
          
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+ `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
-note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
 Checking harness proofs::space_at_stays_in_the_text...
 CBMC 6.11.0 (cbmc-6.11.0)
 CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
@@ -102,46 +102,46 @@ aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 co
 Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
-Runtime Symex: 0.361012s
+Runtime Symex: 0.40606s
 size of program expression: 16084 steps
 slicing removed 11195 assignments
 Generated 545 VCC(s), 123 remaining after simplification
-Runtime Postprocess Equation: 0.00391478s
+Runtime Postprocess Equation: 0.0101416s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 0.033209s
+Runtime Convert SSA: 0.0486713s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 0.00887667s
+Runtime Post-process: 0.00911216s
 Solving with CaDiCaL 3.0.0
 48445 variables, 110146 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.107128s
-Runtime decision procedure: 0.141563s
+Runtime Solver: 0.176698s
+Runtime decision procedure: 0.226714s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 48446 variables, 110147 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.00371109s
-Runtime decision procedure: 0.00487482s
+Runtime Solver: 0.00386915s
+Runtime decision procedure: 0.0051174s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 48447 variables, 110148 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0183157s
-Runtime decision procedure: 0.0189158s
+Runtime Solver: 0.0215806s
+Runtime decision procedure: 0.0223231s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 48448 variables, 110149 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.00454921s
-Runtime decision procedure: 0.00514732s
+Runtime Solver: 0.00914916s
+Runtime decision procedure: 0.00990309s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 48449 variables, 110150 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 0.0181916s
-Runtime decision procedure: 0.0183831s
+Runtime Solver: 0.0253662s
+Runtime decision procedure: 0.0256916s
 
 RESULTS:
 Check 1: text::decode.assertion.1
@@ -1279,8 +1279,8 @@ SUMMARY:
  ** 0 of 226 failed (1 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.91991776s
+Verification Time: 1.2066998s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 107728896
+xtask: peak memory in bytes: 105848832

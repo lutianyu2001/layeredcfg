@@ -39,7 +39,7 @@ warning: Found the following unsupported constructs:
 
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
-note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
 Checking harness proofs::decode_past_the_end_is_no_character...
 CBMC 6.11.0 (cbmc-6.11.0)
 CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
@@ -100,28 +100,28 @@ Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file c
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
 Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
-Runtime Symex: 0.365711s
+Runtime Symex: 0.276146s
 size of program expression: 14786 steps
 slicing removed 10238 assignments
 Generated 497 VCC(s), 116 remaining after simplification
-Runtime Postprocess Equation: 0.00575563s
+Runtime Postprocess Equation: 0.00387805s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 0.062892s
+Runtime Convert SSA: 0.0332345s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 0.0105596s
+Runtime Post-process: 0.00855504s
 Solving with CaDiCaL 3.0.0
 46983 variables, 106934 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.226317s
-Runtime decision procedure: 0.290421s
+Runtime Solver: 0.108867s
+Runtime decision procedure: 0.143237s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 46984 variables, 106935 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 0.00438938s
-Runtime decision procedure: 0.00468133s
+Runtime Solver: 0.00258912s
+Runtime decision procedure: 0.0027911s
 
 RESULTS:
 Check 1: core::slice::index::slice_index_fail::do_panic::runtime.assertion.4
@@ -914,8 +914,8 @@ SUMMARY:
  ** 0 of 157 failed (8 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.8346893s
+Verification Time: 0.56251144s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 98586624
+xtask: peak memory in bytes: 84176896

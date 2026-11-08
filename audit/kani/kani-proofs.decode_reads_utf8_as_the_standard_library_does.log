@@ -30,16 +30,16 @@ warning: use of an unstable feature
   |
   = note: requested on the command line with `--force-warn unstable-features`
 
-warning: Found the following unsupported constructs:
+    Finishedwarning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
          
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+ `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
-note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
 Checking harness proofs::decode_reads_utf8_as_the_standard_library_does...
 CBMC 6.11.0 (cbmc-6.11.0)
 CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
@@ -805,82 +805,82 @@ aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1130 column 30 function std::option::Option::<&u8>::unwrap_unchecked thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1162 column 15 function std::option::Option::<u32>::map::<char, {closure@<std::str::Chars<'_> as std::iter::Iterator>::next::{closure#0}}> thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/lib.rs line 0 column 0 function proofs::decode_reads_utf8_as_the_standard_library_does thread 0
-Runtime Symex: 17.8332s
+Runtime Symex: 12.6489s
 size of program expression: 233736 steps
 slicing removed 172561 assignments
 Generated 5316 VCC(s), 3788 remaining after simplification
-Runtime Postprocess Equation: 0.446443s
+Runtime Postprocess Equation: 0.343387s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 2.47628s
+Runtime Convert SSA: 1.06121s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 0.168309s
+Runtime Post-process: 0.149006s
 Solving with CaDiCaL 3.0.0
 847801 variables, 3294536 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 12.444s
-Runtime decision procedure: 14.9583s
+Runtime Solver: 6.54142s
+Runtime decision procedure: 7.63627s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847802 variables, 3294537 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 2.44827s
-Runtime decision procedure: 2.47662s
+Runtime Solver: 1.29978s
+Runtime decision procedure: 1.32112s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847803 variables, 3294538 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0909909s
-Runtime decision procedure: 0.10888s
+Runtime Solver: 0.0623689s
+Runtime decision procedure: 0.0746632s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847804 variables, 3294539 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.343448s
-Runtime decision procedure: 0.354909s
+Runtime Solver: 0.221583s
+Runtime decision procedure: 0.23113s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847805 variables, 3294540 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0831576s
-Runtime decision procedure: 0.0963875s
+Runtime Solver: 0.0618171s
+Runtime decision procedure: 0.073613s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847806 variables, 3294541 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.13738s
-Runtime decision procedure: 0.146706s
+Runtime Solver: 0.105755s
+Runtime decision procedure: 0.114671s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847807 variables, 3294542 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.269938s
-Runtime decision procedure: 0.279446s
+Runtime Solver: 0.202803s
+Runtime decision procedure: 0.211725s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847808 variables, 3294543 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.127847s
-Runtime decision procedure: 0.137317s
+Runtime Solver: 0.0919291s
+Runtime decision procedure: 0.100804s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847809 variables, 3294544 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 5.02455s
-Runtime decision procedure: 5.03998s
+Runtime Solver: 3.71035s
+Runtime decision procedure: 3.72512s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847810 variables, 3294545 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.363335s
-Runtime decision procedure: 0.382973s
+Runtime Solver: 0.197152s
+Runtime decision procedure: 0.215702s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847811 variables, 3294546 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 5.44348s
-Runtime decision procedure: 5.44512s
+Runtime Solver: 3.69573s
+Runtime decision procedure: 3.69714s
 
 RESULTS:
 Check 1: std::panic::Location::<'_>::caller.unsupported_construct.1
@@ -2603,8 +2603,8 @@ SUMMARY:
  ** 0 of 343 failed (8 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 54.997s
+Verification Time: 36.64052s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 1429741568
+xtask: peak memory in bytes: 1453973504

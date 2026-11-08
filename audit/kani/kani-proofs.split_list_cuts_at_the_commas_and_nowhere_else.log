@@ -39,7 +39,7 @@ warning: Found the following unsupported constructs:
 
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
 warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
-note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
 Checking harness proofs::split_list_cuts_at_the_commas_and_nowhere_else...
 CBMC 6.11.0 (cbmc-6.11.0)
 CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
@@ -1185,70 +1185,70 @@ Not unwinding loop _RINvYINtNtNtCs8xvirJzNMvV_4core5slice4iter4IterhENtNtNtNtBa_
 aborting path on assume(false) at file crates/layeredcfg/src/lib.rs line 0 column 0 function <std::ops::ControlFlow<()> as std::cmp::PartialEq>::eq thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 709 column 15 function std::option::Option::<&u8>::is_none_or::<{closure@crates/layeredcfg/src/proofs.rs:169:62: 169:66}> thread 0
 Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg6proofs46split_list_cuts_at_the_commas_and_nowhere_else.0 iteration 8 file crates/layeredcfg/src/proofs.rs line 166 column 5 function proofs::split_list_cuts_at_the_commas_and_nowhere_else thread 0
-Runtime Symex: 13.5922s
+Runtime Symex: 14.873s
 size of program expression: 354062 steps
 slicing removed 266623 assignments
 Generated 11502 VCC(s), 3753 remaining after simplification
-Runtime Postprocess Equation: 0.339972s
+Runtime Postprocess Equation: 0.388834s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 1.4463s
+Runtime Convert SSA: 1.4959s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 0.593277s
+Runtime Post-process: 0.613453s
 Solving with CaDiCaL 3.0.0
 1227080 variables, 4522005 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 12.1549s
-Runtime decision procedure: 13.6476s
+Runtime Solver: 11.7052s
+Runtime decision procedure: 13.2509s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227081 variables, 4522006 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 1.48094s
-Runtime decision procedure: 1.50336s
+Runtime Solver: 1.70933s
+Runtime decision procedure: 1.73294s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227082 variables, 4522007 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.311469s
-Runtime decision procedure: 0.325761s
+Runtime Solver: 0.366656s
+Runtime decision procedure: 0.381099s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227083 variables, 4522008 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.313445s
-Runtime decision procedure: 0.324219s
+Runtime Solver: 0.344774s
+Runtime decision procedure: 0.355412s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227084 variables, 4522009 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.698253s
-Runtime decision procedure: 0.709135s
+Runtime Solver: 0.880183s
+Runtime decision procedure: 0.890834s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227085 variables, 4522010 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.561317s
-Runtime decision procedure: 0.572268s
+Runtime Solver: 0.581707s
+Runtime decision procedure: 0.592451s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227086 variables, 4522011 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 5.84834s
-Runtime decision procedure: 5.86596s
+Runtime Solver: 6.62207s
+Runtime decision procedure: 6.63972s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227087 variables, 4522012 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.135081s
-Runtime decision procedure: 0.154921s
+Runtime Solver: 0.156458s
+Runtime decision procedure: 0.176444s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 1227088 variables, 4522013 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 7.8954s
-Runtime decision procedure: 7.8973s
+Runtime Solver: 9.89835s
+Runtime decision procedure: 9.90013s
 
 RESULTS:
 Check 1: core::panicking::panic_nounwind_fmt::runtime.unsupported_construct.1
@@ -3311,8 +3311,8 @@ SUMMARY:
  ** 0 of 411 failed (7 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 52.36277s
+Verification Time: 57.20215s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 2221445120
+xtask: peak memory in bytes: 2223628288
