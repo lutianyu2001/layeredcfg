@@ -9,8 +9,8 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, PoisonError};
 
 use layeredcfg::text::CharKind;
-use layeredcfg::{Environment, ErrorKind, Options, Raw, Value};
-use pyo3::exceptions::PyException;
+use layeredcfg::{Environment, ErrorKind, Options, Raw, Source, Value};
+use pyo3::exceptions::{PyException, PyValueError};
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::{PyBool, PyBytes, PyDict, PyFloat, PyInt, PyList, PyString};
@@ -27,6 +27,7 @@ fn kind_name(kind: ErrorKind) -> &'static str {
         ErrorKind::FileOnly => "file_only",
         ErrorKind::NotPersisted => "not_persisted",
         ErrorKind::BadDefaults => "bad_defaults",
+        ErrorKind::BadUserFile => "bad_user_file",
         ErrorKind::Io => "io",
     }
 }
@@ -122,6 +123,15 @@ fn python_environment(get: Py<PyAny>, failure: Failure) -> Environment {
     })
 }
 
+/// A layer by its name, as `Source::name` gives it.
+fn layer_from_name(name: &str) -> PyResult<Source> {
+    let layers = [Source::Default, Source::User, Source::File, Source::Env, Source::Override];
+    layers
+        .into_iter()
+        .find(|layer| layer.name() == name)
+        .ok_or_else(|| PyValueError::new_err(format!("no such layer: {name}")))
+}
+
 #[pyclass(name = "State", module = "layeredcfg._core", frozen)]
 struct State(layeredcfg::State);
 
@@ -143,8 +153,9 @@ fn done<T>(py: Python<'_>, failure: &Failure, result: layeredcfg::Result<T>) -> 
 impl Config {
     #[new]
     #[pyo3(signature = (
-        defaults, *, prefix = String::new(), files = Vec::new(), write_file = None, root = None,
-        file_only = BTreeSet::new(), persisted = BTreeSet::new(), secret = BTreeSet::new(), get = None
+        defaults, *, prefix = String::new(), user_files = Vec::new(), files = Vec::new(), write_file = None,
+        root = None, file_only = BTreeSet::new(), persisted = BTreeSet::new(), secret = BTreeSet::new(),
+        disabled = BTreeSet::new(), get = None
     ))]
     // PyO3 takes the files as a list into a Vec.
     #[allow(clippy::too_many_arguments, clippy::needless_pass_by_value)]
@@ -152,23 +163,30 @@ impl Config {
         py: Python<'_>,
         defaults: &Bound<'_, PyAny>,
         prefix: String,
+        user_files: Vec<Bound<'_, PyAny>>,
         files: Vec<Bound<'_, PyAny>>,
         write_file: Option<&Bound<'_, PyAny>>,
         root: Option<&Bound<'_, PyAny>>,
         file_only: BTreeSet<String>,
         persisted: BTreeSet<String>,
         secret: BTreeSet<String>,
+        disabled: BTreeSet<String>,
         get: Option<Py<PyAny>>,
     ) -> PyResult<Self> {
         let failure = Failure::default();
+        let paths = |given: &[Bound<'_, PyAny>]| -> PyResult<Vec<PathBuf>> {
+            given.iter().map(|file| from_python(file).map(PathBuf::from)).collect()
+        };
         let mut options = Options {
             prefix,
-            files: files.iter().map(|file| from_python(file).map(PathBuf::from)).collect::<PyResult<_>>()?,
+            user_files: paths(&user_files)?,
+            files: paths(&files)?,
             write_file: write_file.map(path_from_python).transpose()?.flatten(),
             root: root.map(path_from_python).transpose()?.flatten(),
             file_only,
             persisted,
             secret,
+            disabled: disabled.iter().map(|name| layer_from_name(name)).collect::<PyResult<_>>()?,
             ..Options::default()
         };
         // The environment as the caller's language has it (Python's os.environ), when given.
@@ -271,6 +289,14 @@ impl Config {
         let out = PyList::empty(py);
         for (key, text) in self.core.overrides() {
             out.append((key, to_python(py, text.as_bytes())?))?;
+        }
+        Ok(out)
+    }
+
+    fn user_values<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let out = PyDict::new(py);
+        for (key, value) in self.core.user_values() {
+            out.set_item(key, value_to_python(py, &value)?)?;
         }
         Ok(out)
     }

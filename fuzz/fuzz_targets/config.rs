@@ -1,9 +1,10 @@
 //! Defaults and values: any TOML text is read or refused without a panic, and so is any value for each setting, from
-//! every layer. The input is the TOML text, a NUL, then the value.
+//! every layer, and the value as a user's TOML file. The input is the TOML text, a NUL, then the value.
 #![no_main]
 
 use std::ffi::OsString;
 use std::os::unix::ffi::OsStringExt;
+use std::path::Path;
 
 use layeredcfg::{Config, Environment, Options, Raw};
 use libfuzzer_sys::fuzz_target;
@@ -24,6 +25,14 @@ fuzz_target!(|data: &[u8]| {
         ..Options::default()
     };
     let Ok(mut config) = Config::parse(toml, options, "fuzz") else { return };
+    // The value as one of the user's TOML files, whose settings are then those of the defaults' types.
+    if let Ok(user) = std::str::from_utf8(value)
+        && config.set_user_text(user, Path::new("fuzz")).is_ok()
+    {
+        for key in config.keys().to_vec() {
+            assert!(config.get(&key).is_ok() || !matches!(config.source(&key), Ok(layeredcfg::Source::User)));
+        }
+    }
     let _ = config.problems();
     for key in config.keys().to_vec() {
         let _ = config.get(&key);

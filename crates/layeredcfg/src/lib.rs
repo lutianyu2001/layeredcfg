@@ -4,12 +4,13 @@
 //! is taken from the highest layer that has one:
 //!
 //! ```text
-//! defaults (the TOML file) < env-style files < the environment < overrides (the command line)
+//! defaults (the TOML file) < the user's TOML files < env-style files < the environment < overrides (the command line)
 //! ```
 //!
-//! and converted to its default's type; a value that does not convert is an error, not a guess. A setting's name in the
-//! environment and in the files is the prefix and its key upper-cased, dots made underscores: `server.port` is
-//! `APP_SERVER_PORT` with the prefix `APP_`.
+//! and converted to its default's type; a value that does not convert is an error, not a guess. The user's TOML files
+//! have the keys of the defaults. A setting's name in the environment and in the env-style files is the prefix and its
+//! key upper-cased, dots made underscores: `server.port` is `APP_SERVER_PORT` with the prefix `APP_`. Any layer but
+//! the defaults and the overrides can be turned off ([`Options::disabled`]).
 //!
 //! Text from the environment and the files is bytes ([`OsString`]), which need not be UTF-8: a value that is not is an
 //! invalid value when it is converted. POSIX only.
@@ -170,21 +171,25 @@ impl From<Vec<String>> for Raw {
     }
 }
 
-/// Where a setting's value comes from.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+/// Where a setting's value comes from: the layers, from the lowest.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Source {
     Default,
+    /// The user's TOML files.
+    User,
+    /// The env-style files.
     File,
     Env,
     Override,
 }
 
 impl Source {
-    /// "default", "file", "env", "override".
+    /// "default", "user", "file", "env", "override".
     #[must_use]
     pub fn name(self) -> &'static str {
         match self {
             Source::Default => "default",
+            Source::User => "user",
             Source::File => "file",
             Source::Env => "env",
             Source::Override => "override",
@@ -202,8 +207,10 @@ pub enum ErrorKind {
     FileOnly,
     /// persist for a setting that is not to be written.
     NotPersisted,
-    /// The TOML file cannot be read, or holds what is no setting.
+    /// The TOML file cannot be read, or holds what is no setting; or the options name a setting or a layer wrongly.
     BadDefaults,
+    /// One of the user's TOML files is no TOML, or holds what is no setting or a value that does not convert.
+    BadUserFile,
     /// A file that cannot be read or written.
     Io,
 }
@@ -341,6 +348,13 @@ pub(crate) struct FileValue {
     pub(crate) file: Option<PathBuf>,
 }
 
+/// A value read from one of the user's TOML files, and the file.
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) struct UserValue {
+    pub(crate) value: Value,
+    pub(crate) file: PathBuf,
+}
+
 /// A variable persist wrote while the environment had it: its value then, and what was written. It is the variable's
 /// value for as long as the environment still has that value.
 #[derive(Clone, Debug, PartialEq)]
@@ -354,14 +368,18 @@ pub(crate) struct Written {
 #[derive(Clone, Debug, Default)]
 pub struct State {
     overrides: Vec<(String, Raw)>,
+    user: BTreeMap<String, UserValue>,
     files: BTreeMap<OsString, FileValue>,
     written: BTreeMap<OsString, Written>,
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct Options {
-    /// What the names of the environment and the files begin with.
+    /// What the names of the environment and the env-style files begin with.
     pub prefix: String,
+    /// The user's TOML files, with the keys of the defaults, read in this order: a later file wins over an earlier
+    /// one. A file that is not there is passed over.
+    pub user_files: Vec<PathBuf>,
     /// Env-style files (KEY=value lines), read in this order: a later file wins over an earlier one.
     pub files: Vec<PathBuf>,
     /// Where persist writes when it is given no file: this one, or else the last of `files`.
@@ -370,6 +388,9 @@ pub struct Options {
     pub root: Option<PathBuf>,
     /// Settings that only the files and the environment may change: an override of one is refused.
     pub file_only: BTreeSet<String>,
+    /// The layers turned off: [`Source::User`], [`Source::File`], [`Source::Env`]. None of their values is read; the
+    /// environment is still read for `~` in a path and for `${NAME}` in an env-style file.
+    pub disabled: BTreeSet<Source>,
     /// Settings persist may write into a file.
     pub persisted: BTreeSet<String>,
     /// Settings [`Config::shown`] masks, and whose value an error's message has as `***`.

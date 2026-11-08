@@ -336,3 +336,51 @@ def test_a_snapshot_keeps_which_file_each_value_came_from(defaults, tmp_path):
     config.set_file_values({})
     config.restore(saved)
     assert config.problems()["server.port"].endswith("of a.env")
+
+
+def test_the_user_files_lie_between_the_defaults_and_the_env_style_files(defaults, tmp_path):
+    system = tmp_path / "system.toml"
+    system.write_text('[server]\nport = 9000\nhost = "10.0.0.1"\n')
+    mine = tmp_path / "mine.toml"
+    mine.write_text('server.port = 9001\n[quota]\nhosts = ["a.lan"]\n')
+    env_file = tmp_path / ".env.local"
+    env_file.write_text("APP_QUOTA_HOSTS=b.lan\n")
+    config = make(defaults, user_files=[system, mine, tmp_path / "missing.toml", None], files=[env_file])
+    assert config.server.port == 9001 and config.server.host == "10.0.0.1"
+    assert config.source("server.port") == "user" and config.source("quota.hosts") == "file"
+    assert config.quota.hosts == ["b.lan"]
+    assert config.user_values() == {"server.port": 9001, "server.host": "10.0.0.1", "quota.hosts": ["a.lan"]}
+    mine.write_text("server.port = 9002\n")
+    config.reload_files()
+    assert config.server.port == 9002
+
+
+def test_a_user_file_with_a_mistake_is_a_bad_user_file(defaults, tmp_path):
+    mine = tmp_path / "mine.toml"
+    mine.write_text("[server]\nprot = 1\n")
+    with pytest.raises(layeredcfg.BadUserFile) as raised:
+        make(defaults, user_files=[mine])
+    assert str(raised.value) == f"{mine}:2:8: unknown setting: server.prot"
+    assert raised.value.key == "server.prot" and isinstance(raised.value, ValueError)
+    mine.write_text('[notify]\ntopic = ["hunter2"]\n')
+    with pytest.raises(layeredcfg.BadUserFile) as raised:
+        make(defaults, user_files=[mine])
+    assert "hunter2" not in str(raised.value) and "***" in str(raised.value)
+
+
+def test_layers_can_be_turned_off_and_the_environment_still_gives_the_home(defaults, tmp_path):
+    mine = tmp_path / "mine.toml"
+    mine.write_text('server.port = 9001\nlog.dir = "~/logs"\n')
+    env_file = tmp_path / ".env.local"
+    env_file.write_text("APP_SERVER_HOST=h.lan\n")
+    environ = {"APP_SERVER_PORT": "9003", "HOME": "/home/someone"}
+    config = make(defaults, user_files=[mine], files=[env_file], environ=environ, disabled={"env", "file"})
+    assert config.server.port == 9001 and config.server.host == "0.0.0.0"
+    assert config.path("log.dir") == Path("/home/someone/logs")
+    assert config.file_values() == {}
+    config = make(defaults, user_files=[mine], environ=environ, disabled={"user"})
+    assert config.server.port == 9003 and config.user_values() == {}
+    with pytest.raises(ValueError, match="no such layer: environment"):
+        make(defaults, disabled={"environment"})
+    with pytest.raises(layeredcfg.ConfigError, match="cannot be turned off"):
+        make(defaults, disabled={"default"})

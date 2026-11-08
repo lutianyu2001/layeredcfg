@@ -5,7 +5,7 @@ build-backend = "maturin"
 [project]
 name = "layeredcfg"
 dynamic = ["version"]
-description = "Layered configuration: defaults from a TOML file, overridden by env-style files, the environment and the command line, each value converted to its default's type"
+description = "Layered configuration: defaults from a TOML file, overridden by the user's TOML files, env-style files, the environment and the command line, each value converted to its default's type"
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE", "third-party/*"]

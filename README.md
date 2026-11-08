@@ -12,7 +12,8 @@
 [![pins](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fpins.json)](https://github.com/lutianyu2001/layeredcfg/blob/main/xtask/src/pins.rs)
 
 A lightweight layered configuration library with a Rust core and a Python binding, that takes each setting from a TOML
-file of defaults, env-style files, the environment or the command line, and converts it to its default's type.
+file of defaults, the user's TOML files, env-style files, the environment or the command line, and converts it to its
+default's type.
 
 ## Table of Contents
 
@@ -23,7 +24,9 @@ file of defaults, env-style files, the environment or the command line, and conv
 - [Installation](#installation)
 - [Usage](#usage)
 - [What the Layers Take](#what-the-layers-take)
+- [The User's TOML Files](#the-users-toml-files)
 - [Env-Style Files](#env-style-files)
+- [Turning Layers Off](#turning-layers-off)
 - [Testing](#testing)
 - [Compatibility](#compatibility)
 - [License](#license)
@@ -35,17 +38,19 @@ A TOML file of defaults says which settings there are and the type of each: the 
 value is taken from the highest layer that has one,
 
 ```text
-defaults (the TOML file)  <  env-style files  <  the environment  <  overrides (the command line)
+defaults (the TOML file)  <  the user's TOML files  <  env-style files  <  the environment  <  overrides (the command line)
 ```
 
 and converted to its default's type. A value that does not convert is an error, never a guess: `ture` for a boolean
-is a mistake, not false. A setting's name in the environment and in the files is a prefix and its key upper-cased,
-dots made underscores: with the prefix `APP_`, `server.port` is `APP_SERVER_PORT`.
+is a mistake, not false. The user's TOML files have the keys of the defaults. A setting's name in the environment and
+in the env-style files is a prefix and its key upper-cased, dots made underscores: with the prefix `APP_`,
+`server.port` is `APP_SERVER_PORT`. A program that has no use for a layer turns it off.
 
 ## Features
 
 - No schema to write in code: adding a setting is adding a line, with a comment, to the TOML file
-- Four layers: defaults, env-style files, the environment, overrides
+- Five layers: defaults, the user's TOML files, env-style files, the environment, overrides; any but the first and
+  the last can be turned off
 - Strict conversion to the default's type, as Python converts text
 - Env-style files read as python-dotenv reads them for the most part
 - A value written back into its file in place, every other byte kept (`persist`)
@@ -185,30 +190,34 @@ that built it, or lacks those license texts.
 ### Python
 
 ```python
+from pathlib import Path
+
 from layeredcfg import Config, find_upward
 
 config = Config(
     "defaults.toml",
     prefix="APP_",
+    user_files=["/etc/app/config.toml", Path.home() / ".config/app/config.toml"],  # a later file wins
     files=[find_upward(".env.local"), "/srv/app/.env.local"],  # a later file wins
     root="/srv/app",                    # what a relative path is relative to
     file_only={"log.max_dir_size_mib"}, # not to be overridden on the command line
     persisted={"subagent.timeout_minutes"},
     secret={"notify.token"},
+    disabled=set(),                     # layers turned off: "user", "file", "env"
 )
 
 config.server.port                   # 8420, an int, as the default is
 config.get("server.port")
 config.set("server.port", "8421")    # an override, converted at once
 config.path("data.dir")              # ~ expanded, a relative path joined to the root
-config.source("server.port")         # "override", "env", "file" or "default"
+config.source("server.port")         # "override", "env", "file", "user" or "default"
 config.shown("notify.token")         # "***" when it has a value
 config.problems()                    # every value of the environment and the files that does not convert
 config.persist("subagent.timeout_minutes", 45)  # written into the file for good, in force at once
 ```
 
 The errors are Python's kinds too: `UnknownKey` is a `KeyError`, `InvalidValue` and `FileOnlyKey` are `ValueError`s,
-`NotPersisted` is a `KeyError`, all of them `ConfigError`s; an unknown attribute is an `AttributeError`. Their messages
+`NotPersisted` is a `KeyError`, `BadUserFile` is a `ValueError`, all of them `ConfigError`s; an unknown attribute is an `AttributeError`. Their messages
 are templates a program can replace with its own words (`messages=`, see `layeredcfg.MESSAGES`).
 
 The environment is `os.environ` (or the mapping given as `environ=`), read when a value is asked for: a variable set by
@@ -219,12 +228,14 @@ either (see [Env-Style Files](#env-style-files)).
 ### Rust
 
 ```rust,no_run
-use layeredcfg::{Config, Options, Value};
+use layeredcfg::{Config, Options, Source, Value};
 
 fn main() -> Result<(), layeredcfg::Error> {
     let options = Options {
         prefix: "APP_".to_owned(),
+        user_files: vec!["/etc/app/config.toml".into()],
         files: vec!["/srv/app/.env.local".into()],
+        disabled: [Source::Env].into(), // the environment's variables are no settings here
         ..Options::default()
     };
     let mut config = Config::load("defaults.toml", options)?;
@@ -261,6 +272,23 @@ Python converts it (`int()`, `float()`, `bool()`, `str()`, `list()`), a `Decimal
 another type (a date, a list of numbers) is refused when the file is read: no other layer could write it. Floats are
 written back as Python writes them (`45.0`, `1e+16`), so a binding behaves as Python code did.
 
+## The User's TOML Files
+
+The defaults are the program's; the user writes the settings to change in TOML files of the same keys, which may leave
+any of them out:
+
+```toml
+[server]
+port = 9000
+```
+
+A file that is not there is passed over, and a later file wins over an earlier one (a system-wide file, then the
+user's own). A value is converted to its default's type as the text of the other layers is (`"9000"` for an integer is
+9000, `"no"` for a boolean is false). The files are read when the configuration is made and by `reload_files`, and a
+mistake in one is an error then, a `BadUserFile` whose message says the file, the line and the column: TOML that does
+not parse, a key or a table that is no setting, a value that does not convert (a secret's shown as `***`). What a
+caller read itself is given with `set_user_text`; `user_values` is what was read.
+
 ## Env-Style Files
 
 `NAME=value` lines, as python-dotenv reads them for the most part: comments, `export `, unquoted values (a `#` after
@@ -284,6 +312,14 @@ over the files, the configuration takes the written value instead whenever the e
 the process and the programs it starts still see the old value. A quote in the file that is never closed makes the
 reader leave its line out; when the value written has that quote, which would close it and take in the lines between,
 `persist` refuses with an error and leaves the file as it was.
+
+## Turning Layers Off
+
+`disabled` (`Options::disabled` in Rust) names the layers a program has no use for: `user`, `file` and `env`
+(`Source::User`, `Source::File`, `Source::Env`). None of their values is read, and their mistakes are no problems. The
+environment is still read for what is not a setting: `HOME` for `~` in a path, and `${NAME}` in an env-style file.
+`persist`, which writes an env-style file, is refused while those are off. The defaults and the overrides cannot be
+turned off; a program that takes no overrides calls no `set`.
 
 ## Testing
 

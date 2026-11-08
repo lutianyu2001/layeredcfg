@@ -532,3 +532,179 @@ fn persist_writes_the_target_of_a_link_whose_target_is_not_there_yet() {
     assert!(fs::symlink_metadata(&link).unwrap().file_type().is_symlink());
     assert_eq!(Scratch::read(&scratch.dir.join("real.env")), "APP_QUOTA_RATIO=0.5\n");
 }
+
+fn with_user_files(environment: &FakeEnvironment, user_files: &[&Path], files: &[&Path]) -> Options {
+    Options { user_files: user_files.iter().map(|file| file.to_path_buf()).collect(), ..options(environment, files) }
+}
+
+#[test]
+fn the_user_files_lie_between_the_defaults_and_the_env_style_files_a_later_one_winning() {
+    let scratch = Scratch::new();
+    let environment = FakeEnvironment::default();
+    let system = scratch.write("etc/app.toml", "[server]\nport = 9000\nhost = \"10.0.0.1\"\n");
+    let mine = scratch.write(
+        "home/app.toml",
+        "server.port = 9001\n[notify]\nenabled = \"no\"\n[quota]\nhosts = [\" a.lan \", \"\", \"b.lan\"]\nratio = 2\n",
+    );
+    let env_file = scratch.write(".env.local", "APP_SERVER_PORT=9002\n");
+    let missing = scratch.dir.join("missing.toml");
+    let mut config = parse(DEFAULTS, with_user_files(&environment, &[&system, &mine, &missing], &[]));
+    assert_eq!(get(&config, "server.port"), Value::Int(9001)); // the later file
+    assert_eq!(get(&config, "server.host"), Value::Str("10.0.0.1".to_owned()));
+    assert_eq!(get(&config, "notify.enabled"), Value::Bool(false)); // text converted as the other layers' text
+    assert_eq!(get(&config, "quota.ratio"), Value::Float(2.0));
+    assert_eq!(get(&config, "quota.hosts"), Value::List(vec!["a.lan".to_owned(), "b.lan".to_owned()]));
+    assert_eq!(config.source("server.port").unwrap(), Source::User);
+    assert_eq!(config.source("log.dir").unwrap(), Source::Default);
+    assert_eq!(config.user_values().len(), 5);
+    // The env-style files, the environment and the overrides are above them.
+    let other = FakeEnvironment::default();
+    let mut above = parse(DEFAULTS, with_user_files(&other, &[&mine], &[&env_file]));
+    assert_eq!((get(&above, "server.port"), above.source("server.port").unwrap()), (Value::Int(9002), Source::File));
+    other.set("APP_SERVER_PORT", "9003");
+    assert_eq!(get(&above, "server.port"), Value::Int(9003));
+    above.set("server.port", "9004").unwrap();
+    assert_eq!(get(&above, "server.port"), Value::Int(9004));
+    // A setting only the files may change can be written in them.
+    let only = scratch.write("only.toml", "log.max_mib = 5\n");
+    let config_only = parse(DEFAULTS, with_user_files(&environment, &[&only], &[]));
+    assert_eq!(get(&config_only, "log.max_mib"), Value::Float(5.0));
+    // Read again, and kept in a snapshot.
+    let saved = config.state();
+    scratch.write("home/app.toml", "server.port = 9010\n");
+    config.reload_files().unwrap();
+    assert_eq!(get(&config, "server.port"), Value::Int(9010));
+    assert_eq!(get(&config, "notify.enabled"), Value::Bool(true));
+    config.restore(&saved);
+    assert_eq!(get(&config, "server.port"), Value::Int(9001));
+    config.set_user_text("[notify]\ntopic = \"t\"\n", Path::new("given.toml")).unwrap();
+    assert_eq!(config.user_values(), BTreeMap::from([("notify.topic".to_owned(), Value::Str("t".to_owned()))]));
+}
+
+#[test]
+fn a_user_file_with_a_mistake_is_refused_with_where_the_mistake_is() {
+    let scratch = Scratch::new();
+    let environment = FakeEnvironment::default();
+    let refused = |text: &str| {
+        let file = scratch.write("user.toml", text);
+        let error = Config::parse(DEFAULTS, with_user_files(&environment, &[&file], &[]), "defaults")
+            .expect_err("a user file with a mistake was taken");
+        assert_eq!(error.kind(), ErrorKind::BadUserFile, "{text}");
+        let place = format!("{}:", file.display());
+        assert!(error.message().starts_with(&place), "{}", error.message());
+        error
+    };
+    let error = refused("[server]\nport = 9000\nprot = 1\n");
+    assert_eq!(
+        error.message(),
+        format!("{}:3:8: unknown setting: server.prot", scratch.dir.join("user.toml").display())
+    );
+    assert_eq!(error.key(), "server.prot");
+    refused("[servers]\nport = 1\n");
+    refused("server = 1\n");
+    refused("[server.port]\nx = 1\n");
+    refused("when = 1979-05-27\n");
+    refused("[quota]\nhosts = [1, 2]\n");
+    refused("[server\n");
+    let error = refused("[server]\nport = \"84x0\"\n");
+    assert_eq!(
+        error.message(),
+        format!(
+            "{}:2:8: invalid value for server.port: \"84x0\" (expected int)",
+            scratch.dir.join("user.toml").display()
+        )
+    );
+    assert_eq!((error.raw(), error.expected()), (Some(&Raw::Text("84x0".into())), Some(Type::Int)));
+    let error = refused("[notify]\nenabled = \"maybe\"\n");
+    assert_eq!(error.key(), "notify.enabled");
+    // A secret's value is kept out of the message.
+    let error = refused("[server]\nport = 1\n[notify]\ntopic = [\"hunter2\"]\nenabled = 2.5\n");
+    assert_eq!(error.key(), "notify.topic");
+    assert!(!error.message().contains("hunter2") && error.message().contains("***"), "{}", error.message());
+    let error = refused("server.port = 1\n\nserver.host = \"h\"\nwhen = 2024-01-01\n");
+    assert!(error.message().contains(":4:"), "{}", error.message());
+    let error = refused("port = \"\u{e9}\" \u{1}\n");
+    assert!(error.message().contains(":1:"), "{}", error.message());
+    let file = scratch.write("bad.toml", b"[server]\nport = \xff\n");
+    let error = Config::parse(DEFAULTS, with_user_files(&environment, &[&file], &[]), "defaults").unwrap_err();
+    assert_eq!(error.message(), format!("{}:2:8: invalid UTF-8", file.display()));
+    // A mistake made later leaves what was read as it was.
+    let good = scratch.write("good.toml", "server.port = 9000\n");
+    let mut config = parse(DEFAULTS, with_user_files(&environment, &[&good], &[]));
+    scratch.write("good.toml", "server.port = \"x\"\n");
+    assert_eq!(config.reload_files().unwrap_err().kind(), ErrorKind::BadUserFile);
+    assert_eq!(get(&config, "server.port"), Value::Int(9000));
+    assert!(config.set_user_text("nope = 1\n", Path::new("given.toml")).is_err());
+    assert_eq!(get(&config, "server.port"), Value::Int(9000));
+}
+
+#[test]
+fn a_secret_in_a_user_file_is_kept_out_of_the_message() {
+    let scratch = Scratch::new();
+    let environment = FakeEnvironment::default();
+    let defaults = "[notify]\ntopic = \"\"\nport = 0\n";
+    let file = scratch.write("user.toml", "[notify]\nport = \"hunter2\"\n");
+    let options = Options { secret: ["notify.port".to_owned()].into(), user_files: vec![file], ..plain(&environment) };
+    let error = Config::parse(defaults, options, "defaults").unwrap_err();
+    assert!(error.message().ends_with("invalid value for notify.port: *** (expected int)"), "{}", error.message());
+}
+
+#[test]
+fn a_layer_turned_off_is_not_read_while_the_environment_still_gives_the_home_and_names_in_the_files() {
+    let scratch = Scratch::new();
+    let environment = FakeEnvironment::default();
+    environment.set("HOME", "/home/someone");
+    environment.set("HOST", "h.lan");
+    environment.set("APP_SERVER_PORT", "9003");
+    let user = scratch.write("user.toml", "server.port = 9001\nlog.dir = \"~/logs\"\n");
+    let env_file = scratch.write(".env", "APP_SERVER_HOST=${HOST}\nAPP_QUOTA_RATIO=0.5\n");
+    let off = |disabled: &[Source]| {
+        let options = Options {
+            disabled: disabled.iter().copied().collect(),
+            ..with_user_files(&environment, &[&user], &[&env_file])
+        };
+        parse(DEFAULTS, options)
+    };
+    let all = off(&[]);
+    assert_eq!(get(&all, "server.port"), Value::Int(9003));
+    let no_env = off(&[Source::Env]);
+    assert!(!no_env.is_on(Source::Env) && no_env.is_on(Source::File));
+    assert_eq!((get(&no_env, "server.port"), no_env.source("server.port").unwrap()), (Value::Int(9001), Source::User));
+    assert_eq!(get(&no_env, "server.host"), Value::Str("h.lan".to_owned()));
+    assert_eq!(no_env.path("log.dir").unwrap(), Path::new("/home/someone/logs"));
+    let no_files = off(&[Source::Env, Source::File]);
+    assert_eq!(get(&no_files, "server.host"), Value::Str("0.0.0.0".to_owned()));
+    assert_eq!(get(&no_files, "quota.ratio"), Value::Float(1.0));
+    assert!(no_files.file_values().is_empty());
+    let only_defaults = off(&[Source::Env, Source::File, Source::User]);
+    assert_eq!(
+        (get(&only_defaults, "server.port"), only_defaults.source("server.port").unwrap()),
+        (Value::Int(8420), Source::Default)
+    );
+    assert!(only_defaults.user_values().is_empty());
+    // The environment's and the files' mistakes are no problems while their layers are off.
+    environment.set("APP_SERVER_PORT", "x");
+    assert_eq!(all.problems().len(), 1);
+    assert!(no_env.problems().is_empty());
+    // persist writes an env-style file, which is off.
+    let mut no_files = no_files;
+    let error = no_files.persist("quota.ratio", 0.2, None).unwrap_err();
+    assert_eq!(error.kind(), ErrorKind::Io);
+    assert_eq!(Scratch::read(&env_file), "APP_SERVER_HOST=${HOST}\nAPP_QUOTA_RATIO=0.5\n");
+    // Where a setting that cannot be overridden may be set, as the layers that are on have it.
+    let mut only_defaults = only_defaults;
+    let message = |config: &mut Config| config.set("log.max_mib", "1").unwrap_err().message().to_owned();
+    assert_eq!(message(&mut only_defaults), "log.max_mib cannot be overridden");
+    assert_eq!(message(&mut no_files), "log.max_mib cannot be overridden: set log.max_mib in a TOML file of settings");
+    let mut all = all;
+    assert_eq!(
+        message(&mut all),
+        "log.max_mib cannot be overridden: set log.max_mib in a TOML file of settings or APP_LOG_MAX_MIB in a file or \
+         the environment"
+    );
+    // The defaults and the overrides are always on.
+    for layer in [Source::Default, Source::Override] {
+        let options = Options { disabled: [layer].into(), ..plain(&environment) };
+        assert_eq!(Config::parse(DEFAULTS, options, "defaults").unwrap_err().kind(), ErrorKind::BadDefaults);
+    }
+}

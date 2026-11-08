@@ -3,9 +3,10 @@
 A TOML file of defaults says which settings there are and the type of each, that of its default. A setting's value is
 taken from the highest layer that has one,
 
-    defaults (the TOML file) < env-style files < the environment < overrides (the command line)
+    defaults (the TOML file) < the user's TOML files < env-style files < the environment < overrides (the command line)
 
-and converted to its default's type; a value that does not convert is an error, not a guess. The core is Rust
+and converted to its default's type; a value that does not convert is an error, not a guess. Any layer but the
+defaults and the overrides can be turned off (`disabled=`). The core is Rust
 (`layeredcfg._core`); this module is its Python face: attribute access (`config.server.port`), Python's exceptions,
 and the messages they carry, which a program can give in its own words.
 """
@@ -23,6 +24,7 @@ __version__ = _core.__version__
 
 __all__ = [
     "MESSAGES",
+    "BadUserFile",
     "Config",
     "ConfigError",
     "FileOnlyKey",
@@ -92,6 +94,11 @@ class NotPersisted(ConfigError, KeyError):
     """`persist` of a setting that is not to be written."""
 
 
+class BadUserFile(ConfigError, ValueError):
+    """One of the user's TOML files is no TOML, or holds what is no setting or a value that does not convert. The
+    message says the file, the line and the column; `key` is the setting, when there is one."""
+
+
 class Section:
     """Attribute view of one TOML table: `config.server`, then `config.server.port`."""
 
@@ -115,10 +122,13 @@ def find_upward(name: str, start: str | os.PathLike[str] | None = None) -> Path 
 
 class Config:
     """The settings of a program. `defaults` is the TOML file; `prefix` begins every setting's name in the environment
-    and the files; `files` are env-style files (`NAME=value` lines), a later one winning; `write_file` is where `persist`
-    writes (else the last of `files`); `root` is what a relative `path` is relative to. `file_only` settings cannot be
-    overridden, `persisted` ones can be written with `persist`, `secret` ones are masked by `shown` and in the messages
-    of errors. `environ` is the environment (`os.environ`); `messages` replaces messages of `MESSAGES` by kind.
+    and the env-style files; `user_files` are the user's TOML files, with the keys of the defaults, a later one winning;
+    `files` are env-style files (`NAME=value` lines), a later one winning; `write_file` is where `persist` writes (else
+    the last of `files`); `root` is what a relative `path` is relative to. `file_only` settings cannot be overridden,
+    `persisted` ones can be written with `persist`, `secret` ones are masked by `shown` and in the messages of errors.
+    `disabled` turns layers off by their names: "user", "file", "env" (the environment is still read for `~` and for
+    `${NAME}` in the files). `environ` is the environment (`os.environ`); `messages` replaces messages of `MESSAGES` by
+    kind.
 
     Settings are read as attributes (`config.server.port`) or with `get`; a table's name that is also a method's (`get`,
     `path`, ...) is reached with `get` only."""
@@ -128,12 +138,14 @@ class Config:
         defaults: str | os.PathLike[str],
         *,
         prefix: str = "",
+        user_files: Iterable[str | os.PathLike[str] | None] = (),
         files: Iterable[str | os.PathLike[str] | None] = (),
         write_file: str | os.PathLike[str] | None = None,
         root: str | os.PathLike[str] | None = None,
         file_only: Iterable[str] = (),
         persisted: Iterable[str] = (),
         secret: Iterable[str] = (),
+        disabled: Iterable[str] = (),
         environ: MutableMapping[str, str] | None = None,
         messages: Mapping[str, str | Callable[..., str]] | None = None,
     ) -> None:
@@ -149,12 +161,14 @@ class Config:
             _core.Config,
             os.fspath(defaults),
             prefix=prefix,
+            user_files=[os.fspath(f) for f in user_files if f],
             files=given,
             write_file=os.fspath(write_file) if write_file else "",
             root=os.fspath(root) if root else "",
             file_only=self._file_only,
             persisted=set(self._persisted),
             secret=self._secret,
+            disabled=set(disabled),
             get=environment.get,
         )
 
@@ -200,7 +214,7 @@ class Config:
         return self._call(self._core.cast, key, self._raw(key, value))
 
     def source(self, key: str) -> str:
-        """Where the value comes from: override, env, file or default."""
+        """Where the value comes from: override, env, file, user or default."""
         return self._call(self._core.source, key)
 
     def shown(self, key: str) -> Any:
@@ -208,8 +222,8 @@ class Config:
         return self._call(self._core.shown, key)
 
     def problems(self) -> dict[str, str]:
-        """Every value of the environment and the files that does not convert, by setting: what is wrong and where it is
-        written. An override is checked as it is set."""
+        """Every value of the environment and the env-style files that does not convert, by setting: what is wrong and
+        where it is written. An override is checked as it is set, the user's files as they are read."""
         found = {}
         for key, source, variable, file, text, expected in self._core.problems():
             shown = self._in_message(key, text)
@@ -239,8 +253,12 @@ class Config:
 
     # -- the files
 
+    def user_values(self) -> dict[str, Any]:
+        """What was read from the user's TOML files: setting -> value, converted to its type."""
+        return dict(self._core.user_values())
+
     def file_values(self) -> dict[str, str]:
-        """What was read from the files: name -> text."""
+        """What was read from the env-style files: name -> text."""
         return dict(self._core.file_values())
 
     def set_file_values(self, values: Mapping[str, str]) -> None:
@@ -248,6 +266,7 @@ class Config:
         self._core.set_file_values(dict(values))
 
     def reload_files(self) -> None:
+        """Read the user's TOML files and the env-style files again; nothing changes when one of them fails."""
         self._call(self._core.reload_files)
 
     def persist(self, key: str, value: Any, file: str | os.PathLike[str] | None = None) -> Any:
@@ -324,5 +343,7 @@ class Config:
             return NotPersisted(
                 self._message("not_persisted", key=key, allowed=allowed, allowed_keys=list(self._persisted)), key
             )
+        if kind == "bad_user_file":
+            return BadUserFile(message, key)
         return ConfigError(message, key)
 

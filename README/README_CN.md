@@ -11,7 +11,7 @@
 [![audit](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Faudit.json)](../SECURITY.md#ci)
 [![pins](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fpins.json)](../xtask/src/pins.rs)
 
-一个轻量的分层配置库，核心是 Rust，带 Python 绑定：每个配置项的值取自 TOML 默认值文件、环境变量写法的文件、环境变量或命令行，并转换成默认值的类型。
+一个轻量的分层配置库，核心是 Rust，带 Python 绑定：每个配置项的值取自 TOML 默认值文件、用户的 TOML 文件、环境变量写法的文件、环境变量或命令行，并转换成默认值的类型。
 
 ## 目录
 
@@ -22,7 +22,9 @@
 - [安装](#安装)
 - [用法](#用法)
 - [各层的写法](#各层的写法)
+- [用户的 TOML 文件](#用户的-toml-文件)
 - [环境变量写法的文件](#环境变量写法的文件)
+- [关掉某一层](#关掉某一层)
 - [测试](#测试)
 - [兼容性](#兼容性)
 - [许可证](#许可证)
@@ -33,15 +35,15 @@
 一个 TOML 默认值文件说明有哪些配置项，每一项是什么类型：就是它默认值的类型。一个配置项的值取自有它的最高一层，
 
 ```text
-默认值（TOML 文件）  <  环境变量写法的文件  <  环境变量  <  覆盖（命令行）
+默认值（TOML 文件）  <  用户的 TOML 文件  <  环境变量写法的文件  <  环境变量  <  覆盖（命令行）
 ```
 
-并转换成默认值的类型。转换不了就是错，绝不猜：布尔值写成 `ture` 是写错了，不是假。配置项在环境变量和文件里的名字是前缀加上键名，大写、点换成下划线：前缀是 `APP_` 时，`server.port` 是 `APP_SERVER_PORT`。
+并转换成默认值的类型。转换不了就是错，绝不猜：布尔值写成 `ture` 是写错了，不是假。用户的 TOML 文件用的是默认值文件里的键。配置项在环境变量和环境变量写法的文件里的名字是前缀加上键名，大写、点换成下划线：前缀是 `APP_` 时，`server.port` 是 `APP_SERVER_PORT`。程序用不到的层可以关掉。
 
 ## 功能特性
 
 - 不用在代码里另写一份定义：加一个配置项，就是在 TOML 文件里加一行，带上注释
-- 四层：默认值、环境变量写法的文件、环境变量、覆盖
+- 五层：默认值、用户的 TOML 文件、环境变量写法的文件、环境变量、覆盖；除了第一层和最后一层都可以关掉
 - 严格转换成默认值的类型，文字照 Python 的方式转换
 - 环境变量写法的文件大体照 python-dotenv 的方式读
 - 把值原地写回文件，别的字节原样保留（`persist`）
@@ -142,41 +144,47 @@ Rust 项目不从 crates.io 而从这个仓库取 crate 时，按路径或这个
 ### Python
 
 ```python
+from pathlib import Path
+
 from layeredcfg import Config, find_upward
 
 config = Config(
     "defaults.toml",
     prefix="APP_",
+    user_files=["/etc/app/config.toml", Path.home() / ".config/app/config.toml"],  # a later file wins
     files=[find_upward(".env.local"), "/srv/app/.env.local"],  # a later file wins
     root="/srv/app",                    # what a relative path is relative to
     file_only={"log.max_dir_size_mib"}, # not to be overridden on the command line
     persisted={"subagent.timeout_minutes"},
     secret={"notify.token"},
+    disabled=set(),                     # layers turned off: "user", "file", "env"
 )
 
 config.server.port                   # 8420, an int, as the default is
 config.get("server.port")
 config.set("server.port", "8421")    # an override, converted at once
 config.path("data.dir")              # ~ expanded, a relative path joined to the root
-config.source("server.port")         # "override", "env", "file" or "default"
+config.source("server.port")         # "override", "env", "file", "user" or "default"
 config.shown("notify.token")         # "***" when it has a value
 config.problems()                    # every value of the environment and the files that does not convert
 config.persist("subagent.timeout_minutes", 45)  # written into the file for good, in force at once
 ```
 
-出错时是 Python 惯用的异常：`UnknownKey` 是 `KeyError`，`InvalidValue` 和 `FileOnlyKey` 是 `ValueError`，`NotPersisted` 是 `KeyError`，它们都是 `ConfigError`；不存在的属性是 `AttributeError`。错误信息是模板，程序可以换成自己的话（`messages=`，见 `layeredcfg.MESSAGES`）。
+出错时是 Python 惯用的异常：`UnknownKey` 是 `KeyError`，`InvalidValue` 和 `FileOnlyKey` 是 `ValueError`，`NotPersisted` 是 `KeyError`，`BadUserFile` 是 `ValueError`，它们都是 `ConfigError`；不存在的属性是 `AttributeError`。错误信息是模板，程序可以换成自己的话（`messages=`，见 `layeredcfg.MESSAGES`）。
 
 环境变量就是 `os.environ`（或者 `environ=` 给的映射），取值时才读：Python 代码设的变量立即生效。文件里的值只读进配置，绝不放进进程的环境变量：那样的话，这个进程启动的每个程序都会继承它们。`persist` 也不改环境变量（见[环境变量写法的文件](#环境变量写法的文件)）。
 
 ### Rust
 
 ```rust,no_run
-use layeredcfg::{Config, Options, Value};
+use layeredcfg::{Config, Options, Source, Value};
 
 fn main() -> Result<(), layeredcfg::Error> {
     let options = Options {
         prefix: "APP_".to_owned(),
+        user_files: vec!["/etc/app/config.toml".into()],
         files: vec!["/srv/app/.env.local".into()],
+        disabled: [Source::Env].into(), // the environment's variables are no settings here
         ..Options::default()
     };
     let mut config = Config::load("defaults.toml", options)?;
@@ -201,6 +209,17 @@ fn main() -> Result<(), layeredcfg::Error> {
 
 文字必须是 UTF-8（不是的算写错）。数字和空白照 Python 认，ASCII 以外的也认：`８４２０` 和 `int()` 读出来一样是 8420，不换行空格、全角空格（U+3000）都算空白，值里和文件里都是。ASCII 以外的字符，绑定层去问正在运行的 Python（`str.isspace()`、`unicodedata.decimal()`），所以每个平台只有一个 wheel，读文字时用的是运行它的那个 Python 的 Unicode 版本。在 Rust 里，ASCII 以外的空白照 Unicode 认（`char::is_whitespace`，字符和 Python 的一样），ASCII 以外没有数字，和 `str::parse` 一样，除非用 `text::set_beyond_ascii` 另行指定。从 Python 给的不是文字的值，照 Python 的转换（`int()`、`float()`、`bool()`、`str()`、`list()`），`Decimal`、`None` 也一样。别的类型的 TOML 默认值（日期、数字的列表）在读文件时就拒绝：别的层写不出这种值。浮点数写回去的样子和 Python 一样（`45.0`、`1e+16`），所以换成这个库以后，Python 程序的行为不变。
 
+## 用户的 TOML 文件
+
+默认值是程序的；用户把要改的配置项写进同样键名的 TOML 文件，不改的可以不写：
+
+```toml
+[server]
+port = 9000
+```
+
+文件不存在就跳过，后面的文件比前面的优先（先是系统的文件，再是用户自己的）。值照别的层转换文字的方式转换成默认值的类型（整数写成 `"9000"` 是 9000，布尔值写成 `"no"` 是假）。生成配置和调用 `reload_files` 时读这些文件，文件里写错了当时就报错，报 `BadUserFile`，错误信息里有文件、行和列：TOML 语法错误、不是配置项的键或表、转换不了的值（密钥的值显示成 `***`）。调用方自己读到的文字用 `set_user_text` 给；读到了什么用 `user_values` 看。
+
 ## 环境变量写法的文件
 
 一行一个 `NAME=value`，大体和 python-dotenv 一样：注释、`export `、不加引号的值（空白后面的 `#` 开始注释，所以 `NAME= # 备注` 是空的）、`'单引号'` 里原样、`"双引号"` 里有转义、引号里可以跨行，不加引号和双引号的值里可以写 `${NAME}` 或 `${NAME:-默认}`（先找这个文件前面写过的，再找环境变量；单引号里原样不动，python-dotenv 会展开）。开头的 BOM、`\r\n` 和 `\r` 结尾的行也认。这里的空白也照 Python 认，和 python-dotenv 的 `\s` 一样：`#` 前面是全角空格，也和普通空格一样开始注释。
@@ -208,6 +227,10 @@ fn main() -> Result<(), layeredcfg::Error> {
 名字不要加引号。`'NAME'=value` 这种给名字加引号的写法不规范，这个库不支持，也不打算支持（python-dotenv 会把它读成 `NAME`）：在这里引号算名字的一部分，对不上任何配置项，这一行不起作用，也不会报错。
 
 `persist` 换掉这个配置项的那条赋值（前面可以有 `export `，引号里跨行的值整个换掉），删掉后面同名的，别的字节原样保留，然后一次把文件换上去：权限照原文件（新文件是 0600），从写的那一刻起就是；符号链接留着，写的是它指向的文件。几个进程同时写不会把文件写坏，但留下的是最后一个写的。配置读到的值跟着变，除非排在这个文件后面的文件也设了同一个名字。环境变量里有这个变量时（它比文件优先），只要环境变量还是 `persist` 写入时的那个值，配置就改用写进去的值（把它设成别的值，读到的就是那个值）；环境变量本身不改，所以进程里别的代码和它启动的程序看到的还是原来的值。文件里有没闭合的引号时，读的时候会跳过它那一行；要写的值里如果正好有这种引号，它会让那个引号闭合，把中间的行都吞进去，所以这时 `persist` 报错，不动文件。
+
+## 关掉某一层
+
+`disabled`（Rust 里是 `Options::disabled`）列出程序用不到的层：`user`、`file`、`env`（`Source::User`、`Source::File`、`Source::Env`）。关掉的层一个值都不读，它们里面写错的值也不算问题。不是配置项的东西照样读环境变量：路径里的 `~` 用 `HOME`，环境变量写法的文件里的 `${NAME}` 也照样展开。`persist` 写的是环境变量写法的文件，这一层关掉时它报错。默认值和覆盖这两层不能关；不要覆盖的程序不调用 `set` 就行。
 
 ## 测试
 

@@ -1,7 +1,7 @@
 [workspace]
 name = "layeredcfg"
 version = "0.1.0"
-description = "Layered configuration: defaults from a TOML file, overridden by env-style files, the environment and the command line"
+description = "Layered configuration: defaults from a TOML file, overridden by the user's TOML files, env-style files, the environment and the command line"
 channels = ["conda-forge"]
 platforms = ["linux-64"]
 
