@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+documentation = "https://docs.rs/layeredcfg"
 description = "Layered configuration: defaults from a TOML file, overridden by env-style files, the environment and the command line, each value converted to its default's type as Python converts text"
 readme = "README.md"
 keywords = ["configuration", "config", "dotenv", "env", "toml"]
