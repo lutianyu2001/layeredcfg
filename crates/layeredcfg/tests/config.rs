@@ -597,7 +597,7 @@ fn a_user_file_with_a_mistake_is_refused_with_where_the_mistake_is() {
     let error = refused("[server]\nport = 9000\nprot = 1\n");
     assert_eq!(
         error.message(),
-        format!("{}:3:8: unknown setting: server.prot", scratch.dir.join("user.toml").display())
+        format!("{}:3:1: unknown setting: server.prot", scratch.dir.join("user.toml").display())
     );
     assert_eq!(error.key(), "server.prot");
     refused("[servers]\nport = 1\n");
@@ -707,4 +707,17 @@ fn a_layer_turned_off_is_not_read_while_the_environment_still_gives_the_home_and
         let options = Options { disabled: [layer].into(), ..plain(&environment) };
         assert_eq!(Config::parse(DEFAULTS, options, "defaults").unwrap_err().kind(), ErrorKind::BadDefaults);
     }
+}
+
+#[test]
+fn a_mistake_in_a_key_of_a_user_file_is_where_the_key_is() {
+    let environment = FakeEnvironment::default();
+    let mut config = parse(DEFAULTS, plain(&environment));
+    let at = |config: &mut Config, text: &str| {
+        config.set_user_text(text, Path::new("u.toml")).unwrap_err().message().split(": ").next().unwrap().to_owned()
+    };
+    assert_eq!(at(&mut config, "[server]\n  prot = 1\n"), "u.toml:2:3");
+    assert_eq!(at(&mut config, "server.prot = 1\n"), "u.toml:1:8");
+    assert_eq!(at(&mut config, "[servers]\nport = 1\n"), "u.toml:1:2");
+    assert_eq!(at(&mut config, "[server]\nport = \"x\"\n"), "u.toml:2:8"); // the value
 }

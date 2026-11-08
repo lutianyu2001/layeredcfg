@@ -360,7 +360,7 @@ def test_a_user_file_with_a_mistake_is_a_bad_user_file(defaults, tmp_path):
     mine.write_text("[server]\nprot = 1\n")
     with pytest.raises(layeredcfg.BadUserFile) as raised:
         make(defaults, user_files=[mine])
-    assert str(raised.value) == f"{mine}:2:8: unknown setting: server.prot"
+    assert str(raised.value) == f"{mine}:2:1: unknown setting: server.prot"
     assert raised.value.key == "server.prot" and isinstance(raised.value, ValueError)
     mine.write_text('[notify]\ntopic = ["hunter2"]\n')
     with pytest.raises(layeredcfg.BadUserFile) as raised:

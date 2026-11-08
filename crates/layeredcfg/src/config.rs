@@ -661,8 +661,12 @@ impl Config {
         while let Some((prefix, table)) = tables.pop() {
             for (name, node) in table {
                 let key = format!("{prefix}{}", name.get_ref());
+                // A mistake in the value is where the value is; one in the key, where the key is.
                 let bad = |what: String| {
                     Error::new(ErrorKind::BadUserFile, key.clone(), format!("{}: {what}", at(node.span().start)))
+                };
+                let bad_key = |what: String| {
+                    Error::new(ErrorKind::BadUserFile, key.clone(), format!("{}: {what}", at(name.span().start)))
                 };
                 let raw = match node.get_ref() {
                     DeValue::Table(inner) if self.sections.contains(&key) => {
@@ -670,11 +674,11 @@ impl Config {
                         continue;
                     }
                     DeValue::Table(_) if self.settings.contains_key(&key) => {
-                        return Err(bad(format!("{key} is a setting, not a table of settings")));
+                        return Err(bad_key(format!("{key} is a setting, not a table of settings")));
                     }
-                    DeValue::Table(_) => return Err(bad(format!("unknown table of settings: {key}"))),
+                    DeValue::Table(_) => return Err(bad_key(format!("unknown table of settings: {key}"))),
                     _ if self.sections.contains(&key) => {
-                        return Err(bad(format!("{key} is a table of settings, not a setting")));
+                        return Err(bad_key(format!("{key} is a table of settings, not a setting")));
                     }
                     DeValue::Boolean(b) => Raw::Bool(*b),
                     DeValue::Integer(i) => Raw::Int(toml_int(i).ok_or_else(|| bad(format!("{key} {INT_PAST_RANGE}")))?),
@@ -691,7 +695,7 @@ impl Config {
                     }
                     DeValue::Datetime(_) => return Err(bad(format!("{key} is a date or a time, which no setting is"))),
                 };
-                let setting = self.settings.get(&key).ok_or_else(|| bad(format!("unknown setting: {key}")))?;
+                let setting = self.settings.get(&key).ok_or_else(|| bad_key(format!("unknown setting: {key}")))?;
                 let value = self.convert(&key, setting, &raw).map_err(|error| {
                     let mut error = Error { kind: ErrorKind::BadUserFile, ..error };
                     error.message = format!("{}: {}", at(node.span().start), error.message);
