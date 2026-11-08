@@ -1,0 +1,65 @@
+# CI of the Rust code, and of the Python bindings where there are any: the checks and tests, on a
+# push to main and on a pull request. release.yml runs it through workflow_call before it builds a
+# release. It holds no secret, can write nothing, and restores no cache, so what a release waits for
+# is built from scratch.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # rust-toolchain.toml names the toolchain with its rustfmt and clippy, which rustup installs on
+  # first use.
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: cargo fmt --all --check
+      - run: cargo clippy --locked --workspace --all-targets -- -D warnings
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        # Per project: the systems the project supports.
+        os: [ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Per project: the Rust tests, as the project runs them by hand. With Python bindings, name
+      # the packages and leave the bindings' crate out: built as an extension module, it links no
+      # libpython, so its test binary does not link.
+      - run: cargo test --locked -p layeredcfg -p xtask
+
+  # Per project: only with Python bindings; without, delete this job.
+  python:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: pipx install uv==0.13.4
+      - name: Build the wheel
+        run: uvx maturin==1.15.0 build --release --out "$RUNNER_TEMP/dist"
+      # Per project: where the Python tests are, and the pytest they were last seen with.
+      - name: Install the wheel and run the Python tests
+        run: |
+          uv venv "$RUNNER_TEMP/venv"
+          VIRTUAL_ENV="$RUNNER_TEMP/venv" uv pip install "$RUNNER_TEMP"/dist/*.whl pytest==9.1.1
+          "$RUNNER_TEMP/venv/bin/python" -m pytest -q tests/python

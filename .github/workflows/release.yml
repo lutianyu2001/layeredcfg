@@ -1,13 +1,11 @@
-# The release workflow of a Rust project with PyO3 bindings: copy it to
-# .github/workflows/release.yml, which holds all of a project's releasing. Only
-# what is marked Per project differs between projects. Not run in a project yet: watch its first
-# run. Nothing reaches the registries unless the check job, which installs from TestPyPI, passes.
-#
-# Pushing a version tag builds the sdist and the wheels with scripts/build-release.sh, checks the
-# crate with cargo publish --dry-run, uploads the Python files to TestPyPI, installs them from
-# there, then publishes to PyPI and crates.io by trusted publishing (the environments testpypi,
-# pypi and crates-io), and then creates the GitHub release. By hand, the same commands run in the
-# same order with the tokens in ~/.pypirc and cargo's credentials.
+# The release of a Rust crate with PyO3 bindings: pushing a version tag runs ci.yml, then builds the
+# sdist and the wheels with scripts/build-release.sh, checks the crate with cargo publish --dry-run,
+# uploads the Python files to TestPyPI, installs them from there, then publishes to PyPI and
+# crates.io by trusted publishing (the environments testpypi, pypi and crates-io), and then creates
+# the GitHub release. Nothing reaches the registries unless the check job, which installs from
+# TestPyPI, passes. This file holds all of the project's releasing; what is marked Per project is
+# this project's own. By hand, the same commands run in the same order with the tokens in ~/.pypirc
+# and cargo's credentials.
 name: Release
 
 on:
@@ -24,9 +22,15 @@ env:
   IMPORT: layeredcfg
 
 jobs:
+  # The project's ci.yml, its checks and tests: a release goes out only when they pass.
+  # ./ rather than $/, which actionlint 1.7.12 does not know yet.
+  ci: # zizmor: ignore[self-repository]
+    uses: ./.github/workflows/ci.yml
+
   # Builds from the tag, with neither a secret nor a token that can write. Building runs the
   # dependencies' build scripts and procedural macros.
   build:
+    needs: ci
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     outputs:
