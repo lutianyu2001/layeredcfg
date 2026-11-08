@@ -25,22 +25,23 @@ dependencies have; crates come from crates.io only.
 ## Audits
 
 `cargo vet` imports the audits of Mozilla, Google, the Bytecode Alliance, Zcash, ISRG, Embark Studios and Ariel OS.
-Three crates are covered by them (cfg_aliases, heck, quote); the maintainer certified the other 26 at their locked
+Two crates are covered by them (heck, quote); the maintainer certified the other 23 at their locked
 versions, for `safe-to-deploy`, in `supply-chain/audits.toml`. There are no exemptions. A crate added or updated
 later is audited the same way (`cargo vet certify <crate> <version>`, or `<crate> <old> <new>` for the changes
 between two versions).
 
 ## Unsafe Code
 
-The two crates of this project, `layeredcfg` and `layeredcfg-python`, have `#![forbid(unsafe_code)]`: neither has any
-`unsafe` code of its own. What `unsafe` code runs is the dependencies'. As `cargo geiger` counts it (used / present):
+`layeredcfg-python` has `#![forbid(unsafe_code)]`. `layeredcfg` denies `unsafe` code but in `src/passwd.rs`, the
+lookup of a home directory in the password database through the C library (17 expressions as `cargo geiger` counts
+them; SECURITY.md says how it is checked). The rest of the `unsafe` code that runs is the dependencies'. As
+`cargo geiger` counts it (used / present):
 
 | Crate | Expressions | Why it has `unsafe` code |
 |---|---|---|
 | pyo3 0.30.1, pyo3-ffi 0.30.1 | 3179 / 3525, 1319 / 1319 | Python's C API |
 | hashbrown 0.17.1, indexmap 2.14.2 | 1343 / 1612, 80 / 85 | Hash tables (the order of a TOML table) |
-| libc 0.2.191 | 76 / 859 | The C library's declarations |
-| nix 0.31.3 | 57 / 2054 | The password database (`~user`, and `~` without HOME) |
+| libc 0.2.191 | 76 / 859 | The C library's declarations, the password database's among them |
 | once_cell 1.21.4 | 81 / 128 | PyO3's one-time initialisation |
 | toml_parser 1.1.5, winnow 1.0.4 | 66 / 66, 66 / 70 | The TOML parser's hot paths |
 | proc-macro2, syn, unicode-ident, pyo3-macros-backend | 14, 88, 4, 23 | Build time only (PyO3's macros) |
@@ -52,7 +53,6 @@ They are where a compromised dependency would act first.
 
 ```text
 libc 0.2.191 [custom-build]
-nix 0.31.3 [custom-build]
 portable-atomic 1.15.0 [custom-build]
 proc-macro2 1.0.107 [custom-build]
 pyo3 0.30.1 [custom-build]

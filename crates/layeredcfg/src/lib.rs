@@ -14,10 +14,14 @@
 //!
 //! Text from the environment and the files is bytes ([`OsString`]), which need not be UTF-8: a value that is not is an
 //! invalid value when it is converted. POSIX only.
-#![forbid(unsafe_code)]
+//!
+//! The only `unsafe` code is the lookup of a home directory in the password database (the C library's `getpwuid_r`
+//! and `getpwnam_r`), in its own module, which alone may have it.
+#![deny(unsafe_code)]
 
 mod config;
 mod files;
+mod passwd;
 
 // Not part of the API: public for the fuzz targets.
 #[doc(hidden)]

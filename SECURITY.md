@@ -35,7 +35,7 @@ wheel runs any of it. `cargo xtask` runs it, with the versions of its tools and 
 
 | Check | What it covers | Command | Toolchain |
 |---|---|---|---|
-| `#![forbid(unsafe_code)]` | Neither crate of this project has `unsafe` code; the dependencies' is counted in [SUPPLY_CHAIN.md](SUPPLY_CHAIN.md) | built in | |
+| `unsafe_code` lints | The binding forbids `unsafe` code; the library denies it outside `src/passwd.rs`, the lookup in the password database, whose every block clippy makes say why it is sound (`undocumented_unsafe_blocks`, `multiple_unsafe_ops_per_block`); the dependencies' is counted in [SUPPLY_CHAIN.md](SUPPLY_CHAIN.md) | built in | |
 | Tests | The layers, the conversions, persist, the readers of text and of env-style files; each condition of the masking of secrets and of the checks persist makes before writing | `pixi run test` | stable |
 | Miri | The 45 integration tests of `layeredcfg` without undefined behaviour (not the binding, which calls the C API of Python) | `cargo xtask miri` | nightly |
 | Branch coverage | Which branches the Rust tests do not take, to find conditions left untested | `cargo xtask coverage` | nightly |
@@ -163,9 +163,12 @@ Each says what it does not cover.
 - **`find_upward` does not check who owns what it finds.** A file found in a directory others can write into (under
   `/tmp`, say) is theirs: a program should look upward only from directories of its user.
 - **`~name` in a path looks the user up** in the password database, which can go over the network (LDAP, NIS).
+  The lookup is this project's only `unsafe` code (`src/passwd.rs`, the C library's `getpwuid_r` and `getpwnam_r`):
+  Miri and Kani cannot follow it into the C library, so the tests alone check it, against `getent` and `dscl`, with
+  a buffer that has to grow; a name with a NUL is no user's, and the buffer stops growing at a mebibyte.
 - **Messages have names and values as they are.** The core escapes only `"` and `\` in a value; Python's
   `invalid_value` message has the value's `repr`, but names of files and settings, and the core's messages about files
   and the defaults, are as they are. A message printed to a terminal can carry control characters, escape sequences
   among them.
-- **The dependencies' `unsafe` code** (PyO3, nix, hashbrown and others) is theirs, counted and left to their audits:
+- **The dependencies' `unsafe` code** (PyO3, libc, hashbrown and others) is theirs, counted and left to their audits:
   see [SUPPLY_CHAIN.md](SUPPLY_CHAIN.md).

@@ -55,7 +55,8 @@ in the env-style files is a prefix and its key upper-cased, dots made underscore
 - Env-style files read as python-dotenv reads them for the most part
 - A value written back into its file in place, every other byte kept (`persist`)
 - Secrets shown masked; settings that only the files may set
-- A Rust library without unsafe code of its own, and a Python binding whose errors are Python's kinds
+- A Rust library whose only `unsafe` code is the lookup of a home directory in the password database, and a Python
+  binding without any, whose errors are Python's kinds
 
 ## Security Audit
 
@@ -79,11 +80,15 @@ to run them, and what each covers, is in [SECURITY.md](https://github.com/lutian
   errors and in Python's exceptions; `persist` writing files that other users of the machine can reach (permissions,
   links, a file half written) and several writers at once; `${NAME}` making a small file's values huge. What was found
   is fixed, or written down with what it leaves open, in SECURITY.md.
-- **`unsafe` code.** None in either crate of this project, which `#![forbid(unsafe_code)]`; the dependencies' is
-  counted by cargo geiger, and PyO3, which calls Python's C API, has most of it.
-- **Dependencies.** 29 crates, from crates.io only, checked by cargo deny for known vulnerabilities, unmaintained or
-  yanked crates, licenses and sources. In cargo vet, 3 are covered by audits imported from other organisations and
-  the other 26 by the maintainer's own certification, none exempted. They are not vendored: this is a library,
+- **`unsafe` code.** The binding has none (`#![forbid(unsafe_code)]`). The library has it in one module alone, which
+  looks a home directory up in the password database for `~` and `~name` (the C library's `getpwuid_r` and
+  `getpwnam_r`, which Rust's standard library has no lookup by name for): each block makes one call or reads one
+  pointer and says why that is sound, and tests compare what it finds with `getent` (Linux) and `dscl` (macOS),
+  a buffer too small for the entry included. The dependencies' is counted by cargo geiger, and PyO3, which calls
+  Python's C API, has most of it.
+- **Dependencies.** 25 crates, from crates.io only, checked by cargo deny for known vulnerabilities, unmaintained or
+  yanked crates, licenses and sources. In cargo vet, 2 are covered by audits imported from other organisations and
+  the other 23 by the maintainer's own certification, none exempted. They are not vendored: this is a library,
   and `Cargo.lock` pins every version and checksum.
 - **Miri.** The 45 tests of the Rust library (the layers, persist, env-style files, the readers of text) run under Miri
   without undefined behaviour; not the binding, which calls Python's C API.
@@ -120,9 +125,10 @@ to run them, and what each covers, is in [SECURITY.md](https://github.com/lutian
   `persist`, the masking of secrets) was read whole by separate reviewers who were given the threat model, not the
   findings.
 
-What this shows: this project's own code has no memory errors, being Rust without `unsafe` (unless the compiler or a
-dependency's `unsafe` code is wrong), and none of the checks above found a panic, an overflow or undefined behaviour. What it does not: Rust does not rule out mistakes
-of logic; the dependencies' `unsafe` code is left to them and their audits; Kani proves only the inputs within its
+What this shows: this project's own code has no memory errors, being Rust whose `unsafe` code is the two calls into
+the password database (unless the compiler, the C library or a dependency's `unsafe` code is wrong), and none of the checks above found a panic, an overflow or undefined behaviour. What it does not: Rust does not rule out mistakes
+of logic; the dependencies' `unsafe` code is left to them and their audits; neither Miri nor Kani can follow the calls
+into the C library, which the tests alone cover; Kani proves only the inputs within its
 bounds, and fuzzing tries only some. Not proved, and covered by the tests and the fuzzing alone: which characters
 beyond ASCII are whitespace or digits (the running Python's, which the Python tests compare for every digit and
 whitespace character it has), `parse_float`, the reader of env-style files, and what is above the readers of text

@@ -9,9 +9,7 @@ use std::os::unix::ffi::OsStringExt;
 use std::os::unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt, fchown};
 use std::path::{Component, Path, PathBuf};
 
-use nix::unistd::{User, getuid};
-
-use crate::{Environment, Error, ErrorKind, Result};
+use crate::{Environment, Error, ErrorKind, Result, passwd};
 
 /// An error of the system as the C library says it ("No such file or directory"), without Rust's "(os error 2)".
 pub(crate) fn os_message(error: &io::Error) -> String {
@@ -114,13 +112,11 @@ pub(crate) fn expand_user(text: &[u8], environment: &Environment) -> PathBuf {
     let home = if user.is_empty() {
         match environment.get("HOME".as_ref()) {
             Some(home) => Some(home.into_vec()),
-            None => User::from_uid(getuid()).ok().flatten().map(|entry| entry.dir.into_os_string().into_vec()),
+            None => passwd::home(passwd::current()),
         }
     } else {
-        std::str::from_utf8(user)
-            .ok()
-            .and_then(|name| User::from_name(name).ok().flatten())
-            .map(|entry| entry.dir.into_os_string().into_vec())
+        // A name that is not UTF-8 is no user's here, as Python's pwd module takes only text.
+        std::str::from_utf8(user).ok().and_then(|name| passwd::home_of_name(name.as_bytes()))
     };
     let Some(mut home) = home.filter(|home| !home.is_empty()) else {
         return as_is();
