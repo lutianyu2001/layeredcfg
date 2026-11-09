@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
 use run::{scope, size};
-use tasks::{KNOWN, TASKS, fuzz, memory, miri, pins};
+use tasks::{KNOWN, TASKS, asan, fuzz, memory, miri, pins, review};
 
 mod badges;
 mod digest;
@@ -31,12 +31,17 @@ mod tasks;
 pub const USAGE: &str = "usage: cargo xtask <task> [args]
 
   setup [task...]   install the pinned tools and toolchain, for all tasks or the ones named
+  review            that each file with unsafe Rust, C, C++ or assembly is covered by a
+                    review in audit/reviews/ recording its sha256 as it is; what each has
+                    into review.txt
   deny              cargo deny over the workspace: sources, licenses, bans, advisories;
                     the fuzz workspace's advisories and sources
   vet               cargo vet: every dependency is audited
   geiger            unsafe code in the dependencies, into geiger.txt (geiger-<package>.txt
                     for each member, when the workspace has several)
   miri              the tests of the pure modules under Miri
+  asan              the tests that call into the C library under AddressSanitizer (Linux,
+                    x86_64 or aarch64)
   coverage          branch coverage of the tests: a table per file into summary.txt, and
                     HTML in target/llvm-cov/html
   kani [proof...]   every Kani proof, one at a time; each one's result, time and peak
@@ -54,6 +59,8 @@ pub const USAGE: &str = "usage: cargo xtask <task> [args]
                     vulnerability (only that with --vulns); asks which to update, and
                     exits 2 when something is due and it cannot ask. Covers the actions
                     the workflows use too, pinned to commits
+  review-hash <file>...
+                    the line naming each file and its sha256, for a review's header
   badges <dir> --deny <outcome>
                     the README's badges, as shields.io endpoint files, into dir: whether
                     each task's latest result stands, deny's from the outcome given, and
@@ -89,6 +96,7 @@ fn main() -> ExitCode {
         return ExitCode::FAILURE;
     };
     let root = root();
+    let caller = env::current_dir().unwrap_or_else(|_| root.clone());
     // `cargo run` keeps the caller's directory; everything below is from the root.
     if let Err(e) = env::set_current_dir(&root) {
         eprintln!("xtask: {}: {e}", root.display());
@@ -105,6 +113,7 @@ fn main() -> ExitCode {
         // Not while a task uses the tools.
         "setup" => lock::exclusive(&root).and_then(|_held| setup::setup(rest)),
         "outdated" => return outdated::main(&root, rest),
+        "review-hash" => return review::hash_lines(&root, &caller, rest),
         "badges" => {
             return badges::main(&root, rest, TASKS, |t| {
                 needed(&root, t, &params(t)).unwrap_or_else(|e| vec![e])
@@ -267,13 +276,17 @@ fn affects(task: &str, path: &str) -> bool {
     let under = |names: &[&str]| {
         names.iter().any(|n| path == *n || path.strip_prefix(n).is_some_and(|p| p.starts_with('/')))
     };
+    // The results, which no task reads; but the reviews, which review alone does.
+    if under(&["audit"]) {
+        return task == "review" && under(&[review::REVIEWS]);
+    }
     if PROOFS.contains(&path) {
-        return task == "kani";
+        return task == "kani" || task == "review" && review::can_need(path);
     }
     // Where a project has it: what reads Kani's list of proofs, and the workspace's packages
-    // before geiger and coverage build (own_target).
+    // before geiger, asan and coverage build (own_target).
     if path == "xtask/src/json.rs" {
-        return matches!(task, "geiger" | "coverage" | "kani");
+        return matches!(task, "geiger" | "asan" | "coverage" | "kani");
     }
     let module = |t: &str| format!("xtask/src/tasks/{t}.rs");
     // The dependencies, the toolchain, how the tasks run and the task's own code: not the
@@ -291,9 +304,13 @@ fn affects(task: &str, path: &str) -> bool {
     let style = Path::new(path).file_name().is_some_and(|n| {
         ["rustfmt.toml", ".rustfmt.toml", "clippy.toml", ".clippy.toml"].iter().any(|s| n == *s)
     });
-    let every = manifest
-        || under(&["Cargo.lock", ".cargo", "rust-toolchain.toml"])
-        || under(&["xtask"]) && !other && !style && !none.iter().any(|f| path == f);
+    let xtask = under(&["xtask"]) && !other && !style && !none.iter().any(|f| path == f);
+    // Review builds nothing: it reads the files that can want a review, the reviews, and how
+    // it runs.
+    if task == "review" {
+        return xtask || review::can_need(path);
+    }
+    let every = manifest || under(&["Cargo.lock", ".cargo", "rust-toolchain.toml"]) || xtask;
     if every {
         return true;
     }
@@ -330,18 +347,23 @@ fn affects(task: &str, path: &str) -> bool {
         "fuzz" => code(&[], false),
         "geiger" | "kani" => code(&["fuzz"], false),
         // Of the integration tests, the Rust ones: Python tests are left to coverage.
-        "miri" => {
+        "miri" | "asan" => {
             let rust = Path::new(path).extension().is_some_and(|e| e.eq_ignore_ascii_case("rs"));
-            code(&["fuzz"], miri_runs_integration_tests() && rust)
+            code(&["fuzz"], runs_integration_tests(build(task)) && rust)
         }
         _ => code(&["fuzz"], true),
     }
 }
 
-/// Whether Miri runs integration tests: its BUILD names them where they are all a package has;
-/// otherwise it runs the unit tests (`--lib`).
-fn miri_runs_integration_tests() -> bool {
-    miri::BUILD.iter().any(|a| matches!(*a, "--tests" | "--test" | "--all-targets"))
+/// What Miri or asan builds the tests with.
+fn build(task: &str) -> &'static [&'static str] {
+    if task == "asan" { asan::BUILD } else { miri::BUILD }
+}
+
+/// Whether a task building tests with `build` (Miri's or asan's BUILD) runs integration tests:
+/// it names them where they are all a package has; otherwise it runs the unit tests (`--lib`).
+fn runs_integration_tests(build: &[&str]) -> bool {
+    build.iter().any(|a| matches!(*a, "--tests" | "--test" | "--all-targets"))
 }
 
 /// The files `task` reads, with the hashes of what can change a run in them (see
@@ -537,8 +559,10 @@ mod tests {
         let only = |tasks: &[&'static str]| -> Vec<&'static str> {
             tasks.iter().copied().filter(|t| super::TASKS.contains(t)).collect()
         };
+        // What every task but review reads: review builds nothing.
+        let built: Vec<&str> = all.iter().copied().filter(|t| *t != "review").collect();
         for path in ["Cargo.lock", "Cargo.toml", "crates/a/Cargo.toml", ".cargo/config.toml"] {
-            assert_eq!(reads(path), all, "{path}");
+            assert_eq!(reads(path), built, "{path}");
         }
         for path in
             ["xtask/src/main.rs", "xtask/src/tasks/mod.rs", "xtask/src/run.rs", "xtask/src/new.rs"]
@@ -558,24 +582,45 @@ mod tests {
         }
         for path in super::READ_BY_NO_TASK {
             assert_eq!(reads(path), Vec::<&str>::new(), "{path}");
-            assert_eq!(reads(&format!("{path}/a.rs")), Vec::<&str>::new(), "{path}");
+            // Rust there can want a review all the same.
+            assert_eq!(reads(&format!("{path}/a.rs")), only(&["review"]), "{path}");
         }
         assert_eq!(reads("xtask/src/tasks/kani.rs"), only(&["kani"]));
-        assert_eq!(reads("xtask/src/json.rs"), only(&["geiger", "coverage", "kani"]));
+        assert_eq!(reads("xtask/src/json.rs"), only(&["geiger", "asan", "coverage", "kani"]));
+        assert_eq!(reads("xtask/src/tasks/review.rs"), only(&["review"]));
+        assert_eq!(reads("xtask/src/tasks/asan.rs"), only(&["asan"]));
         assert_eq!(reads("xtask/src/tasks/fuzz.rs"), only(&["fuzz"]));
-        // A member's integration tests are coverage's, and Miri's when it runs them; a module
-        // of src/ named tests is code.
-        let tests = if super::miri_runs_integration_tests() {
-            &["miri", "coverage"][..]
-        } else {
-            &["coverage"]
-        };
-        assert_eq!(reads("crates/a/tests/t.rs"), only(tests));
-        assert_eq!(reads("tests/t.rs"), only(tests));
+        // A member's integration tests are coverage's, and Miri's and asan's when they run
+        // them, and the Rust can want a review; a module of src/ named tests is code.
+        let tests: Vec<&str> = [
+            ("review", true),
+            ("miri", super::runs_integration_tests(super::miri::BUILD)),
+            ("asan", super::runs_integration_tests(super::asan::BUILD)),
+            ("coverage", true),
+        ]
+        .into_iter()
+        .filter_map(|(t, reads)| reads.then_some(t))
+        .collect();
+        // In the order of TASKS.
+        let tests: Vec<&str> = all.iter().copied().filter(|t| tests.contains(t)).collect();
+        assert_eq!(reads("crates/a/tests/t.rs"), tests);
+        assert_eq!(reads("tests/t.rs"), tests);
         assert_eq!(
             reads("crates/a/src/tests/t.rs"),
-            only(&["geiger", "miri", "coverage", "kani", "fuzz"])
+            only(&["review", "geiger", "miri", "asan", "coverage", "kani", "fuzz"])
         );
+        // The reviews are review's alone, and the results no task's.
+        assert_eq!(reads("audit/reviews/passwd.md"), only(&["review"]));
+        for path in ["audit/review/run.txt", "audit/miri/inputs.txt", "audit/lock"] {
+            assert_eq!(reads(path), Vec::<&str>::new(), "{path}");
+        }
+        // C, C++ and assembly are code, and want a review; the fuzz targets and the
+        // dependencies never do.
+        let reviewed = only(&["review", "geiger", "miri", "asan", "coverage", "kani", "fuzz"]);
+        for path in ["crates/a/src/a.c", "crates/a/include/a.h", "crates/a/src/a.S"] {
+            assert_eq!(reads(path), reviewed, "{path}");
+        }
+        assert!(!reads("vendor/libc/src/lib.rs").contains(&"review"));
         // Per project: paths of this project, by which files each task reads.
         assert_eq!(reads("README.md"), Vec::<&str>::new());
         assert_eq!(reads("README/README_CN.md"), Vec::<&str>::new());
@@ -587,15 +632,25 @@ mod tests {
         assert_eq!(reads("fuzz/Cargo.lock"), only(&["deny", "fuzz"]));
         assert_eq!(reads("fuzz/fuzz_targets/envfile.rs"), only(&["fuzz"]));
         assert_eq!(reads("tests/python/test_config.py"), only(&["coverage"]));
-        let code = only(&["geiger", "miri", "coverage", "kani", "fuzz"]);
-        assert_eq!(reads("crates/layeredcfg/src/text.rs"), code);
+        let code = only(&["geiger", "miri", "asan", "coverage", "kani", "fuzz"]);
+        let rust = only(&["review", "geiger", "miri", "asan", "coverage", "kani", "fuzz"]);
+        assert_eq!(reads("crates/layeredcfg/src/text.rs"), rust);
+        assert_eq!(reads("crates/layeredcfg/src/passwd.rs"), rust);
+        // Where unsafe is only a word in the comments.
+        assert_eq!(reads("crates/layeredcfg/src/lib.rs"), code);
         // The binding, which only geiger and coverage build, but its manifest.
-        assert_eq!(reads("crates/layeredcfg-python/src/lib.rs"), only(&["geiger", "coverage"]));
-        assert_eq!(reads("crates/layeredcfg-python/Cargo.toml"), all);
-        // The integration tests Miri runs.
-        assert_eq!(reads("crates/layeredcfg/tests/config.rs"), only(&["miri", "coverage"]));
+        assert_eq!(
+            reads("crates/layeredcfg-python/src/lib.rs"),
+            only(&["review", "geiger", "coverage"])
+        );
+        assert_eq!(reads("crates/layeredcfg-python/Cargo.toml"), built);
+        // The integration tests Miri runs; asan runs the unit tests (--lib).
+        assert_eq!(
+            reads("crates/layeredcfg/tests/config.rs"),
+            only(&["review", "miri", "coverage"])
+        );
         assert_eq!(reads("pyproject.toml"), code);
-        assert_eq!(reads("crates/layeredcfg/src/proofs.rs"), only(&["kani"]));
+        assert_eq!(reads("crates/layeredcfg/src/proofs.rs"), only(&["review", "kani"]));
     }
 
     #[test]
@@ -611,6 +666,8 @@ mod tests {
         assert!(plan("kani", &args(&["a::proofs::b"]), true).is_err());
         assert!(plan("kani", &args(&["a::proofs::b"]), false).is_ok());
         assert!(plan("miri", &args(&["x"]), false).is_err());
+        assert!(plan("asan", &args(&["x"]), false).is_err());
+        assert!(plan("review", &args(&["x"]), false).is_err());
         assert_eq!(plan("miri", &[], true).map(|p| p.params), Ok(String::new()));
     }
 }

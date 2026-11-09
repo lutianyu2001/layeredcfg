@@ -52,18 +52,20 @@
 
 ## 安全审计
 
+[![review](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Freview.json)](../audit/review)
 [![deny](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fdeny.json)](https://github.com/lutianyu2001/layeredcfg/actions/workflows/advisories.yml)
 [![vet](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fvet.json)](../audit/vet)
 [![geiger](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fgeiger.json)](../audit/geiger)
 [![miri](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fmiri.json)](../audit/miri)
+[![asan](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fasan.json)](../audit/asan)
 [![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fcoverage.json)](../audit/coverage)
 [![kani](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fkani.json)](../audit/kani)
 [![fuzz](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Ffuzz.json)](../audit/fuzz)
 
-这是项目维护者自己对代码做的安全审计，不是第三方的审计：它说明查了什么、怎么查的，不保证没有问题。每项检查最近一次的结果和代码一起提交在 [`audit/`](../audit)，记着是在哪个提交上跑的；上面的徽章显示每项结果对 `main` 上现在的代码是否仍然有效。耗时开跑前就能知道的检查（deny、vet、geiger、覆盖率和模糊测试），以及只要几分钟的 Miri，在每次发版时由 GitHub 重跑；Kani 手动跑。怎么跑、每项覆盖什么，见 [SECURITY.md](../SECURITY.md)；依赖见 [SUPPLY_CHAIN.md](../SUPPLY_CHAIN.md)。
+这是项目维护者自己对代码做的安全审计，不是第三方的审计：它说明查了什么、怎么查的，不保证没有问题。每项检查最近一次的结果和代码一起提交在 [`audit/`](../audit)，记着是在哪个提交上跑的；上面的徽章显示每项结果对 `main` 上现在的代码是否仍然有效。耗时开跑前就能知道的检查（评审记录、deny、vet、geiger、AddressSanitizer、覆盖率和模糊测试），以及只要几分钟的 Miri，在每次发版时由 GitHub 重跑；Kani 手动跑。怎么跑、每项覆盖什么，见 [SECURITY.md](../SECURITY.md)；依赖见 [SUPPLY_CHAIN.md](../SUPPLY_CHAIN.md)。
 
 - **按威胁模型审查。** 每一层里的文字，任何字节都算；密钥会不会出现在显示的值、错误信息和 Python 的异常里；`persist` 写的文件同一台机器上的其他用户能不能碰到（权限、符号链接、写了一半的文件），几个进程同时写；`${NAME}` 能不能把一个小文件的值撑得很大。发现的问题都修了，没修的写明留下了什么风险，见 SECURITY.md。
-- **`unsafe` 代码。** 绑定层没有（`#![forbid(unsafe_code)]`）。库只在一个模块里有：为 `~` 和 `~name` 在密码数据库里查家目录（C 库的 `getpwuid_r` 和 `getpwnam_r`，Rust 标准库没有按名字查的函数）。每个 unsafe 块只做一次调用或读一个指针，并写明为什么成立；测试把查到的结果和 `getent`（Linux）、`dscl`（macOS）对照，也测了缓冲区放不下的情况。依赖里的由 cargo geiger 计数，大部分在调用 Python C API 的 PyO3 里。
+- **`unsafe` 代码。** 绑定层没有（`#![forbid(unsafe_code)]`）。库只在 `src/passwd.rs` 这一个模块里有：为 `~` 和 `~name` 在密码数据库里查家目录（C 库的 `getpwuid_r` 和 `getpwnam_r`，Rust 标准库没有按名字查的函数）。每个 unsafe 块只做一次调用或读一个指针，并写明为什么成立。调用、读取调用填好的结果（有写明的前提条件）和重试三部分分开：重试是安全代码，C 库可能给的每种回答都有测试，Kani 对任意回答序列都证明过；读取在 Miri 下用照 C 库的方式造出的结果测试；真实的调用在 glibc、musl 和 macOS 上和 `getent`（Linux）、`dscl`（macOS）对照，并在 AddressSanitizer 下跑。这个模块有两位评审读过，评审记录带着文件的哈希，文件一改就要重新评审（`cargo xtask review`）。依赖里的 `unsafe` 由 cargo geiger 计数，大部分在调用 Python C API 的 PyO3 里。
 - **依赖。** 25 个 crate，只来自 crates.io，由 cargo deny 检查已知漏洞、无人维护或被撤回的 crate、许可证和来源。cargo vet 里，2 个有其他组织的审计记录（导入的），其余 23 个由维护者自己批准（certify），没有豁免。依赖没有本地化（vendor）：这是一个库，`Cargo.lock` 固定了每个版本和校验和。
 - **Miri。** Rust 库的 45 个测试（各层、persist、环境变量写法的文件、读文字的函数）在 Miri 下跑过，没有未定义行为；绑定层调用 Python 的 C API，不在其内。
 - **模糊测试。** 三个 target，在工作站上每个跑一小时，发版时每个跑四小时：`envfile`（读出的语句按顺序落在原文以内，`persist` 写进去的值读回来不变）、`numbers`（整数和浮点数写出来再读回来不变，ASCII 以外的数字也算，`strip` 幂等，列表的每项不含逗号、首尾没有空白）、`config`（读默认值，以及对每个配置项 `get`、`shown`、`path`、`set` 都不 panic）。

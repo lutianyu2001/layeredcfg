@@ -36,8 +36,10 @@ wheel runs any of it. `cargo xtask` runs it, with the versions of its tools and 
 | Check | What it covers | Command | Toolchain |
 |---|---|---|---|
 | `unsafe_code` lints | The binding forbids `unsafe` code; the library denies it outside `src/passwd.rs`, the lookup in the password database, whose every block clippy makes say why it is sound (`undocumented_unsafe_blocks`, `multiple_unsafe_ops_per_block`); the dependencies' is counted in [SUPPLY_CHAIN.md](SUPPLY_CHAIN.md) | built in | |
+| Review | That the code with `unsafe` (`src/passwd.rs`), and any C, C++ or assembly, was read by a person or an agent as it is now: each review in `audit/reviews/` names the files it covers with their sha256, so that any change to one, a comment's too, wants it read again | `cargo xtask review` | |
 | Tests | The layers, the conversions, persist, the readers of text and of env-style files; each condition of the masking of secrets and of the checks persist makes before writing | `pixi run test` | stable |
 | Miri | The 45 integration tests of `layeredcfg` without undefined behaviour (not the binding, which calls the C API of Python) | `cargo xtask miri` | nightly |
+| AddressSanitizer | The tests of `src/passwd.rs`, which call into the C library, without a read or write out of bounds, a use after free or a leak; the C library's own code is not instrumented, its string and memory functions are checked where they are called (Linux, x86_64 or aarch64) | `cargo xtask asan` | nightly |
 | Branch coverage | Which branches the Rust tests do not take, to find conditions left untested | `cargo xtask coverage` | nightly |
 | Kani | For every input up to 6 bytes, whatever is whitespace or a digit beyond ASCII: UTF-8 decoded as the standard library does, whitespace stripped only between characters, integers and booleans without panic or overflow, lists cut at their commas and nowhere else; for every ASCII input up to 6 bytes: whitespace stripped once and for all, integers as `str::parse` reads them; integers of 21 bytes at the edges of 64 bits | `cargo xtask kani` | Kani's own |
 | Fuzzing | Each target an hour on a workstation, four hours in CI (see below) | `cargo xtask fuzz` | nightly |
@@ -65,7 +67,8 @@ of memory at 4 bytes), and what is above the readers of text (the layers, persis
 | Command | Description |
 |---|---|
 | `cargo xtask setup [task…]` | Installs the pinned tools a task needs, all of them by default: cargo-deny, cargo-vet, cargo-geiger, cargo-fuzz, cargo-llvm-cov, Kani, and the nightly Rust with Miri and the LLVM tools |
-| `cargo xtask <task>` | Runs one task: `deny`, `vet`, `geiger`, `miri`, `coverage`, `kani [proof…]` or `fuzz [seconds]` |
+| `cargo xtask <task>` | Runs one task: `review`, `deny`, `vet`, `geiger`, `miri`, `asan`, `coverage`, `kani [proof…]` or `fuzz [seconds]` |
+| `cargo xtask review-hash <file…>` | The line naming each file and its sha256, for the header of a review |
 | `cargo xtask all` | Each task in that order, the cheap ones first, the next after one that fails too |
 | `cargo xtask status` | The latest result of each task, when and at what commit it ran, and whether it still holds |
 | `cargo xtask needed <task> [args]` | Whether the task is to run again, and why: exit 0 if it is, 1 if its results hold, 2 on an error |
@@ -83,23 +86,32 @@ vulnerability in a pinned tool once a day, and for releases once a week, and say
 After a change to a proof, to what it proves or to a fuzz target, try it first with `cargo xtask kani --no-record`
 (and `cargo xtask fuzz 600 --no-record`): in `all`, the fuzzing runs its hour even when Kani failed.
 
+A review is a Markdown file in `audit/reviews/`, written by hand and committed with the code. It begins with a header:
+a line `- file: <path> sha256:<hex>` for each file it covers (`cargo xtask review-hash <file…>` prints them), and
+`- reviewer:`, `- date:` and `- commit:` lines; the findings follow. `cargo xtask review` fails while a file that wants
+a review has none recording the sha256 it has now, and prints the lines for the header.
+
 ### Results
 
 The latest run of each task is committed in `audit/<task>/`: `run.txt` (when it started, how long it took, the commit
 it ran at, its arguments, the tools and how it went), `run.log` (all it wrote), `inputs.txt` (the files it read) and
-what the task makes: the tables of `geiger`, `coverage/summary.txt`, the proofs' `kani/harnesses.txt` and each proof's
+what the task makes: `review/review.txt` (each file that wants a review, and what it has of one), the tables of
+`geiger`, `coverage/summary.txt`, the proofs' `kani/harnesses.txt` and each proof's
 log, the fuzz targets' logs. When the latest run failed, the last that succeeded is kept in
 `audit/<task>/last_succeeded/`.
 
-A run is recorded only from a working tree with everything committed (untracked files too, `audit/` aside), so that it
+A run is recorded only from a working tree with everything committed (untracked files too, `audit/` aside but for
+`audit/reviews/`), so that it
 is of a commit, and fails if the tree or HEAD changed while it ran. Its results hold, for `cargo xtask status`,
 `needed` and the badges, as long as it succeeded, the tools pinned for it and its arguments are the same, none of the
 files it reads changed, and, for `deny`, whose advisories change every day, for a day. Rust files are compared by
-their tokens, so that a change to a comment or to the layout changes nothing; the others as they are. Which files a
+their tokens, so that a change to a comment or to the layout changes nothing; the others as they are, and for `review`
+all of them as they are. Which files a
 task reads is `affects` in `xtask/src/main.rs`: documentation reads none of them, a task's own module in `xtask/src/tasks/`
 only that task, the proofs only `kani`, the integration tests `miri` and `coverage`, the binding `geiger` and `coverage`
 (the others do not build it), the Python tests only `coverage`; the crate's own version, which only the Python tests
-see, for none.
+see, for none. `review` reads the Rust, C, C++ and assembly outside `vendor/`, `fuzz/` and `xtask/`, the reviews in
+`audit/reviews/` and the code of `xtask/` that runs it, and no manifest, since it builds nothing.
 
 `--if-needed` (`cargo xtask all --if-needed`) skips the tasks whose results hold. `--no-record` runs a task on any
 working tree, into `target/audit/<task>/`, with `audit/` left as it is; some proofs only (`kani <proof…>`) or fuzzing
@@ -110,9 +122,9 @@ for less than an hour run only so. To record: commit the code, run on the clean 
 `.github/workflows/verify.yml` runs the tasks on GitHub, each in a job of its own, as on a workstation, with the same
 pinned tools:
 
-- At each release published on GitHub: `deny`, `vet`, `geiger`, `coverage` and `fuzz`, whose length is known before
-  they start, and `miri`, which takes two minutes. The fuzzing runs four hours a target, all of them at once, from the
-  corpus of the last run.
+- At each release published on GitHub: `review`, `deny`, `vet`, `geiger`, `asan`, `coverage` and `fuzz`, whose length is
+  known before they start, and `miri`, which takes two minutes. The fuzzing runs four hours a target, all of them at
+  once, from the corpus of the last run.
 - Kani never by itself: it takes an hour or more, and one new proof can take it from seconds to hours (so can a test
   for Miri, which is measured again after a change to its tests, and leaves the release's tasks when it grows long).
   Kani runs on a workstation, or when the workflow is started by hand (Actions, Verify, Run workflow) with the task
@@ -164,7 +176,8 @@ Each says what it does not cover.
   `/tmp`, say) is theirs: a program should look upward only from directories of its user.
 - **`~name` in a path looks the user up** in the password database, which can go over the network (LDAP, NIS).
   The lookup is this project's only `unsafe` code (`src/passwd.rs`, the C library's `getpwuid_r` and `getpwnam_r`):
-  Miri and Kani cannot follow it into the C library, so the tests alone check it, against `getent` and `dscl`, with
+  Miri and Kani cannot follow it into the C library, so the tests alone check it, under AddressSanitizer too
+  (`cargo xtask asan`), against `getent` and `dscl`, with
   a buffer that has to grow; a name with a NUL is no user's, and the buffer stops growing at a mebibyte.
 - **Messages have names and values as they are.** The core escapes only `"` and `\` in a value; Python's
   `invalid_value` message has the value's `repr`, but names of files and settings, and the core's messages about files

@@ -4,11 +4,11 @@ name: Verify
 # maintainer's decision is to run on GitHub's runners every task that is short or whose
 # length is known before it starts, and so make full use of GitHub Actions; and only those:
 #
-# - At each release published on GitHub, the tasks of ON_RELEASE run by themselves: deny,
-#   vet, geiger, coverage and fuzz, and Kani and Miri where their runs are known to be
-#   short. Fuzzing runs FUZZ_SECONDS a target, the targets at once on a runner's four cores
-#   (up to four of them), stopping on time whatever it finds: four hours, well within the
-#   six a job may take.
+# - At each release published on GitHub, the tasks of ON_RELEASE run by themselves:
+#   review, deny, vet, geiger, asan, coverage and fuzz, and Kani and Miri where their
+#   runs are known to be short. Fuzzing runs FUZZ_SECONDS a target, the targets at once
+#   on a runner's four cores (up to four of them), stopping on time whatever it finds:
+#   four hours, well within the six a job may take.
 # - How long Kani and Miri take depends on the proofs and tests, and one change can take
 #   them from seconds to hours (a single test took Miri from a minute to three hours). A run
 #   left to time out, release after release, would waste the runners and could draw
@@ -33,10 +33,10 @@ on:
   workflow_dispatch:
     inputs:
       tasks:
-        description: "Tasks to run, among: deny vet geiger miri coverage kani fuzz"
+        description: "Tasks to run, among: review deny vet geiger miri asan coverage kani fuzz"
         type: string
         # Per project: what a release runs, as ON_RELEASE below.
-        default: "deny vet geiger miri coverage fuzz"
+        default: "review deny vet geiger miri asan coverage fuzz"
 
 concurrency: { group: "verify-${{ github.ref }}", cancel-in-progress: true }
 
@@ -66,8 +66,8 @@ jobs:
           # those whose length is known before they start, and kani and miri where their
           # runs are known to be short. Miri took two minutes on a workstation; Kani, an hour
           # or more, runs there or by hand.
-          KNOWN: "deny vet geiger miri coverage kani fuzz"
-          ON_RELEASE: "deny vet geiger miri coverage fuzz"
+          KNOWN: "review deny vet geiger miri asan coverage kani fuzz"
+          ON_RELEASE: "review deny vet geiger miri asan coverage fuzz"
           EVENT: ${{ github.event_name }}
           ASKED: ${{ github.event.inputs.tasks }}
         run: |

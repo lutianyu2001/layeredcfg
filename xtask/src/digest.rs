@@ -22,7 +22,9 @@ use std::thread;
 /// The first line of `task`'s inputs.txt, which says how its hashes were made: with another
 /// first line, none of them compare.
 pub fn format(task: &str) -> &'static str {
-    if OWN_VERSION_READ.contains(&task) {
+    if AS_THEY_ARE.contains(&task) {
+        "# all as git blobs (2)"
+    } else if OWN_VERSION_READ.contains(&task) {
         "# Rust as tokens, the rest as git blobs, unread metadata left out (2)"
     } else {
         "# Rust as tokens, the rest as git blobs, own versions and unread metadata left out (2)"
@@ -35,6 +37,10 @@ pub fn format(task: &str) -> &'static str {
 /// Cargo.toml and Cargo.lock are hashed with it; for the others a release changes nothing.
 /// The binding gives Python its version as `__version__`, which only the Python tests run.
 const OWN_VERSION_READ: &[&str] = &[];
+
+/// The tasks whose files are all hashed as they are: a review records each file's sha256, so
+/// that a change to its comments or its layout wants it read again too.
+const AS_THEY_ARE: &[&str] = &["review"];
 
 /// The text that stands for a file's contents, with the workspace's own version where
 /// `kept`; none when they are hashed as they are.
@@ -145,6 +151,7 @@ pub fn hashes(
 ) -> Result<Vec<(String, String)>, String> {
     let kept = OWN_VERSION_READ.contains(&task);
     let wanted: Vec<usize> = (0..files.len())
+        .filter(|_| !AS_THEY_ARE.contains(&task))
         .filter(|&i| !data.contains(&files[i].0.as_str()))
         .filter(|&i| {
             Path::new(&files[i].0).extension().is_some_and(|e| e == "rs")

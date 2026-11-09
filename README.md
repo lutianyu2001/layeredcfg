@@ -60,10 +60,12 @@ in the env-style files is a prefix and its key upper-cased, dots made underscore
 
 ## Security Audit
 
+[![review](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Freview.json)](https://github.com/lutianyu2001/layeredcfg/tree/main/audit/review)
 [![deny](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fdeny.json)](https://github.com/lutianyu2001/layeredcfg/actions/workflows/advisories.yml)
 [![vet](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fvet.json)](https://github.com/lutianyu2001/layeredcfg/tree/main/audit/vet)
 [![geiger](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fgeiger.json)](https://github.com/lutianyu2001/layeredcfg/tree/main/audit/geiger)
 [![miri](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fmiri.json)](https://github.com/lutianyu2001/layeredcfg/tree/main/audit/miri)
+[![asan](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fasan.json)](https://github.com/lutianyu2001/layeredcfg/tree/main/audit/asan)
 [![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fcoverage.json)](https://github.com/lutianyu2001/layeredcfg/tree/main/audit/coverage)
 [![kani](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Fkani.json)](https://github.com/lutianyu2001/layeredcfg/tree/main/audit/kani)
 [![fuzz](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Flutianyu2001%2Flayeredcfg%2Fbadges%2Ffuzz.json)](https://github.com/lutianyu2001/layeredcfg/tree/main/audit/fuzz)
@@ -71,7 +73,8 @@ in the env-style files is a prefix and its key upper-cased, dots made underscore
 The maintainer's own security audit of the code, not one by a third party: it says what was checked and how, not that
 nothing is wrong. The latest results of each check are committed in [`audit/`](https://github.com/lutianyu2001/layeredcfg/tree/main/audit) with the commit they ran at, and
 the badges above say whether each still holds for the code on `main`. The checks whose length is known beforehand
-(deny, vet, geiger, coverage and the fuzzing), and Miri, which takes minutes, run again on GitHub at each release;
+(review, deny, vet, geiger, AddressSanitizer, coverage and the fuzzing), and Miri, which takes minutes, run again on
+GitHub at each release;
 Kani is run by hand. How
 to run them, and what each covers, is in [SECURITY.md](https://github.com/lutianyu2001/layeredcfg/blob/main/SECURITY.md); the dependencies are in
 [SUPPLY_CHAIN.md](https://github.com/lutianyu2001/layeredcfg/blob/main/SUPPLY_CHAIN.md).
@@ -80,12 +83,16 @@ to run them, and what each covers, is in [SECURITY.md](https://github.com/lutian
   errors and in Python's exceptions; `persist` writing files that other users of the machine can reach (permissions,
   links, a file half written) and several writers at once; `${NAME}` making a small file's values huge. What was found
   is fixed, or written down with what it leaves open, in SECURITY.md.
-- **`unsafe` code.** The binding has none (`#![forbid(unsafe_code)]`). The library has it in one module alone, which
-  looks a home directory up in the password database for `~` and `~name` (the C library's `getpwuid_r` and
-  `getpwnam_r`, which Rust's standard library has no lookup by name for): each block makes one call or reads one
-  pointer and says why that is sound, and tests compare what it finds with `getent` (Linux) and `dscl` (macOS),
-  a buffer too small for the entry included. The dependencies' is counted by cargo geiger, and PyO3, which calls
-  Python's C API, has most of it.
+- **`unsafe` code.** The binding has none (`#![forbid(unsafe_code)]`). The library has it in one module alone,
+  `src/passwd.rs`, which looks a home directory up in the password database for `~` and `~name` (the C library's
+  `getpwuid_r` and `getpwnam_r`, which Rust's standard library has no lookup by name for). Each block makes one call
+  or reads one pointer and says why that is sound. The call, the reading of what it filled in (under a stated
+  contract) and the retries are apart: the retries are safe code, tested against every answer the C library can give
+  and proved by Kani for every sequence of them; the reading is tested under Miri with entries made as the C library
+  makes them; the real calls are tested against `getent` (Linux) and `dscl` (macOS) on glibc, musl and macOS, and run
+  under AddressSanitizer. Two reviewers read the module, and the review is recorded with the file's hash, so that a
+  change makes it due again (`cargo xtask review`). The dependencies' `unsafe` code is counted by cargo geiger, and
+  PyO3, which calls Python's C API, has most of it.
 - **Dependencies.** 25 crates, from crates.io only, checked by cargo deny for known vulnerabilities, unmaintained or
   yanked crates, licenses and sources. In cargo vet, 2 are covered by audits imported from other organisations and
   the other 23 by the maintainer's own certification, none exempted. They are not vendored: this is a library,
