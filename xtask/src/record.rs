@@ -327,11 +327,14 @@ pub fn uncommitted(root: &Path) -> Vec<String> {
     else {
         return vec!["(git status failed)".to_owned()];
     };
+    // git status gives paths from the top of the repository, which is above the workspace
+    // when the workspace is in a subdirectory of it.
+    let prefix = git(root, &["rev-parse", "--show-prefix"]).unwrap_or_default();
     // `XY <path>`, each ended by a NUL; a rename is followed by its old path.
     let mut paths = Vec::new();
     let mut entries = out.split('\0').filter(|e| !e.is_empty());
     while let Some(entry) = entries.next() {
-        let path = entry.get(3..).unwrap_or(entry);
+        let path = from_workspace(entry.get(3..).unwrap_or(entry), prefix.trim_end());
         // A directory untracked as a whole is listed file by file (--untracked-files=all).
         if !results(path) {
             paths.push(path.to_owned());
@@ -341,6 +344,12 @@ pub fn uncommitted(root: &Path) -> Vec<String> {
         }
     }
     paths
+}
+
+/// `path`, given from the top of the repository, as from the workspace, `prefix` (as
+/// `git rev-parse --show-prefix` says) below it.
+fn from_workspace<'a>(path: &'a str, prefix: &str) -> &'a str {
+    path.strip_prefix(prefix).unwrap_or(path)
 }
 
 /// Why `task` needs a run, given the files it reads now (as inputs.txt has them), the
@@ -480,8 +489,9 @@ fn time(t: SystemTime) -> String {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
-    use super::{LAST, REVIEWS, changed, covers, replace_path, results, start};
+    use super::{LAST, REVIEWS, changed, covers, from_workspace, replace_path, results, start};
     use std::fs;
 
     /// A run of review replaces audit/review/, and leaves audit/reviews/ as it was, whether it
@@ -544,5 +554,13 @@ mod tests {
         let new = "a1\tCargo.lock\nb2\tsrc/a.rs\nd1\tsrc/new.rs\n";
         assert_eq!(changed(old, new), ["src/a.rs", "src/gone.rs", "src/new.rs"]);
         assert_eq!(changed(old, old), Vec::<String>::new());
+    }
+
+    /// git status gives paths from the top of the repository; the workspace may be below it.
+    #[test]
+    fn paths_are_read_from_the_workspace() {
+        assert_eq!(from_workspace("sub/audit/miri/run.txt", "sub/"), "audit/miri/run.txt");
+        assert_eq!(from_workspace("audit/miri/run.txt", ""), "audit/miri/run.txt");
+        assert_eq!(from_workspace("subway/x.rs", "sub/"), "subway/x.rs");
     }
 }

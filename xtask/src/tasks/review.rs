@@ -1,4 +1,4 @@
-//! `review`: that the code a person (or an agent) has to read, because no tool can check it,
+//! `review`: that the code a reviewer has to read, because no tool can check it,
 //! was read as it is now. That is the Rust with `unsafe` in it, and any C, C++ or assembly.
 //! Reviews are written by hand in `audit/reviews/<name>.md`, each beginning with a header that
 //! names the files it covers with their sha256:
@@ -27,7 +27,8 @@ use std::process::{Command, ExitCode};
 pub const REVIEWS: &str = "audit/reviews";
 
 // Per project: files whose `unsafe` is only a word in their comments.
-/// Rust files left out although `unsafe` is a word in them: only where it is in comments.
+/// Rust files left out although `unsafe` is a word in them, while it is only in comments (or
+/// strings): read as tokens, where `unsafe` or `global_asm` brings them back.
 const ONLY_IN_COMMENTS: &[&str] = &["crates/layeredcfg/src/lib.rs"];
 
 /// What is never reviewed here: the dependencies' code, which their audits cover (see
@@ -35,7 +36,10 @@ const ONLY_IN_COMMENTS: &[&str] = &["crates/layeredcfg/src/lib.rs"];
 const OUTSIDE: &[&str] = &["vendor", "fuzz", "xtask"];
 
 /// The extensions of C, C++ and assembly, which always want a review.
-const FOREIGN: &[&str] = &["c", "h", "cc", "cpp", "hpp", "s", "S", "asm"];
+const FOREIGN: &[&str] = &[
+    "c", "h", "cc", "cpp", "cxx", "c++", "hh", "hpp", "hxx", "h++", "inl", "ipp", "tpp", "s", "S",
+    "asm",
+];
 
 fn under(path: &str, dir: &str) -> bool {
     path.strip_prefix(dir).is_some_and(|p| p.starts_with('/'))
@@ -47,12 +51,24 @@ pub fn can_need(path: &str) -> bool {
     let ext = Path::new(path).extension().and_then(|e| e.to_str()).unwrap_or_default();
     !OUTSIDE.iter().any(|d| under(path, d))
         && !under(path, "audit")
-        && !ONLY_IN_COMMENTS.contains(&path)
         && (ext == "rs" || FOREIGN.contains(&ext))
 }
 
-/// The files that want a review now: tracked Rust files with the word `unsafe` in them, and
-/// tracked C, C++ and assembly.
+/// Whether Rust `text` has `unsafe` or `global_asm` in its code, not in its comments or
+/// strings; text that is not Rust's tokens is taken to have it.
+fn unsafe_in_code(text: &str) -> bool {
+    fn any(stream: proc_macro2::TokenStream) -> bool {
+        stream.into_iter().any(|tree| match tree {
+            proc_macro2::TokenTree::Ident(ident) => ident == "unsafe" || ident == "global_asm",
+            proc_macro2::TokenTree::Group(group) => any(group.stream()),
+            _ => false,
+        })
+    }
+    text.parse::<proc_macro2::TokenStream>().map_or(true, any)
+}
+
+/// The files that want a review now: tracked Rust files with the word `unsafe` in them, or
+/// `global_asm!`, which needs no `unsafe` block, and tracked C, C++ and assembly.
 fn wanted(root: &Path) -> Result<Vec<String>, String> {
     let git = |args: &[&str]| -> Result<(bool, String), String> {
         let out = Command::new("git")
@@ -73,7 +89,7 @@ fn wanted(root: &Path) -> Result<Vec<String>, String> {
             )),
         }
     };
-    let (_, unsafe_rust) = git(&["grep", "-lzw", "unsafe", "--", "*.rs"])?;
+    let (_, unsafe_rust) = git(&["grep", "-lzwE", "unsafe|global_asm", "--", "*.rs"])?;
     let (listed, tracked) = git(&["ls-files", "-z"])?;
     if !listed {
         return Err("git ls-files failed".to_owned());
@@ -84,6 +100,10 @@ fn wanted(root: &Path) -> Result<Vec<String>, String> {
             Path::new(p).extension().and_then(|e| e.to_str()).is_some_and(|e| FOREIGN.contains(&e))
         }))
         .filter(|p| !p.is_empty() && can_need(p) && root.join(p).is_file())
+        .filter(|p| {
+            !ONLY_IN_COMMENTS.contains(p)
+                || fs::read_to_string(root.join(p)).map_or(true, |text| unsafe_in_code(&text))
+        })
         .map(str::to_owned)
         .collect();
     files.sort();
@@ -466,12 +486,24 @@ mod tests {
     }
 
     #[test]
+    fn unsafe_in_comments_and_strings_is_no_unsafe() {
+        let comments = "//! Code that calls `unsafe` C.\n#![deny(unsafe_code)]\n/// unsafe\nfn a() { \"unsafe\"; }\n";
+        assert!(!unsafe_in_code(comments));
+        assert!(unsafe_in_code("fn a() { unsafe { b() } }"));
+        assert!(unsafe_in_code("core::arch::global_asm!(\"nop\");"));
+        assert!(unsafe_in_code("fn a() { \"unclosed }"));
+    }
+
+    #[test]
     fn what_can_want_a_review() {
         for path in [
             "crates/a/src/lib.rs",
             "src/x.c",
             "include/x.h",
             "a.cpp",
+            "a.cxx",
+            "include/a.hh",
+            "include/a.ipp",
             "b.hpp",
             "c.cc",
             "d.s",
@@ -491,8 +523,9 @@ mod tests {
         ] {
             assert!(!can_need(path), "{path}");
         }
+        // Still review's inputs, so that `unsafe` coming into their code is caught.
         for path in ONLY_IN_COMMENTS {
-            assert!(!can_need(path), "{path}");
+            assert!(can_need(path), "{path}");
         }
     }
 

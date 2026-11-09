@@ -281,7 +281,7 @@ fn affects(task: &str, path: &str) -> bool {
         return task == "review" && under(&[review::REVIEWS]);
     }
     if PROOFS.contains(&path) {
-        return task == "kani" || task == "review" && review::can_need(path);
+        return matches!(task, "kani" | "geiger") || task == "review" && review::can_need(path);
     }
     // Where a project has it: what reads Kani's list of proofs, and the workspace's packages
     // before geiger, asan and coverage build (own_target).
@@ -317,11 +317,13 @@ fn affects(task: &str, path: &str) -> bool {
     if under(&READ_BY_NO_TASK) {
         return false;
     }
-    let top = path.split('/').next().unwrap_or(path);
+    // In any directory: a crate's own README and LICENSE (links to the repository's, often).
+    let name = Path::new(path).file_name().and_then(|n| n.to_str()).unwrap_or(path);
     let documentation = Path::new(path).extension().is_some_and(|e| e.eq_ignore_ascii_case("md"))
-        || top.starts_with("README")
-        || top.starts_with("LICENSE")
-        || under(&[".github", ".gitignore"])
+        || name.starts_with("README")
+        || name.starts_with("LICENSE")
+        || name == ".gitignore"
+        || under(&[".github"])
         || style;
     // The integration tests: a tests/ directory of the workspace or of a member, not a module
     // of src/ named so, whose unit tests `--lib` builds.
@@ -345,11 +347,14 @@ fn affects(task: &str, path: &str) -> bool {
         "deny" => under(&["deny.toml", "fuzz/Cargo.toml", "fuzz/Cargo.lock"]),
         "vet" => under(&["supply-chain"]),
         "fuzz" => code(&[], false),
-        "geiger" | "kani" => code(&["fuzz"], false),
-        // Of the integration tests, the Rust ones: Python tests are left to coverage.
+        // geiger counts every Rust file under the package, the tests and fuzz/ among them.
+        "geiger" => code(&[], true),
+        "kani" => code(&["fuzz"], false),
+        // Of the integration tests, all but the Python ones, which are left to coverage: the
+        // Rust, and the samples they read.
         "miri" | "asan" => {
-            let rust = Path::new(path).extension().is_some_and(|e| e.eq_ignore_ascii_case("rs"));
-            code(&["fuzz"], runs_integration_tests(build(task)) && rust)
+            let python = Path::new(path).extension().is_some_and(|e| e.eq_ignore_ascii_case("py"));
+            code(&["fuzz"], runs_integration_tests(build(task)) && !python)
         }
         _ => code(&["fuzz"], true),
     }
@@ -581,7 +586,9 @@ mod tests {
             assert_eq!(reads(path), Vec::<&str>::new(), "{path}");
         }
         for path in super::READ_BY_NO_TASK {
-            assert_eq!(reads(path), Vec::<&str>::new(), "{path}");
+            let expected =
+                if super::review::can_need(path) { only(&["review"]) } else { Vec::new() };
+            assert_eq!(reads(path), expected, "{path}");
             // Rust there can want a review all the same.
             assert_eq!(reads(&format!("{path}/a.rs")), only(&["review"]), "{path}");
         }
@@ -590,10 +597,11 @@ mod tests {
         assert_eq!(reads("xtask/src/tasks/review.rs"), only(&["review"]));
         assert_eq!(reads("xtask/src/tasks/asan.rs"), only(&["asan"]));
         assert_eq!(reads("xtask/src/tasks/fuzz.rs"), only(&["fuzz"]));
-        // A member's integration tests are coverage's, and Miri's and asan's when they run
-        // them, and the Rust can want a review; a module of src/ named tests is code.
+        // A member's integration tests are coverage's and geiger's, and Miri's and asan's when
+        // they run them, and the Rust can want a review; a module of src/ named tests is code.
         let tests: Vec<&str> = [
             ("review", true),
+            ("geiger", true),
             ("miri", super::runs_integration_tests(super::miri::BUILD)),
             ("asan", super::runs_integration_tests(super::asan::BUILD)),
             ("coverage", true),
@@ -605,6 +613,10 @@ mod tests {
         let tests: Vec<&str> = all.iter().copied().filter(|t| tests.contains(t)).collect();
         assert_eq!(reads("crates/a/tests/t.rs"), tests);
         assert_eq!(reads("tests/t.rs"), tests);
+        // Their samples too, which want no review; Python tests are coverage's alone.
+        let samples: Vec<&str> = tests.iter().copied().filter(|t| *t != "review").collect();
+        assert_eq!(reads("tests/data/x.txt"), samples);
+        assert_eq!(reads("tests/python/test_x.py"), only(&["geiger", "coverage"]));
         assert_eq!(
             reads("crates/a/src/tests/t.rs"),
             only(&["review", "geiger", "miri", "asan", "coverage", "kani", "fuzz"])
@@ -625,19 +637,22 @@ mod tests {
         assert_eq!(reads("README.md"), Vec::<&str>::new());
         assert_eq!(reads("README/README_CN.md"), Vec::<&str>::new());
         assert_eq!(reads("LICENSE"), Vec::<&str>::new());
+        assert_eq!(reads("crates/a/LICENSE"), Vec::<&str>::new());
+        assert_eq!(reads("fuzz/.gitignore"), Vec::<&str>::new());
         assert_eq!(reads("xtask/rustfmt.toml"), Vec::<&str>::new());
         assert_eq!(reads(".github/workflows/verify.yml"), Vec::<&str>::new());
         assert_eq!(reads("deny.toml"), only(&["deny"]));
         assert_eq!(reads("supply-chain/audits.toml"), only(&["vet"]));
-        assert_eq!(reads("fuzz/Cargo.lock"), only(&["deny", "fuzz"]));
-        assert_eq!(reads("fuzz/fuzz_targets/envfile.rs"), only(&["fuzz"]));
-        assert_eq!(reads("tests/python/test_config.py"), only(&["coverage"]));
+        assert_eq!(reads("crates/layeredcfg/LICENSE"), Vec::<&str>::new());
+        assert_eq!(reads("fuzz/Cargo.lock"), only(&["deny", "geiger", "fuzz"]));
+        assert_eq!(reads("fuzz/fuzz_targets/envfile.rs"), only(&["geiger", "fuzz"]));
+        assert_eq!(reads("tests/python/test_config.py"), only(&["geiger", "coverage"]));
         let code = only(&["geiger", "miri", "asan", "coverage", "kani", "fuzz"]);
         let rust = only(&["review", "geiger", "miri", "asan", "coverage", "kani", "fuzz"]);
         assert_eq!(reads("crates/layeredcfg/src/text.rs"), rust);
         assert_eq!(reads("crates/layeredcfg/src/passwd.rs"), rust);
-        // Where unsafe is only a word in the comments.
-        assert_eq!(reads("crates/layeredcfg/src/lib.rs"), code);
+        // Where unsafe is only a word in the comments: still review's, which reads it as tokens.
+        assert_eq!(reads("crates/layeredcfg/src/lib.rs"), rust);
         // The binding, which only geiger and coverage build, but its manifest.
         assert_eq!(
             reads("crates/layeredcfg-python/src/lib.rs"),
@@ -647,10 +662,10 @@ mod tests {
         // The integration tests Miri runs; asan runs the unit tests (--lib).
         assert_eq!(
             reads("crates/layeredcfg/tests/config.rs"),
-            only(&["review", "miri", "coverage"])
+            only(&["review", "geiger", "miri", "coverage"])
         );
         assert_eq!(reads("pyproject.toml"), code);
-        assert_eq!(reads("crates/layeredcfg/src/proofs.rs"), only(&["review", "kani"]));
+        assert_eq!(reads("crates/layeredcfg/src/proofs.rs"), only(&["review", "geiger", "kani"]));
     }
 
     #[test]

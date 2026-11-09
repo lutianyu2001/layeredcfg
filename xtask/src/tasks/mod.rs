@@ -164,6 +164,7 @@ fn packages(root: &Path) -> Result<String, String> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
 
