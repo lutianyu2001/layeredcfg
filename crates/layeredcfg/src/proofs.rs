@@ -179,3 +179,65 @@ fn parse_bool_does_not_panic() {
     let (bytes, len) = any_bytes::<6>();
     let _ = text::parse_bool(&bytes[..len]);
 }
+
+/// Whatever each attempt says (a signal, a buffer too small, another error, no such user, an entry with or without
+/// a directory), the retries of the password lookup do exactly what they should: the buffer is never empty nor past
+/// the limit, and doubles (up to it) after a buffer too small and only then; a call is made again after a signal or a
+/// buffer too small, while the limits allow, and after nothing else; the lookup stops at the first answer it cannot
+/// go on from, and gives the directory found, unchanged, or nothing. The limits are small so that every sequence of
+/// answers is checked; the real ones (`passwd::LIMITS`) differ only in how many steps there are, which is argued, not
+/// proved. The calls into the C library themselves (`attempt`, `read`) are no part of it.
+#[kani::proof]
+#[kani::unwind(10)]
+fn the_password_lookup_retries_end_within_their_limits() {
+    use crate::passwd::{Attempt, Limits, retry};
+    const MOST_SIZE: usize = 8;
+    const MOST_INTERRUPTIONS: u32 = 2;
+    let limits = Limits { most_size: MOST_SIZE, most_interruptions: MOST_INTERRUPTIONS };
+    let first: usize = kani::any();
+    let (mut calls, mut last_size, mut signals) = (0u32, 0usize, 0u32);
+    let mut previous: Option<Attempt> = None;
+    // Whether retry may go on after `answer`, given the size it was made with and the signals so far, its own too.
+    let goes_on = |answer: &Attempt, size: usize, signals: u32| match answer {
+        Attempt::Failed(libc::EINTR) => signals <= MOST_INTERRUPTIONS,
+        Attempt::Failed(libc::ERANGE) => size < MOST_SIZE,
+        _ => false,
+    };
+    let found = retry(first, &limits, |size| {
+        assert!((1..=MOST_SIZE).contains(&size));
+        if let Some(answer) = &previous {
+            // A call after an answer that allows one, with the size it should have.
+            assert!(goes_on(answer, last_size, signals));
+            if *answer == Attempt::Failed(libc::ERANGE) {
+                assert!(size == (last_size * 2).min(MOST_SIZE));
+            } else {
+                assert!(size == last_size);
+            }
+        }
+        calls += 1;
+        last_size = size;
+        let answer = match kani::any::<u8>() % 6 {
+            0 => Attempt::Failed(libc::EINTR),
+            1 => Attempt::Failed(libc::ERANGE),
+            2 => Attempt::Failed(kani::any()),
+            3 => Attempt::NoUser,
+            4 => Attempt::Found(None),
+            _ => Attempt::Found(Some(vec![b'/'])),
+        };
+        if answer == Attempt::Failed(libc::EINTR) {
+            signals += 1;
+        }
+        previous = Some(answer.clone());
+        answer
+    });
+    // It stopped at an answer it could not go on from, and gives what that answer found.
+    let last = previous.expect("retry makes at least one call");
+    assert!(!goes_on(&last, last_size, signals));
+    let home = match last {
+        Attempt::Found(home) => home,
+        _ => None,
+    };
+    assert!(found == home);
+    // From 1 byte: three doublings to 8, two calls made again, and the last.
+    assert!(calls <= 3 + 2 + 1);
+}

@@ -101,7 +101,8 @@ pub(crate) fn replace_file(given: &Path, text: &[u8]) -> Result<()> {
 }
 
 /// `~` and `~user` at the start made the home directory, as Python's os.path.expanduser makes them: `~` from HOME in
-/// `environment`, else the user's entry in the password database.
+/// `environment`, else the user's entry in the password database. Unlike Python, an empty home expands nothing (Python
+/// makes `~/x` `/x`).
 pub(crate) fn expand_user(text: &[u8], environment: &Environment) -> PathBuf {
     let as_is = || PathBuf::from(OsString::from_vec(text.to_vec()));
     if text.first() != Some(&b'~') {

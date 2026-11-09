@@ -721,3 +721,37 @@ fn a_mistake_in_a_key_of_a_user_file_is_where_the_key_is() {
     assert_eq!(at(&mut config, "[servers]\nport = 1\n"), "u.toml:1:2");
     assert_eq!(at(&mut config, "[server]\nport = \"x\"\n"), "u.toml:2:8"); // the value
 }
+
+#[test]
+fn a_home_of_slashes_or_none_is_read_as_python_reads_it() {
+    let environment = FakeEnvironment::default();
+    let mut config = parse(DEFAULTS, options(&environment, &[]));
+    config.set("log.dir", "~/logs").unwrap();
+    // An empty HOME expands nothing, where Python's expanduser makes ~/logs /logs: the path stays relative.
+    for (home, expanded) in [("/home/someone///", "/home/someone/logs"), ("/", "/logs"), ("", "/srv/app/~/logs")] {
+        environment.set("HOME", home);
+        assert_eq!(config.path("log.dir").unwrap(), Path::new(expanded), "HOME={home:?}");
+    }
+}
+
+#[test]
+#[cfg_attr(miri, ignore = "the password database is the C library's, which Miri cannot call")]
+fn without_home_and_for_a_name_the_password_database_gives_the_home() {
+    use std::os::unix::ffi::OsStringExt as _;
+    let environment = FakeEnvironment::default(); // no HOME
+    let mut config = parse(DEFAULTS, options(&environment, &[]));
+    let name = std::process::Command::new("id").arg("-un").output().unwrap();
+    let name = String::from_utf8(name.stdout).unwrap().trim_end().to_owned();
+    config.set("log.dir", "~/logs").unwrap();
+    let mine = config.path("log.dir").unwrap();
+    assert!(mine.is_absolute() && mine.ends_with("logs"), "{}", mine.display());
+    config.set("log.dir", format!("~{name}/logs")).unwrap();
+    assert_eq!(config.path("log.dir").unwrap(), mine);
+    config.set("log.dir", "~root/x").unwrap();
+    let root = config.path("log.dir").unwrap();
+    assert!(root.is_absolute() && root.ends_with("x"), "{}", root.display());
+    // No such user: as it is, relative, so joined to the root. (A value that is not UTF-8 is no string's.)
+    config.set("log.dir", "~layeredcfg-no-such-user/x").unwrap();
+    assert_eq!(config.path("log.dir").unwrap(), Path::new("/srv/app/~layeredcfg-no-such-user/x"));
+    assert!(config.set("log.dir", OsString::from_vec(b"~r\xffot/x".to_vec())).is_err());
+}
