@@ -1,0 +1,18 @@
+# all as git blobs (2)
+10dfab7ad61837cce171f2bb4a64812e9f3f1ce2	audit/reviews/passwd.md
+881cce62c44eb8c16a1c3bcadf909d3b465e52c8	crates/layeredcfg-python/src/lib.rs
+c3b4861f45f3aca8417a734d99a9cad26a2b88f7	crates/layeredcfg/src/config.rs
+abacad4d49f63b0dbe80e90340751ac46d2dc11d	crates/layeredcfg/src/envfile.rs
+58fe59828448fc17bd2018e5c191326ad8968dcd	crates/layeredcfg/src/files.rs
+eb8c4cbe91bab53147b16bca3a895523ef677682	crates/layeredcfg/src/passwd.rs
+17b14809ff431d4113a2b3738c820614d8aec961	crates/layeredcfg/src/proofs.rs
+05a2fc5d76edd96cc1f6ba613ffd1a3015ded9a9	crates/layeredcfg/src/text.rs
+c0ef58b5c0b1e3d15a83c37a7a6280960f4b3358	crates/layeredcfg/tests/beyond_ascii.rs
+9e918dda616fa3b246825e15c97b38a1534ffb74	crates/layeredcfg/tests/config.rs
+82a18ff1b9856d553de879b8565269a1fa5f1527	crates/layeredcfg/tests/envfile.rs
+1be1a2e066795f93498400c7b19b90c7496926b4	crates/layeredcfg/tests/text.rs
+6ae3d741c3648671d17ad19da254e4071c31298c	xtask/Cargo.toml
+2f8ecf573a19bf3c1d9b110a91335b9aa6490ead	xtask/src/main.rs
+dbe9b7f3a3f62dd52638c3472415a7ac56febf64	xtask/src/run.rs
+5b9c894f7d699603920f348a470ecf54215501cf	xtask/src/tasks/mod.rs
+8bef84f86d752c8659ca950bbadaf4adc37fe1a7	xtask/src/tasks/review.rs

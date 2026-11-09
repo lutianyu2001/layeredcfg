@@ -1,6 +1,6 @@
 result: failed: fuzz targets failed; see run.log and fuzz-<target>.log
-started: 2026-11-08 19:22 UTC
-seconds: 14431
-commit: bf707725a2c34c7dea3d0021ec59794732f13645
+started: 2026-11-09 03:43 UTC
+seconds: 14422
+commit: 01fd410e3e551f76c2ccc90c883a950000fa89e2
 args: seconds=14400
 tools: cargo-fuzz 0.13.2, nightly-2026-10-28
