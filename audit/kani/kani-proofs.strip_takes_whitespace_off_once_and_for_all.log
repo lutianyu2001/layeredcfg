@@ -30,32 +30,32 @@ warning: use of an unstable feature
   |
   = note: requested on the command line with `--force-warn unstable-features`
 
-    Finishedwarning: Found the following unsupported constructs:
+warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
          
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
- `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
-warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
-note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.2.1 (./crates/layeredcfg)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
 Checking harness proofs::strip_takes_whitespace_off_once_and_for_all...
 CBMC 6.11.0 (cbmc-6.11.0)
 CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
-Reading GOTO program from file ./target/kani/x86_64-unknown-linux-gnu/debug/build/layeredcfg/0a8599141c2e8b26/out/layeredcfg-0a8599141c2e8b26__RNvNtCskhgOewzrZDf_10layeredcfg6proofs43strip_takes_whitespace_off_once_and_for_all.out
+Reading GOTO program from file ./target/kani/x86_64-unknown-linux-gnu/debug/build/layeredcfg/cf58e9f966713dd9/out/layeredcfg-cf58e9f966713dd9__RNvNtCsfYmY2LwUUmI_10layeredcfg6proofs43strip_takes_whitespace_off_once_and_for_all.out
 Generating GOTO Program
 Adding CPROVER library (x86_64)
 Removal of function pointers and virtual functions
 Generic Property Instrumentation
 Running with 16 object bits, 48 offset bits (user-specified)
 Starting Bounded Model Checking
-Unwinding loop _RINvXs2J_NtNtCs8xvirJzNMvV_4core5slice4iterINtB7_4IterhENtNtNtNtBb_4iter6traits8iterator8Iterator3allNvMs4_NtBb_3numh8is_asciiECskhgOewzrZDf_10layeredcfg.0 iteration 1 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs line 309 column 17 function <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}> thread 0
-Unwinding loop _RINvXs2J_NtNtCs8xvirJzNMvV_4core5slice4iterINtB7_4IterhENtNtNtNtBb_4iter6traits8iterator8Iterator3allNvMs4_NtBb_3numh8is_asciiECskhgOewzrZDf_10layeredcfg.0 iteration 2 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs line 309 column 17 function <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}> thread 0
-Unwinding loop _RINvXs2J_NtNtCs8xvirJzNMvV_4core5slice4iterINtB7_4IterhENtNtNtNtBb_4iter6traits8iterator8Iterator3allNvMs4_NtBb_3numh8is_asciiECskhgOewzrZDf_10layeredcfg.0 iteration 3 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs line 309 column 17 function <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}> thread 0
-Unwinding loop _RINvXs2J_NtNtCs8xvirJzNMvV_4core5slice4iterINtB7_4IterhENtNtNtNtBb_4iter6traits8iterator8Iterator3allNvMs4_NtBb_3numh8is_asciiECskhgOewzrZDf_10layeredcfg.0 iteration 4 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs line 309 column 17 function <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}> thread 0
-Unwinding loop _RINvXs2J_NtNtCs8xvirJzNMvV_4core5slice4iterINtB7_4IterhENtNtNtNtBb_4iter6traits8iterator8Iterator3allNvMs4_NtBb_3numh8is_asciiECskhgOewzrZDf_10layeredcfg.0 iteration 5 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs line 309 column 17 function <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}> thread 0
-Unwinding loop _RINvXs2J_NtNtCs8xvirJzNMvV_4core5slice4iterINtB7_4IterhENtNtNtNtBb_4iter6traits8iterator8Iterator3allNvMs4_NtBb_3numh8is_asciiECskhgOewzrZDf_10layeredcfg.0 iteration 6 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs line 309 column 17 function <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}> thread 0
+Unwinding loop _RINvXs2J_NtNtCs8xvirJzNMvV_4core5slice4iterINtB7_4IterhENtNtNtNtBb_4iter6traits8iterator8Iterator3allNvMs4_NtBb_3numh8is_asciiECsfYmY2LwUUmI_10layeredcfg.0 iteration 1 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs line 309 column 17 function <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}> thread 0
+Unwinding loop _RINvXs2J_NtNtCs8xvirJzNMvV_4core5slice4iterINtB7_4IterhENtNtNtNtBb_4iter6traits8iterator8Iterator3allNvMs4_NtBb_3numh8is_asciiECsfYmY2LwUUmI_10layeredcfg.0 iteration 2 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs line 309 column 17 function <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}> thread 0
+Unwinding loop _RINvXs2J_NtNtCs8xvirJzNMvV_4core5slice4iterINtB7_4IterhENtNtNtNtBb_4iter6traits8iterator8Iterator3allNvMs4_NtBb_3numh8is_asciiECsfYmY2LwUUmI_10layeredcfg.0 iteration 3 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs line 309 column 17 function <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}> thread 0
+Unwinding loop _RINvXs2J_NtNtCs8xvirJzNMvV_4core5slice4iterINtB7_4IterhENtNtNtNtBb_4iter6traits8iterator8Iterator3allNvMs4_NtBb_3numh8is_asciiECsfYmY2LwUUmI_10layeredcfg.0 iteration 4 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs line 309 column 17 function <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}> thread 0
+Unwinding loop _RINvXs2J_NtNtCs8xvirJzNMvV_4core5slice4iterINtB7_4IterhENtNtNtNtBb_4iter6traits8iterator8Iterator3allNvMs4_NtBb_3numh8is_asciiECsfYmY2LwUUmI_10layeredcfg.0 iteration 5 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs line 309 column 17 function <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}> thread 0
+Unwinding loop _RINvXs2J_NtNtCs8xvirJzNMvV_4core5slice4iterINtB7_4IterhENtNtNtNtBb_4iter6traits8iterator8Iterator3allNvMs4_NtBb_3numh8is_asciiECsfYmY2LwUUmI_10layeredcfg.0 iteration 6 file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs line 309 column 17 function <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}> thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 50 column 9 function core::slice::index::slice_index_fail::do_panic::runtime thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs line 2641 column 9 function core::slice::index::slice_index_fail::do_panic thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic.rs line 177 column 9 function core::slice::index::slice_index_fail thread 0
@@ -83,28 +83,28 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text11strip_range.0 iteration 1 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text11strip_range.0 iteration 1 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 335 column 5 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get thread 0
 aborting path on assume(false) at file library/kani_core/src/models.rs line 203 column 17 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
@@ -129,29 +129,29 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1227 column 15 function std::option::Option::<std::ops::Range<usize>>::map_or::<usize, {closure@crates/layeredcfg/src/text.rs:215:41: 215:47}> thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text11strip_range.0 iteration 2 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text11strip_range.0 iteration 2 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 335 column 5 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get thread 0
 aborting path on assume(false) at file library/kani_core/src/models.rs line 203 column 17 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
@@ -176,29 +176,29 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1227 column 15 function std::option::Option::<std::ops::Range<usize>>::map_or::<usize, {closure@crates/layeredcfg/src/text.rs:215:41: 215:47}> thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text11strip_range.0 iteration 3 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text11strip_range.0 iteration 3 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 335 column 5 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get thread 0
 aborting path on assume(false) at file library/kani_core/src/models.rs line 203 column 17 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
@@ -223,29 +223,29 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1227 column 15 function std::option::Option::<std::ops::Range<usize>>::map_or::<usize, {closure@crates/layeredcfg/src/text.rs:215:41: 215:47}> thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text11strip_range.0 iteration 4 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text11strip_range.0 iteration 4 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 335 column 5 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get thread 0
 aborting path on assume(false) at file library/kani_core/src/models.rs line 203 column 17 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
@@ -270,29 +270,29 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1227 column 15 function std::option::Option::<std::ops::Range<usize>>::map_or::<usize, {closure@crates/layeredcfg/src/text.rs:215:41: 215:47}> thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text11strip_range.0 iteration 5 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text11strip_range.0 iteration 5 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 335 column 5 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get thread 0
 aborting path on assume(false) at file library/kani_core/src/models.rs line 203 column 17 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
@@ -317,29 +317,29 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1227 column 15 function std::option::Option::<std::ops::Range<usize>>::map_or::<usize, {closure@crates/layeredcfg/src/text.rs:215:41: 215:47}> thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text11strip_range.0 iteration 6 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text11strip_range.0 iteration 6 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 335 column 5 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get thread 0
 aborting path on assume(false) at file library/kani_core/src/models.rs line 203 column 17 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
@@ -364,29 +364,29 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1227 column 15 function std::option::Option::<std::ops::Range<usize>>::map_or::<usize, {closure@crates/layeredcfg/src/text.rs:215:41: 215:47}> thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text11strip_range.0 iteration 7 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text11strip_range.0 iteration 7 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1040 column 15 function std::option::Option::<std::ops::Range<usize>>::unwrap_or thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 405 column 5 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index thread 0
 aborting path on assume(false) at file library/kani_core/src/models.rs line 203 column 17 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
@@ -425,28 +425,28 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text11strip_range.0 iteration 1 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text11strip_range.0 iteration 1 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 335 column 5 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get thread 0
 aborting path on assume(false) at file library/kani_core/src/models.rs line 203 column 17 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
@@ -472,29 +472,29 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1227 column 15 function std::option::Option::<std::ops::Range<usize>>::map_or::<usize, {closure@crates/layeredcfg/src/text.rs:215:41: 215:47}> thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text11strip_range.0 iteration 2 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text11strip_range.0 iteration 2 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 335 column 5 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get thread 0
 aborting path on assume(false) at file library/kani_core/src/models.rs line 203 column 17 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
@@ -520,29 +520,29 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1227 column 15 function std::option::Option::<std::ops::Range<usize>>::map_or::<usize, {closure@crates/layeredcfg/src/text.rs:215:41: 215:47}> thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text11strip_range.0 iteration 3 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text11strip_range.0 iteration 3 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 335 column 5 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get thread 0
 aborting path on assume(false) at file library/kani_core/src/models.rs line 203 column 17 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
@@ -568,29 +568,29 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1227 column 15 function std::option::Option::<std::ops::Range<usize>>::map_or::<usize, {closure@crates/layeredcfg/src/text.rs:215:41: 215:47}> thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text11strip_range.0 iteration 4 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text11strip_range.0 iteration 4 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 335 column 5 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get thread 0
 aborting path on assume(false) at file library/kani_core/src/models.rs line 203 column 17 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
@@ -616,29 +616,29 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1227 column 15 function std::option::Option::<std::ops::Range<usize>>::map_or::<usize, {closure@crates/layeredcfg/src/text.rs:215:41: 215:47}> thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text11strip_range.0 iteration 5 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text11strip_range.0 iteration 5 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 335 column 5 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get thread 0
 aborting path on assume(false) at file library/kani_core/src/models.rs line 203 column 17 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
@@ -664,29 +664,29 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1227 column 15 function std::option::Option::<std::ops::Range<usize>>::map_or::<usize, {closure@crates/layeredcfg/src/text.rs:215:41: 215:47}> thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text11strip_range.0 iteration 6 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text11strip_range.0 iteration 6 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 335 column 5 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get thread 0
 aborting path on assume(false) at file library/kani_core/src/models.rs line 203 column 17 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
@@ -712,29 +712,29 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs line 15 column 11 function std::char::convert::from_u32 thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 32 column 1 function text::kind thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1227 column 15 function std::option::Option::<std::ops::Range<usize>>::map_or::<usize, {closure@crates/layeredcfg/src/text.rs:215:41: 215:47}> thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text11strip_range.0 iteration 7 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text11strip_range.0 iteration 7 file crates/layeredcfg/src/text.rs line 212 column 5 function text::strip_range thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1040 column 15 function std::option::Option::<std::ops::Range<usize>>::unwrap_or thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 405 column 5 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index thread 0
 aborting path on assume(false) at file library/kani_core/src/models.rs line 203 column 17 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
@@ -761,161 +761,161 @@ Unwinding loop memcmp.0 iteration 4 file <builtin-library-memcmp> line 25 functi
 Unwinding loop memcmp.0 iteration 5 file <builtin-library-memcmp> line 25 function memcmp thread 0
 Unwinding loop memcmp.0 iteration 6 file <builtin-library-memcmp> line 25 function memcmp thread 0
 Not unwinding loop memcmp.0 iteration 7 file <builtin-library-memcmp> line 25 function memcmp thread 0
-Runtime Symex: 8.71234s
+Runtime Symex: 7.93617s
 size of program expression: 204799 steps
 slicing removed 148058 assignments
 Generated 7984 VCC(s), 1780 remaining after simplification
-Runtime Postprocess Equation: 0.150701s
+Runtime Postprocess Equation: 0.123928s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 0.79821s
+Runtime Convert SSA: 0.744503s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 0.802206s
+Runtime Post-process: 0.797516s
 Solving with CaDiCaL 3.0.0
 688993 variables, 1949167 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.85268s
-Runtime decision procedure: 1.67417s
+Runtime Solver: 0.846477s
+Runtime decision procedure: 1.61314s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 688994 variables, 1949168 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 1.15694s
-Runtime decision procedure: 1.16244s
+Runtime Solver: 0.756792s
+Runtime decision procedure: 0.762598s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 688995 variables, 1949169 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.223395s
-Runtime decision procedure: 0.235296s
+Runtime Solver: 0.220287s
+Runtime decision procedure: 0.232156s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 688996 variables, 1949170 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 7.05735s
-Runtime decision procedure: 7.06176s
+Runtime Solver: 6.25393s
+Runtime decision procedure: 6.25843s
 
 RESULTS:
-Check 1: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.1
-	 - Status: SUCCESS
-	 - Description: "Offset in bytes overflows isize"
-	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *mut u8, usize>
-
-Check 2: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.2
-	 - Status: SUCCESS
-	 - Description: "Offset result address must equal original pointer address plus offset"
-	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *mut u8, usize>
-
-Check 3: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.3
-	 - Status: SUCCESS
-	 - Description: "Offset result and original pointer must point to the same allocation"
-	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *mut u8, usize>
-
-Check 4: core::panicking::panic_nounwind_fmt::runtime.unsupported_construct.1
-	 - Status: SUCCESS
-	 - Description: "call to foreign "Rust" function `_RNvCskSgPeDzUGbv_7___rustc17rust_begin_unwind` is not currently supported by Kani. Please post your example at https://github.com/model-checking/kani/issues/new/choose"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:110:17 in function core::panicking::panic_nounwind_fmt::runtime
-
-Check 5: std::ptr::NonNull::<u8>::as_ref::<'_>.safety_check.1
-	 - Status: SUCCESS
-	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/non_null.rs:454:18 in function std::ptr::NonNull::<u8>::as_ref::<'_>
-
-Check 6: std::ptr::NonNull::<u8>::as_ref::<'_>.safety_check.2
-	 - Status: SUCCESS
-	 - Description: "dereference failure: pointer invalid"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/non_null.rs:454:18 in function std::ptr::NonNull::<u8>::as_ref::<'_>
-
-Check 7: std::char::convert::from_u32.unreachable.1
+Check 1: <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}>.unreachable.1
 	 - Status: SUCCESS
 	 - Description: "unreachable code"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs:15:11 in function std::char::convert::from_u32
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:304:13 in function <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}>
 
-Check 8: <std::ops::RangeInclusive<u32> as std::ops::RangeBounds<u32>>::contains::<u32>.unreachable.1
+Check 2: std::panic::Location::<'_>::caller.unsupported_construct.1
 	 - Status: SUCCESS
-	 - Description: "unreachable code"
-	 - Location: crates/layeredcfg/src/lib.rs:0:0 in function <std::ops::RangeInclusive<u32> as std::ops::RangeBounds<u32>>::contains::<u32>
+	 - Description: "caller_location is not currently supported by Kani. Please post your example at https://github.com/model-checking/kani/issues/374"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic/location.rs:181:9 in function std::panic::Location::<'_>::caller
 
-Check 9: memcmp.precondition.1
-	 - Status: SUCCESS
-	 - Description: "memcmp region 1 readable"
-	 - Location: <builtin-library-memcmp>:19 in function memcmp
-
-Check 10: memcmp.precondition.2
-	 - Status: SUCCESS
-	 - Description: "memcpy region 2 readable"
-	 - Location: <builtin-library-memcmp>:21 in function memcmp
-
-Check 11: core::slice::index::slice_index_fail::do_panic::runtime.assertion.4
-	 - Status: SUCCESS
-	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:50:9 in function core::slice::index::slice_index_fail::do_panic::runtime
-
-Check 12: kani::mem::cbmc::same_allocation.unsupported_construct.1
-	 - Status: SUCCESS
-	 - Description: "Kani does not support reasoning about pointer to unallocated memory"
-	 - Location: library/kani/src/lib.rs:57:1 in function kani::mem::cbmc::same_allocation
-
-Check 13: std::char::convert::char_try_from_u32.assertion.1
-	 - Status: UNREACHABLE
-	 - Description: "attempt to subtract with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs:293:44 in function std::char::convert::char_try_from_u32
-
-Check 14: core::slice::index::slice_index_fail::do_panic::runtime.assertion.1
-	 - Status: SUCCESS
-	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:41:9 in function core::slice::index::slice_index_fail::do_panic::runtime
-
-Check 15: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.1
-	 - Status: SUCCESS
-	 - Description: "Offset in bytes overflows isize"
-	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
-
-Check 16: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.2
-	 - Status: SUCCESS
-	 - Description: "Offset result address must equal original pointer address plus offset"
-	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
-
-Check 17: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.3
-	 - Status: SUCCESS
-	 - Description: "Offset result and original pointer must point to the same allocation"
-	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
-
-Check 18: core::num::<impl usize>::unchecked_sub.arithmetic_overflow.1
-	 - Status: SUCCESS
-	 - Description: "attempt to compute `unchecked_sub` which would overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:1192:17 in function core::num::<impl usize>::unchecked_sub
-
-Check 19: <u8 as core::slice::cmp::SlicePartialEq<u8>>::equal_same_length.arithmetic_overflow.1
+Check 3: <u8 as core::slice::cmp::SlicePartialEq<u8>>::equal_same_length.arithmetic_overflow.1
 	 - Status: SUCCESS
 	 - Description: "attempt to compute `unchecked_mul` which would overflow"
 	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/cmp.rs:156:24 in function <u8 as core::slice::cmp::SlicePartialEq<u8>>::equal_same_length
 
-Check 20: core::slice::index::slice_index_fail::do_panic::runtime.assertion.3
-	 - Status: SUCCESS
-	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:69:5 in function core::slice::index::slice_index_fail::do_panic::runtime
-
-Check 21: proofs::strip_takes_whitespace_off_once_and_for_all.assertion.1
-	 - Status: SUCCESS
-	 - Description: "assertion failed: stripped.len() <= s.len()"
-	 - Location: crates/layeredcfg/src/proofs.rs:83:5 in function proofs::strip_takes_whitespace_off_once_and_for_all
-
-Check 22: proofs::strip_takes_whitespace_off_once_and_for_all.assertion.2
-	 - Status: SUCCESS
-	 - Description: "assertion failed: text::strip(stripped) == stripped"
-	 - Location: crates/layeredcfg/src/proofs.rs:84:5 in function proofs::strip_takes_whitespace_off_once_and_for_all
-
-Check 23: text::strip_range.assertion.1
+Check 4: text::strip_range.assertion.1
 	 - Status: SUCCESS
 	 - Description: "attempt to add with overflow"
 	 - Location: crates/layeredcfg/src/text.rs:215:61 in function text::strip_range
 
-Check 24: text::strip_range.assertion.2
+Check 5: text::strip_range.assertion.2
 	 - Status: SUCCESS
 	 - Description: "attempt to add with overflow"
 	 - Location: crates/layeredcfg/src/text.rs:217:9 in function text::strip_range
+
+Check 6: <std::ops::RangeInclusive<u32> as std::ops::RangeBounds<u32>>::contains::<u32>.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: crates/layeredcfg/src/lib.rs:0:0 in function <std::ops::RangeInclusive<u32> as std::ops::RangeBounds<u32>>::contains::<u32>
+
+Check 7: proofs::strip_takes_whitespace_off_once_and_for_all.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: stripped.len() <= s.len()"
+	 - Location: crates/layeredcfg/src/proofs.rs:83:5 in function proofs::strip_takes_whitespace_off_once_and_for_all
+
+Check 8: proofs::strip_takes_whitespace_off_once_and_for_all.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: text::strip(stripped) == stripped"
+	 - Location: crates/layeredcfg/src/proofs.rs:84:5 in function proofs::strip_takes_whitespace_off_once_and_for_all
+
+Check 9: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:335:5 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get
+
+Check 10: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:341:27 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get
+
+Check 11: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:341:27 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get
+
+Check 12: <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to compute `unchecked_sub` which would overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:549:27 in function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index
+
+Check 13: <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:550:13 in function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index
+
+Check 14: <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:550:13 in function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index
+
+Check 15: core::slice::index::slice_index_fail::do_panic::runtime.assertion.4
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:50:9 in function core::slice::index::slice_index_fail::do_panic::runtime
+
+Check 16: core::num::<impl usize>::checked_sub.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to compute `unchecked_sub` which would overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:1096:31 in function core::num::<impl usize>::checked_sub
+
+Check 17: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "Offset in bytes overflows isize"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *mut u8, usize>
+
+Check 18: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "Offset result address must equal original pointer address plus offset"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *mut u8, usize>
+
+Check 19: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.3
+	 - Status: SUCCESS
+	 - Description: "Offset result and original pointer must point to the same allocation"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *mut u8, usize>
+
+Check 20: std::ptr::NonNull::<u8>::as_ref::<'_>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/non_null.rs:454:18 in function std::ptr::NonNull::<u8>::as_ref::<'_>
+
+Check 21: std::ptr::NonNull::<u8>::as_ref::<'_>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/non_null.rs:454:18 in function std::ptr::NonNull::<u8>::as_ref::<'_>
+
+Check 22: text::kind.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to subtract with overflow"
+	 - Location: crates/layeredcfg/src/text.rs:39:44 in function text::kind
+
+Check 23: text::kind.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: crates/layeredcfg/src/text.rs:32:1 in function text::kind
+
+Check 24: std::char::convert::char_try_from_u32.assertion.1
+	 - Status: UNREACHABLE
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs:293:44 in function std::char::convert::char_try_from_u32
 
 Check 25: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index.unreachable.1
 	 - Status: SUCCESS
@@ -932,130 +932,130 @@ Check 27: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index.safety
 	 - Description: "dereference failure: pointer invalid"
 	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:411:22 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index
 
-Check 28: <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}>.unreachable.1
+Check 28: core::slice::index::slice_index_fail::do_panic::runtime.assertion.1
 	 - Status: SUCCESS
-	 - Description: "unreachable code"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:304:13 in function <std::slice::Iter<'_, u8> as std::iter::Iterator>::all::<for<'a> fn(&'a u8) -> bool {core::num::<impl u8>::is_ascii}>
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:41:9 in function core::slice::index::slice_index_fail::do_panic::runtime
 
 Check 29: std::option::Option::<std::ops::Range<usize>>::unwrap_or.unreachable.1
 	 - Status: SUCCESS
 	 - Description: "unreachable code"
 	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:1040:15 in function std::option::Option::<std::ops::Range<usize>>::unwrap_or
 
-Check 30: std::panic::Location::<'_>::caller.unsupported_construct.1
+Check 30: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.1
 	 - Status: SUCCESS
-	 - Description: "caller_location is not currently supported by Kani. Please post your example at https://github.com/model-checking/kani/issues/374"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic/location.rs:181:9 in function std::panic::Location::<'_>::caller
+	 - Description: "Offset in bytes overflows isize"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
 
-Check 31: <usize as kani::rustc_intrinsics::ToISize>::to_isize.unreachable.1
+Check 31: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.2
 	 - Status: SUCCESS
-	 - Description: "unreachable code"
-	 - Location: library/kani_core/src/models.rs:203:17 in function <usize as kani::rustc_intrinsics::ToISize>::to_isize
+	 - Description: "Offset result address must equal original pointer address plus offset"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
 
-Check 32: <usize as kani::rustc_intrinsics::ToISize>::to_isize.safety_check.1
+Check 32: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.3
 	 - Status: SUCCESS
-	 - Description: "Offset value overflows isize"
-	 - Location: library/kani/src/lib.rs:57:1 in function <usize as kani::rustc_intrinsics::ToISize>::to_isize
+	 - Description: "Offset result and original pointer must point to the same allocation"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
 
-Check 33: <usize as kani::rustc_intrinsics::ToISize>::to_isize.assertion.1
-	 - Status: SUCCESS
-	 - Description: "internal error: entered unreachable code"
-	 - Location: library/kani/src/lib.rs:57:1 in function <usize as kani::rustc_intrinsics::ToISize>::to_isize
-
-Check 34: core::num::<impl usize>::checked_sub.arithmetic_overflow.1
+Check 33: core::num::<impl usize>::unchecked_sub.arithmetic_overflow.1
 	 - Status: SUCCESS
 	 - Description: "attempt to compute `unchecked_sub` which would overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:1096:31 in function core::num::<impl usize>::checked_sub
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:1192:17 in function core::num::<impl usize>::unchecked_sub
 
-Check 35: text::decode.assertion.1
-	 - Status: UNREACHABLE
-	 - Description: "attempt to shift right with overflow"
-	 - Location: crates/layeredcfg/src/text.rs:92:15 in function text::decode
-
-Check 36: text::decode.assertion.2
-	 - Status: UNREACHABLE
-	 - Description: "attempt to shift right with overflow"
-	 - Location: crates/layeredcfg/src/text.rs:94:15 in function text::decode
-
-Check 37: text::decode.assertion.3
-	 - Status: UNREACHABLE
-	 - Description: "attempt to shift right with overflow"
-	 - Location: crates/layeredcfg/src/text.rs:96:15 in function text::decode
-
-Check 38: text::decode.assertion.4
-	 - Status: SUCCESS
-	 - Description: "attempt to add with overflow"
-	 - Location: crates/layeredcfg/src/text.rs:101:33 in function text::decode
-
-Check 39: text::decode.unreachable.1
+Check 34: std::char::convert::from_u32.unreachable.1
 	 - Status: SUCCESS
 	 - Description: "unreachable code"
-	 - Location: crates/layeredcfg/src/text.rs:110:18 in function text::decode
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs:15:11 in function std::char::convert::from_u32
 
-Check 40: text::decode.assertion.5
-	 - Status: UNREACHABLE
-	 - Description: "attempt to shift right with overflow"
-	 - Location: crates/layeredcfg/src/text.rs:111:12 in function text::decode
-
-Check 41: text::decode.assertion.6
-	 - Status: UNREACHABLE
-	 - Description: "attempt to shift left with overflow"
-	 - Location: crates/layeredcfg/src/text.rs:114:16 in function text::decode
-
-Check 42: text::decode.assertion.7
+Check 35: memcmp.precondition.1
 	 - Status: SUCCESS
-	 - Description: "index out of bounds: the length is less than or equal to the given index"
-	 - Location: crates/layeredcfg/src/text.rs:116:15 in function text::decode
+	 - Description: "memcmp region 1 readable"
+	 - Location: <builtin-library-memcmp>:19 in function memcmp
 
-Check 43: core::slice::index::slice_index_fail::do_panic::runtime.assertion.2
+Check 36: memcmp.precondition.2
+	 - Status: SUCCESS
+	 - Description: "memcpy region 2 readable"
+	 - Location: <builtin-library-memcmp>:21 in function memcmp
+
+Check 37: kani::mem::cbmc::same_allocation.unsupported_construct.1
+	 - Status: SUCCESS
+	 - Description: "Kani does not support reasoning about pointer to unallocated memory"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::mem::cbmc::same_allocation
+
+Check 38: core::slice::index::slice_index_fail::do_panic::runtime.assertion.2
 	 - Status: SUCCESS
 	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
 	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:59:9 in function core::slice::index::slice_index_fail::do_panic::runtime
 
-Check 44: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get.unreachable.1
+Check 39: core::slice::index::slice_index_fail::do_panic::runtime.assertion.3
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:69:5 in function core::slice::index::slice_index_fail::do_panic::runtime
+
+Check 40: core::panicking::panic_nounwind_fmt::runtime.unsupported_construct.1
+	 - Status: SUCCESS
+	 - Description: "call to foreign "Rust" function `_RNvCskSgPeDzUGbv_7___rustc17rust_begin_unwind` is not currently supported by Kani. Please post your example at https://github.com/model-checking/kani/issues/new/choose"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:110:17 in function core::panicking::panic_nounwind_fmt::runtime
+
+Check 41: text::decode.assertion.1
+	 - Status: UNREACHABLE
+	 - Description: "attempt to shift right with overflow"
+	 - Location: crates/layeredcfg/src/text.rs:92:15 in function text::decode
+
+Check 42: text::decode.assertion.2
+	 - Status: UNREACHABLE
+	 - Description: "attempt to shift right with overflow"
+	 - Location: crates/layeredcfg/src/text.rs:94:15 in function text::decode
+
+Check 43: text::decode.assertion.3
+	 - Status: UNREACHABLE
+	 - Description: "attempt to shift right with overflow"
+	 - Location: crates/layeredcfg/src/text.rs:96:15 in function text::decode
+
+Check 44: text::decode.assertion.4
+	 - Status: SUCCESS
+	 - Description: "attempt to add with overflow"
+	 - Location: crates/layeredcfg/src/text.rs:101:33 in function text::decode
+
+Check 45: text::decode.unreachable.1
 	 - Status: SUCCESS
 	 - Description: "unreachable code"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:335:5 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get
+	 - Location: crates/layeredcfg/src/text.rs:110:18 in function text::decode
 
-Check 45: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get.safety_check.1
+Check 46: text::decode.assertion.5
+	 - Status: UNREACHABLE
+	 - Description: "attempt to shift right with overflow"
+	 - Location: crates/layeredcfg/src/text.rs:111:12 in function text::decode
+
+Check 47: text::decode.assertion.6
+	 - Status: UNREACHABLE
+	 - Description: "attempt to shift left with overflow"
+	 - Location: crates/layeredcfg/src/text.rs:114:16 in function text::decode
+
+Check 48: text::decode.assertion.7
 	 - Status: SUCCESS
-	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:341:27 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: crates/layeredcfg/src/text.rs:116:15 in function text::decode
 
-Check 46: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get.safety_check.2
-	 - Status: SUCCESS
-	 - Description: "dereference failure: pointer invalid"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:341:27 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get
-
-Check 47: std::fmt::Arguments::<'_>::from_str.assertion.1
+Check 49: std::fmt::Arguments::<'_>::from_str.assertion.1
 	 - Status: UNREACHABLE
 	 - Description: "attempt to shift left with overflow"
 	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/fmt/mod.rs:820:38 in function std::fmt::Arguments::<'_>::from_str
 
-Check 48: text::kind.assertion.1
-	 - Status: SUCCESS
-	 - Description: "attempt to subtract with overflow"
-	 - Location: crates/layeredcfg/src/text.rs:39:44 in function text::kind
-
-Check 49: text::kind.unreachable.1
+Check 50: <usize as kani::rustc_intrinsics::ToISize>::to_isize.unreachable.1
 	 - Status: SUCCESS
 	 - Description: "unreachable code"
-	 - Location: crates/layeredcfg/src/text.rs:32:1 in function text::kind
+	 - Location: library/kani_core/src/models.rs:203:17 in function <usize as kani::rustc_intrinsics::ToISize>::to_isize
 
-Check 50: <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index.arithmetic_overflow.1
+Check 51: <usize as kani::rustc_intrinsics::ToISize>::to_isize.safety_check.1
 	 - Status: SUCCESS
-	 - Description: "attempt to compute `unchecked_sub` which would overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:549:27 in function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index
+	 - Description: "Offset value overflows isize"
+	 - Location: library/kani/src/lib.rs:57:1 in function <usize as kani::rustc_intrinsics::ToISize>::to_isize
 
-Check 51: <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index.safety_check.1
+Check 52: <usize as kani::rustc_intrinsics::ToISize>::to_isize.assertion.1
 	 - Status: SUCCESS
-	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:550:13 in function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index
-
-Check 52: <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index.safety_check.2
-	 - Status: SUCCESS
-	 - Description: "dereference failure: pointer invalid"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:550:13 in function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index
+	 - Description: "internal error: entered unreachable code"
+	 - Location: library/kani/src/lib.rs:57:1 in function <usize as kani::rustc_intrinsics::ToISize>::to_isize
 
 Check 53: std::option::Option::<std::ops::Range<usize>>::map_or::<usize, {closure@crates/layeredcfg/src/text.rs:215:41: 215:47}>.unreachable.1
 	 - Status: SUCCESS
@@ -2107,8 +2107,8 @@ SUMMARY:
  ** 0 of 261 failed (7 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 21.234388s
+Verification Time: 18.976551s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 1057533952
+xtask: peak memory in bytes: 1092562944

@@ -15,13 +15,14 @@
       "proofs::space_at_stays_in_the_text",
       "proofs::split_list_cuts_at_the_commas_and_nowhere_else",
       "proofs::strip_str_cuts_at_the_boundaries_of_characters",
-      "proofs::strip_takes_whitespace_off_once_and_for_all"
+      "proofs::strip_takes_whitespace_off_once_and_for_all",
+      "proofs::the_password_lookup_retries_end_within_their_limits"
     ]
   },
   "contract-harnesses": {},
   "contracts": [],
   "totals": {
-    "standard-harnesses": 13,
+    "standard-harnesses": 14,
     "contract-harnesses": 0,
     "functions-under-contract": 0
   }

@@ -30,20 +30,20 @@ warning: use of an unstable feature
   |
   = note: requested on the command line with `--force-warn unstable-features`
 
-    Finishedwarning: Found the following unsupported constructs:
+warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
          
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
- `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
-warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.1.0 (./crates/layeredcfg)
-note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+warning: the following packages contain code that will be rejected by a future version of Rust: layeredcfg v0.2.1 (./crates/layeredcfg)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
 Checking harness proofs::decode_reads_utf8_as_the_standard_library_does...
 CBMC 6.11.0 (cbmc-6.11.0)
 CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
-Reading GOTO program from file ./target/kani/x86_64-unknown-linux-gnu/debug/build/layeredcfg/181b0b9eb881cf6b/out/layeredcfg-181b0b9eb881cf6b__RNvNtCskhgOewzrZDf_10layeredcfg6proofs46decode_reads_utf8_as_the_standard_library_does.out
+Reading GOTO program from file ./target/kani/x86_64-unknown-linux-gnu/debug/build/layeredcfg/3946ca0babe34471/out/layeredcfg-3946ca0babe34471__RNvNtCsfYmY2LwUUmI_10layeredcfg6proofs46decode_reads_utf8_as_the_standard_library_does.out
 Generating GOTO Program
 Adding CPROVER library (x86_64)
 Removal of function pointers and virtual functions
@@ -81,25 +81,25 @@ aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 1 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 2 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 3 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 4 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 5 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 6 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function kani::mem::cbmc::same_allocation thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/text.rs line 110 column 18 function text::decode thread 0
-Not unwinding loop _RNvNtCskhgOewzrZDf_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
+Not unwinding loop _RNvNtCsfYmY2LwUUmI_10layeredcfg4text6decode.0 iteration 7 file crates/layeredcfg/src/text.rs line 110 column 5 function text::decode thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 41 column 9 function core::slice::index::slice_index_fail::do_panic::runtime thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs line 2641 column 9 function core::slice::index::slice_index_fail::do_panic thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic.rs line 177 column 9 function core::slice::index::slice_index_fail thread 0
@@ -805,598 +805,598 @@ aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1130 column 30 function std::option::Option::<&u8>::unwrap_unchecked thread 0
 aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs line 1162 column 15 function std::option::Option::<u32>::map::<char, {closure@<std::str::Chars<'_> as std::iter::Iterator>::next::{closure#0}}> thread 0
 aborting path on assume(false) at file crates/layeredcfg/src/lib.rs line 0 column 0 function proofs::decode_reads_utf8_as_the_standard_library_does thread 0
-Runtime Symex: 12.6489s
+Runtime Symex: 12.5815s
 size of program expression: 233736 steps
 slicing removed 172561 assignments
 Generated 5316 VCC(s), 3788 remaining after simplification
-Runtime Postprocess Equation: 0.343387s
+Runtime Postprocess Equation: 0.316466s
 Passing problem to propositional reduction
 converting SSA
-Runtime Convert SSA: 1.06121s
+Runtime Convert SSA: 1.0223s
 Running propositional reduction
 Post-processing
-Runtime Post-process: 0.149006s
+Runtime Post-process: 0.15082s
 Solving with CaDiCaL 3.0.0
 847801 variables, 3294536 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 6.54142s
-Runtime decision procedure: 7.63627s
+Runtime Solver: 7.2393s
+Runtime decision procedure: 8.2949s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847802 variables, 3294537 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 1.29978s
-Runtime decision procedure: 1.32112s
+Runtime Solver: 1.30782s
+Runtime decision procedure: 1.32919s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847803 variables, 3294538 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0623689s
-Runtime decision procedure: 0.0746632s
+Runtime Solver: 0.0619662s
+Runtime decision procedure: 0.0743108s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847804 variables, 3294539 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.221583s
-Runtime decision procedure: 0.23113s
+Runtime Solver: 0.218148s
+Runtime decision procedure: 0.227665s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847805 variables, 3294540 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0618171s
-Runtime decision procedure: 0.073613s
+Runtime Solver: 0.0604646s
+Runtime decision procedure: 0.0727281s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847806 variables, 3294541 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.105755s
-Runtime decision procedure: 0.114671s
+Runtime Solver: 0.102651s
+Runtime decision procedure: 0.112266s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847807 variables, 3294542 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.202803s
-Runtime decision procedure: 0.211725s
+Runtime Solver: 0.204774s
+Runtime decision procedure: 0.213731s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847808 variables, 3294543 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.0919291s
-Runtime decision procedure: 0.100804s
+Runtime Solver: 0.0921145s
+Runtime decision procedure: 0.1011s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847809 variables, 3294544 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 3.71035s
-Runtime decision procedure: 3.72512s
+Runtime Solver: 4.39702s
+Runtime decision procedure: 4.41332s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847810 variables, 3294545 clauses
 SAT checker: instance is SATISFIABLE
-Runtime Solver: 0.197152s
-Runtime decision procedure: 0.215702s
+Runtime Solver: 0.427659s
+Runtime decision procedure: 0.45037s
 Running propositional reduction
 Solving with CaDiCaL 3.0.0
 847811 variables, 3294546 clauses
 SAT checker: instance is UNSATISFIABLE
-Runtime Solver: 3.69573s
-Runtime decision procedure: 3.69714s
+Runtime Solver: 6.49933s
+Runtime decision procedure: 6.50099s
 
 RESULTS:
-Check 1: std::panic::Location::<'_>::caller.unsupported_construct.1
-	 - Status: SUCCESS
-	 - Description: "caller_location is not currently supported by Kani. Please post your example at https://github.com/model-checking/kani/issues/374"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic/location.rs:181:9 in function std::panic::Location::<'_>::caller
-
-Check 2: <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index.arithmetic_overflow.1
-	 - Status: SUCCESS
-	 - Description: "attempt to compute `unchecked_sub` which would overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:549:27 in function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index
-
-Check 3: <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index.safety_check.1
-	 - Status: SUCCESS
-	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:550:13 in function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index
-
-Check 4: <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index.safety_check.2
-	 - Status: SUCCESS
-	 - Description: "dereference failure: pointer invalid"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:550:13 in function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index
-
-Check 5: core::slice::index::slice_index_fail::do_panic::runtime.assertion.4
-	 - Status: SUCCESS
-	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:50:9 in function core::slice::index::slice_index_fail::do_panic::runtime
-
-Check 6: std::str::from_utf8.unreachable.1
-	 - Status: SUCCESS
-	 - Description: "unreachable code"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/converts.rs:91:11 in function std::str::from_utf8
-
-Check 7: core::slice::index::slice_index_fail::do_panic::runtime.assertion.3
-	 - Status: SUCCESS
-	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:69:5 in function core::slice::index::slice_index_fail::do_panic::runtime
-
-Check 8: core::slice::index::slice_index_fail::do_panic::runtime.assertion.1
-	 - Status: SUCCESS
-	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:41:9 in function core::slice::index::slice_index_fail::do_panic::runtime
-
-Check 9: kani::mem::cbmc::same_allocation.unsupported_construct.1
-	 - Status: SUCCESS
-	 - Description: "Kani does not support reasoning about pointer to unallocated memory"
-	 - Location: library/kani/src/lib.rs:57:1 in function kani::mem::cbmc::same_allocation
-
-Check 10: std::ptr::align_offset::<u8>.arithmetic_overflow.1
-	 - Status: SUCCESS
-	 - Description: "attempt to compute `unchecked_sub` which would overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2353:32 in function std::ptr::align_offset::<u8>
-
-Check 11: std::ptr::align_offset::<u8>.arithmetic_overflow.2
-	 - Status: SUCCESS
-	 - Description: "attempt to calculate the remainder with a divisor of zero"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2364:33 in function std::ptr::align_offset::<u8>
-
-Check 12: std::ptr::align_offset::<u8>.assume.1
-	 - Status: SUCCESS
-	 - Description: "Rust intrinsic assumption failed"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2387:18 in function std::ptr::align_offset::<u8>
-
-Check 13: std::ptr::align_offset::<u8>.arithmetic_overflow.3
-	 - Status: SUCCESS
-	 - Description: "attempt to calculate the remainder with a divisor of zero"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2390:40 in function std::ptr::align_offset::<u8>
-
-Check 14: std::ptr::align_offset::<u8>.exact_div.1
-	 - Status: SUCCESS
-	 - Description: "exact_div arguments divide exactly"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2395:22 in function std::ptr::align_offset::<u8>
-
-Check 15: std::ptr::align_offset::<u8>.exact_div.2
-	 - Status: SUCCESS
-	 - Description: "exact_div divisor is nonzero"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2395:22 in function std::ptr::align_offset::<u8>
-
-Check 16: std::ptr::align_offset::<u8>.exact_div.3
-	 - Status: SUCCESS
-	 - Description: "exact_div division does not overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2395:22 in function std::ptr::align_offset::<u8>
-
-Check 17: std::ptr::align_offset::<u8>.arithmetic_overflow.4
-	 - Status: SUCCESS
-	 - Description: "attempt to shift by excessive shift distance"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2415:24 in function std::ptr::align_offset::<u8>
-
-Check 18: std::ptr::align_offset::<u8>.arithmetic_overflow.5
-	 - Status: SUCCESS
-	 - Description: "attempt to compute `unchecked_sub` which would overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2417:24 in function std::ptr::align_offset::<u8>
-
-Check 19: std::ptr::align_offset::<u8>.arithmetic_overflow.6
-	 - Status: SUCCESS
-	 - Description: "attempt to shift by excessive shift distance"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2441:27 in function std::ptr::align_offset::<u8>
-
-Check 20: std::ptr::align_offset::<u8>.arithmetic_overflow.7
-	 - Status: SUCCESS
-	 - Description: "attempt to compute `unchecked_sub` which would overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2444:33 in function std::ptr::align_offset::<u8>
-
-Check 21: std::ptr::align_offset::<u8>.arithmetic_overflow.8
-	 - Status: SUCCESS
-	 - Description: "attempt to shift by excessive shift distance"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2447:27 in function std::ptr::align_offset::<u8>
-
-Check 22: std::ptr::align_offset::<u8>.arithmetic_overflow.9
-	 - Status: SUCCESS
-	 - Description: "attempt to shift by excessive shift distance"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2451:50 in function std::ptr::align_offset::<u8>
-
-Check 23: std::ptr::align_offset::<u8>.arithmetic_overflow.10
-	 - Status: SUCCESS
-	 - Description: "attempt to compute `unchecked_sub` which would overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2451:32 in function std::ptr::align_offset::<u8>
-
-Check 24: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.1
-	 - Status: SUCCESS
-	 - Description: "Offset in bytes overflows isize"
-	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
-
-Check 25: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.2
-	 - Status: SUCCESS
-	 - Description: "Offset result address must equal original pointer address plus offset"
-	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
-
-Check 26: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.3
-	 - Status: SUCCESS
-	 - Description: "Offset result and original pointer must point to the same allocation"
-	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
-
-Check 27: core::str::validations::utf8_first_byte.assertion.1
-	 - Status: SUCCESS
-	 - Description: "attempt to shift right with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:11:13 in function core::str::validations::utf8_first_byte
-
-Check 28: std::char::convert::char_try_from_u32.assertion.1
-	 - Status: UNREACHABLE
-	 - Description: "attempt to subtract with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs:293:44 in function std::char::convert::char_try_from_u32
-
-Check 29: proofs::decode_reads_utf8_as_the_standard_library_does.unreachable.1
-	 - Status: SUCCESS
-	 - Description: "unreachable code"
-	 - Location: crates/layeredcfg/src/lib.rs:0:0 in function proofs::decode_reads_utf8_as_the_standard_library_does
-
-Check 30: proofs::decode_reads_utf8_as_the_standard_library_does.assertion.1
-	 - Status: SUCCESS
-	 - Description: "assertion failed: decoded.code == u32::from(c) && decoded.length == c.len_utf8()"
-	 - Location: crates/layeredcfg/src/proofs.rs:53:20 in function proofs::decode_reads_utf8_as_the_standard_library_does
-
-Check 31: proofs::decode_reads_utf8_as_the_standard_library_does.assertion.2
-	 - Status: SUCCESS
-	 - Description: "assertion failed: decoded.code == NOT_UTF8 && decoded.length == 1"
-	 - Location: crates/layeredcfg/src/proofs.rs:54:17 in function proofs::decode_reads_utf8_as_the_standard_library_does
-
-Check 32: std::ptr::NonNull::<u8>::as_ref::<'_>.safety_check.1
-	 - Status: SUCCESS
-	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/non_null.rs:454:18 in function std::ptr::NonNull::<u8>::as_ref::<'_>
-
-Check 33: std::ptr::NonNull::<u8>::as_ref::<'_>.safety_check.2
-	 - Status: SUCCESS
-	 - Description: "dereference failure: pointer invalid"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/non_null.rs:454:18 in function std::ptr::NonNull::<u8>::as_ref::<'_>
-
-Check 34: core::panicking::panic_nounwind_fmt::runtime.unsupported_construct.1
-	 - Status: SUCCESS
-	 - Description: "call to foreign "Rust" function `_RNvCskSgPeDzUGbv_7___rustc17rust_begin_unwind` is not currently supported by Kani. Please post your example at https://github.com/model-checking/kani/issues/new/choose"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:110:17 in function core::panicking::panic_nounwind_fmt::runtime
-
-Check 35: core::num::<impl usize>::checked_sub.arithmetic_overflow.1
-	 - Status: SUCCESS
-	 - Description: "attempt to compute `unchecked_sub` which would overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:1096:31 in function core::num::<impl usize>::checked_sub
-
-Check 36: core::str::validations::utf8_acc_cont_byte.assertion.1
+Check 1: core::str::validations::utf8_acc_cont_byte.assertion.1
 	 - Status: SUCCESS
 	 - Description: "attempt to shift left with overflow"
 	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:17:5 in function core::str::validations::utf8_acc_cont_byte
 
-Check 37: std::result::unwrap_failed.assertion.1
-	 - Status: SUCCESS
-	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs:1871:5 in function std::result::unwrap_failed
-
-Check 38: core::num::<impl usize>::is_multiple_of.assertion.1
-	 - Status: SUCCESS
-	 - Description: "attempt to calculate the remainder with a divisor of zero"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:3875:22 in function core::num::<impl usize>::is_multiple_of
-
-Check 39: core::num::<impl usize>::is_multiple_of.arithmetic_overflow.1
-	 - Status: SUCCESS
-	 - Description: "attempt to calculate the remainder with a divisor of zero"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:3875:22 in function core::num::<impl usize>::is_multiple_of
-
-Check 40: std::ptr::align_offset::mod_inv.arithmetic_overflow.1
-	 - Status: SUCCESS
-	 - Description: "attempt to compute `unchecked_sub` which would overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2316:36 in function std::ptr::align_offset::mod_inv
-
-Check 41: std::ptr::align_offset::mod_inv.assertion.1
-	 - Status: UNREACHABLE
-	 - Description: "attempt to subtract with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2317:49 in function std::ptr::align_offset::mod_inv
-
-Check 42: std::ptr::align_offset::mod_inv.assertion.2
-	 - Status: UNREACHABLE
-	 - Description: "attempt to shift right with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2317:44 in function std::ptr::align_offset::mod_inv
-
-Check 43: std::ptr::align_offset::mod_inv.assertion.3
-	 - Status: UNREACHABLE
-	 - Description: "index out of bounds: the length is less than or equal to the given index"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2317:27 in function std::ptr::align_offset::mod_inv
-
-Check 44: core::slice::index::slice_index_fail::do_panic::runtime.assertion.2
-	 - Status: SUCCESS
-	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:59:9 in function core::slice::index::slice_index_fail::do_panic::runtime
-
-Check 45: <std::ops::RangeInclusive<u32> as std::ops::RangeBounds<u32>>::contains::<u32>.unreachable.1
-	 - Status: SUCCESS
-	 - Description: "unreachable code"
-	 - Location: crates/layeredcfg/src/lib.rs:0:0 in function <std::ops::RangeInclusive<u32> as std::ops::RangeBounds<u32>>::contains::<u32>
-
-Check 46: std::result::Result::<char, std::char::CharTryFromError>::is_ok.unreachable.1
-	 - Status: SUCCESS
-	 - Description: "unreachable code"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs:594:5 in function std::result::Result::<char, std::char::CharTryFromError>::is_ok
-
-Check 47: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index.unreachable.1
-	 - Status: SUCCESS
-	 - Description: "unreachable code"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:405:5 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index
-
-Check 48: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index.safety_check.1
-	 - Status: SUCCESS
-	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:411:22 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index
-
-Check 49: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index.safety_check.2
-	 - Status: SUCCESS
-	 - Description: "dereference failure: pointer invalid"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:411:22 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index
-
-Check 50: std::hint::unreachable_unchecked.unreachable.1
+Check 2: std::hint::unreachable_unchecked.unreachable.1
 	 - Status: SUCCESS
 	 - Description: "unreachable code"
 	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/hint.rs:111:14 in function std::hint::unreachable_unchecked
 
-Check 51: std::option::Option::<&u8>::unwrap_unchecked.unreachable.1
+Check 3: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:405:5 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index
+
+Check 4: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:411:22 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index
+
+Check 5: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:411:22 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index
+
+Check 6: std::result::Result::<char, std::char::CharTryFromError>::is_ok.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs:594:5 in function std::result::Result::<char, std::char::CharTryFromError>::is_ok
+
+Check 7: core::str::validations::utf8_first_byte.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:11:13 in function core::str::validations::utf8_first_byte
+
+Check 8: core::slice::index::slice_index_fail::do_panic::runtime.assertion.2
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:59:9 in function core::slice::index::slice_index_fail::do_panic::runtime
+
+Check 9: std::option::Option::<&u8>::unwrap_unchecked.unreachable.1
 	 - Status: SUCCESS
 	 - Description: "unreachable code"
 	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:1127:15 in function std::option::Option::<&u8>::unwrap_unchecked
 
-Check 52: text::decode.assertion.1
-	 - Status: SUCCESS
-	 - Description: "attempt to shift right with overflow"
-	 - Location: crates/layeredcfg/src/text.rs:92:15 in function text::decode
-
-Check 53: text::decode.assertion.2
-	 - Status: SUCCESS
-	 - Description: "attempt to shift right with overflow"
-	 - Location: crates/layeredcfg/src/text.rs:94:15 in function text::decode
-
-Check 54: text::decode.assertion.3
-	 - Status: SUCCESS
-	 - Description: "attempt to shift right with overflow"
-	 - Location: crates/layeredcfg/src/text.rs:96:15 in function text::decode
-
-Check 55: text::decode.assertion.4
-	 - Status: SUCCESS
-	 - Description: "attempt to add with overflow"
-	 - Location: crates/layeredcfg/src/text.rs:101:33 in function text::decode
-
-Check 56: text::decode.unreachable.1
-	 - Status: SUCCESS
-	 - Description: "unreachable code"
-	 - Location: crates/layeredcfg/src/text.rs:110:18 in function text::decode
-
-Check 57: text::decode.assertion.5
-	 - Status: SUCCESS
-	 - Description: "attempt to shift right with overflow"
-	 - Location: crates/layeredcfg/src/text.rs:111:12 in function text::decode
-
-Check 58: text::decode.assertion.6
-	 - Status: SUCCESS
-	 - Description: "attempt to shift left with overflow"
-	 - Location: crates/layeredcfg/src/text.rs:114:16 in function text::decode
-
-Check 59: text::decode.assertion.7
-	 - Status: SUCCESS
-	 - Description: "index out of bounds: the length is less than or equal to the given index"
-	 - Location: crates/layeredcfg/src/text.rs:116:15 in function text::decode
-
-Check 60: core::num::<impl usize>::unchecked_sub.arithmetic_overflow.1
+Check 10: core::num::<impl usize>::unchecked_sub.arithmetic_overflow.1
 	 - Status: SUCCESS
 	 - Description: "attempt to compute `unchecked_sub` which would overflow"
 	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:1192:17 in function core::num::<impl usize>::unchecked_sub
 
-Check 61: <std::option::Option<&u8> as std::ops::Try>::branch.unreachable.1
+Check 11: text::decode.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: crates/layeredcfg/src/text.rs:92:15 in function text::decode
+
+Check 12: text::decode.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: crates/layeredcfg/src/text.rs:94:15 in function text::decode
+
+Check 13: text::decode.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: crates/layeredcfg/src/text.rs:96:15 in function text::decode
+
+Check 14: text::decode.assertion.4
+	 - Status: SUCCESS
+	 - Description: "attempt to add with overflow"
+	 - Location: crates/layeredcfg/src/text.rs:101:33 in function text::decode
+
+Check 15: text::decode.unreachable.1
 	 - Status: SUCCESS
 	 - Description: "unreachable code"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2869:15 in function <std::option::Option<&u8> as std::ops::Try>::branch
+	 - Location: crates/layeredcfg/src/text.rs:110:18 in function text::decode
 
-Check 62: std::option::Option::<u32>::map::<char, {closure@<std::str::Chars<'_> as std::iter::Iterator>::next::{closure#0}}>.unreachable.1
+Check 16: text::decode.assertion.5
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: crates/layeredcfg/src/text.rs:111:12 in function text::decode
+
+Check 17: text::decode.assertion.6
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: crates/layeredcfg/src/text.rs:114:16 in function text::decode
+
+Check 18: text::decode.assertion.7
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: crates/layeredcfg/src/text.rs:116:15 in function text::decode
+
+Check 19: core::slice::index::slice_index_fail::do_panic::runtime.assertion.4
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:50:9 in function core::slice::index::slice_index_fail::do_panic::runtime
+
+Check 20: core::num::<impl usize>::is_multiple_of.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to calculate the remainder with a divisor of zero"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:3875:22 in function core::num::<impl usize>::is_multiple_of
+
+Check 21: core::num::<impl usize>::is_multiple_of.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to calculate the remainder with a divisor of zero"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:3875:22 in function core::num::<impl usize>::is_multiple_of
+
+Check 22: kani::rustc_intrinsics::offset::<usize, *const usize, usize>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "Offset in bytes overflows isize"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<usize, *const usize, usize>
+
+Check 23: kani::rustc_intrinsics::offset::<usize, *const usize, usize>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "Offset result address must equal original pointer address plus offset"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<usize, *const usize, usize>
+
+Check 24: kani::rustc_intrinsics::offset::<usize, *const usize, usize>.safety_check.3
+	 - Status: SUCCESS
+	 - Description: "Offset result and original pointer must point to the same allocation"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<usize, *const usize, usize>
+
+Check 25: std::option::Option::<u32>::map::<char, {closure@<std::str::Chars<'_> as std::iter::Iterator>::next::{closure#0}}>.unreachable.1
 	 - Status: SUCCESS
 	 - Description: "unreachable code"
 	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:1162:15 in function std::option::Option::<u32>::map::<char, {closure@<std::str::Chars<'_> as std::iter::Iterator>::next::{closure#0}}>
 
-Check 63: kani::rustc_intrinsics::offset::<usize, *const usize, usize>.safety_check.1
+Check 26: std::ptr::align_offset::mod_inv.arithmetic_overflow.1
 	 - Status: SUCCESS
-	 - Description: "Offset in bytes overflows isize"
-	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<usize, *const usize, usize>
+	 - Description: "attempt to compute `unchecked_sub` which would overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2316:36 in function std::ptr::align_offset::mod_inv
 
-Check 64: kani::rustc_intrinsics::offset::<usize, *const usize, usize>.safety_check.2
-	 - Status: SUCCESS
-	 - Description: "Offset result address must equal original pointer address plus offset"
-	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<usize, *const usize, usize>
+Check 27: std::ptr::align_offset::mod_inv.assertion.1
+	 - Status: UNREACHABLE
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2317:49 in function std::ptr::align_offset::mod_inv
 
-Check 65: kani::rustc_intrinsics::offset::<usize, *const usize, usize>.safety_check.3
-	 - Status: SUCCESS
-	 - Description: "Offset result and original pointer must point to the same allocation"
-	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<usize, *const usize, usize>
+Check 28: std::ptr::align_offset::mod_inv.assertion.2
+	 - Status: UNREACHABLE
+	 - Description: "attempt to shift right with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2317:44 in function std::ptr::align_offset::mod_inv
 
-Check 66: <usize as kani::rustc_intrinsics::ToISize>::to_isize.unreachable.1
+Check 29: std::ptr::align_offset::mod_inv.assertion.3
+	 - Status: UNREACHABLE
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2317:27 in function std::ptr::align_offset::mod_inv
+
+Check 30: <usize as kani::rustc_intrinsics::ToISize>::to_isize.unreachable.1
 	 - Status: SUCCESS
 	 - Description: "unreachable code"
 	 - Location: library/kani_core/src/models.rs:203:17 in function <usize as kani::rustc_intrinsics::ToISize>::to_isize
 
-Check 67: <usize as kani::rustc_intrinsics::ToISize>::to_isize.safety_check.1
+Check 31: <usize as kani::rustc_intrinsics::ToISize>::to_isize.safety_check.1
 	 - Status: SUCCESS
 	 - Description: "Offset value overflows isize"
 	 - Location: library/kani/src/lib.rs:57:1 in function <usize as kani::rustc_intrinsics::ToISize>::to_isize
 
-Check 68: <usize as kani::rustc_intrinsics::ToISize>::to_isize.assertion.1
+Check 32: <usize as kani::rustc_intrinsics::ToISize>::to_isize.assertion.1
 	 - Status: SUCCESS
 	 - Description: "internal error: entered unreachable code"
 	 - Location: library/kani/src/lib.rs:57:1 in function <usize as kani::rustc_intrinsics::ToISize>::to_isize
 
-Check 69: std::fmt::Arguments::<'_>::from_str.assertion.1
-	 - Status: UNREACHABLE
-	 - Description: "attempt to shift left with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/fmt/mod.rs:820:38 in function std::fmt::Arguments::<'_>::from_str
+Check 33: core::slice::index::slice_index_fail::do_panic::runtime.assertion.3
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:69:5 in function core::slice::index::slice_index_fail::do_panic::runtime
 
-Check 70: std::result::Result::<&str, std::str::Utf8Error>::unwrap.unreachable.1
+Check 34: core::str::validations::utf8_char_width.assertion.1
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:279:5 in function core::str::validations::utf8_char_width
+
+Check 35: <std::ops::RangeInclusive<u32> as std::ops::RangeBounds<u32>>::contains::<u32>.unreachable.1
 	 - Status: SUCCESS
 	 - Description: "unreachable code"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs:1230:15 in function std::result::Result::<&str, std::str::Utf8Error>::unwrap
+	 - Location: crates/layeredcfg/src/lib.rs:0:0 in function <std::ops::RangeInclusive<u32> as std::ops::RangeBounds<u32>>::contains::<u32>
 
-Check 71: core::str::validations::next_code_point::<'_, std::slice::Iter<'_, u8>>.unreachable.1
+Check 36: core::slice::index::slice_index_fail::do_panic::runtime.assertion.1
 	 - Status: SUCCESS
-	 - Description: "unreachable code"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:37:14 in function core::str::validations::next_code_point::<'_, std::slice::Iter<'_, u8>>
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:41:9 in function core::slice::index::slice_index_fail::do_panic::runtime
 
-Check 72: core::str::validations::next_code_point::<'_, std::slice::Iter<'_, u8>>.assertion.1
+Check 37: kani::mem::cbmc::same_allocation.unsupported_construct.1
 	 - Status: SUCCESS
-	 - Description: "attempt to shift left with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:57:14 in function core::str::validations::next_code_point::<'_, std::slice::Iter<'_, u8>>
+	 - Description: "Kani does not support reasoning about pointer to unallocated memory"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::mem::cbmc::same_allocation
 
-Check 73: core::str::validations::next_code_point::<'_, std::slice::Iter<'_, u8>>.assertion.2
+Check 38: core::panicking::panic_nounwind_fmt::runtime.unsupported_construct.1
 	 - Status: SUCCESS
-	 - Description: "attempt to shift left with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:64:18 in function core::str::validations::next_code_point::<'_, std::slice::Iter<'_, u8>>
+	 - Description: "call to foreign "Rust" function `_RNvCskSgPeDzUGbv_7___rustc17rust_begin_unwind` is not currently supported by Kani. Please post your example at https://github.com/model-checking/kani/issues/new/choose"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:110:17 in function core::panicking::panic_nounwind_fmt::runtime
 
-Check 74: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get.unreachable.1
+Check 39: std::panic::Location::<'_>::caller.unsupported_construct.1
 	 - Status: SUCCESS
-	 - Description: "unreachable code"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:335:5 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get
+	 - Description: "caller_location is not currently supported by Kani. Please post your example at https://github.com/model-checking/kani/issues/374"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic/location.rs:181:9 in function std::panic::Location::<'_>::caller
 
-Check 75: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get.safety_check.1
-	 - Status: SUCCESS
-	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:341:27 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get
-
-Check 76: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get.safety_check.2
-	 - Status: SUCCESS
-	 - Description: "dereference failure: pointer invalid"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:341:27 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get
-
-Check 77: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.1
+Check 40: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.1
 	 - Status: SUCCESS
 	 - Description: "Offset in bytes overflows isize"
 	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *mut u8, usize>
 
-Check 78: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.2
+Check 41: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.2
 	 - Status: SUCCESS
 	 - Description: "Offset result address must equal original pointer address plus offset"
 	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *mut u8, usize>
 
-Check 79: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.3
+Check 42: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.3
 	 - Status: SUCCESS
 	 - Description: "Offset result and original pointer must point to the same allocation"
 	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *mut u8, usize>
 
-Check 80: std::ptr::const_ptr::<impl *const u8>::align_offset.assertion.1
+Check 43: core::num::<impl usize>::checked_sub.arithmetic_overflow.1
 	 - Status: SUCCESS
-	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/const_ptr.rs:1282:13 in function std::ptr::const_ptr::<impl *const u8>::align_offset
+	 - Description: "attempt to compute `unchecked_sub` which would overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:1096:31 in function core::num::<impl usize>::checked_sub
 
-Check 81: core::str::validations::run_utf8_validation.assertion.1
+Check 44: std::ptr::NonNull::<u8>::as_ref::<'_>.safety_check.1
 	 - Status: SUCCESS
-	 - Description: "attempt to multiply with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:132:28 in function core::str::validations::run_utf8_validation
+	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/non_null.rs:454:18 in function std::ptr::NonNull::<u8>::as_ref::<'_>
 
-Check 82: core::str::validations::run_utf8_validation.assertion.2
+Check 45: std::ptr::NonNull::<u8>::as_ref::<'_>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/non_null.rs:454:18 in function std::ptr::NonNull::<u8>::as_ref::<'_>
+
+Check 46: std::fmt::Arguments::<'_>::from_str.assertion.1
 	 - Status: UNREACHABLE
-	 - Description: "attempt to subtract with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:133:51 in function core::str::validations::run_utf8_validation
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/fmt/mod.rs:820:38 in function std::fmt::Arguments::<'_>::from_str
 
-Check 83: core::str::validations::run_utf8_validation.assertion.3
-	 - Status: UNREACHABLE
-	 - Description: "attempt to add with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:133:51 in function core::str::validations::run_utf8_validation
-
-Check 84: core::str::validations::run_utf8_validation.assertion.4
+Check 47: core::str::validations::next_code_point::<'_, std::slice::Iter<'_, u8>>.unreachable.1
 	 - Status: SUCCESS
-	 - Description: "index out of bounds: the length is less than or equal to the given index"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:164:21 in function core::str::validations::run_utf8_validation
+	 - Description: "unreachable code"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:37:14 in function core::str::validations::next_code_point::<'_, std::slice::Iter<'_, u8>>
 
-Check 85: core::str::validations::run_utf8_validation.assertion.5
+Check 48: core::str::validations::next_code_point::<'_, std::slice::Iter<'_, u8>>.assertion.1
 	 - Status: SUCCESS
-	 - Description: "attempt to add with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:155:17 in function core::str::validations::run_utf8_validation
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:57:14 in function core::str::validations::next_code_point::<'_, std::slice::Iter<'_, u8>>
 
-Check 86: core::str::validations::run_utf8_validation.assertion.6
+Check 49: core::str::validations::next_code_point::<'_, std::slice::Iter<'_, u8>>.assertion.2
 	 - Status: SUCCESS
-	 - Description: "index out of bounds: the length is less than or equal to the given index"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:160:17 in function core::str::validations::run_utf8_validation
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:64:18 in function core::str::validations::next_code_point::<'_, std::slice::Iter<'_, u8>>
 
-Check 87: core::str::validations::run_utf8_validation.assertion.7
-	 - Status: SUCCESS
-	 - Description: "attempt to add with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:155:17 in function core::str::validations::run_utf8_validation
-
-Check 88: core::str::validations::run_utf8_validation.assertion.8
-	 - Status: SUCCESS
-	 - Description: "index out of bounds: the length is less than or equal to the given index"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:160:17 in function core::str::validations::run_utf8_validation
-
-Check 89: core::str::validations::run_utf8_validation.assertion.9
-	 - Status: SUCCESS
-	 - Description: "attempt to add with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:155:17 in function core::str::validations::run_utf8_validation
-
-Check 90: core::str::validations::run_utf8_validation.assertion.10
-	 - Status: SUCCESS
-	 - Description: "index out of bounds: the length is less than or equal to the given index"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:160:17 in function core::str::validations::run_utf8_validation
-
-Check 91: core::str::validations::run_utf8_validation.assertion.11
-	 - Status: SUCCESS
-	 - Description: "attempt to add with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:155:17 in function core::str::validations::run_utf8_validation
-
-Check 92: core::str::validations::run_utf8_validation.assertion.12
-	 - Status: SUCCESS
-	 - Description: "index out of bounds: the length is less than or equal to the given index"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:160:17 in function core::str::validations::run_utf8_validation
-
-Check 93: core::str::validations::run_utf8_validation.assertion.13
-	 - Status: SUCCESS
-	 - Description: "attempt to add with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:155:17 in function core::str::validations::run_utf8_validation
-
-Check 94: core::str::validations::run_utf8_validation.assertion.14
-	 - Status: SUCCESS
-	 - Description: "index out of bounds: the length is less than or equal to the given index"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:160:17 in function core::str::validations::run_utf8_validation
-
-Check 95: core::str::validations::run_utf8_validation.assertion.15
-	 - Status: SUCCESS
-	 - Description: "attempt to add with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:155:17 in function core::str::validations::run_utf8_validation
-
-Check 96: core::str::validations::run_utf8_validation.assertion.16
-	 - Status: SUCCESS
-	 - Description: "index out of bounds: the length is less than or equal to the given index"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:160:17 in function core::str::validations::run_utf8_validation
-
-Check 97: core::str::validations::run_utf8_validation.assertion.17
-	 - Status: SUCCESS
-	 - Description: "attempt to add with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:217:13 in function core::str::validations::run_utf8_validation
-
-Check 98: core::str::validations::run_utf8_validation.assertion.18
-	 - Status: UNREACHABLE
-	 - Description: "attempt to add with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:238:21 in function core::str::validations::run_utf8_validation
-
-Check 99: core::str::validations::run_utf8_validation.assertion.19
-	 - Status: SUCCESS
-	 - Description: "index out of bounds: the length is less than or equal to the given index"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:241:38 in function core::str::validations::run_utf8_validation
-
-Check 100: core::str::validations::run_utf8_validation.assertion.20
-	 - Status: SUCCESS
-	 - Description: "attempt to add with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:242:21 in function core::str::validations::run_utf8_validation
-
-Check 101: core::str::validations::run_utf8_validation.assertion.21
-	 - Status: SUCCESS
-	 - Description: "attempt to add with overflow"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:245:17 in function core::str::validations::run_utf8_validation
-
-Check 102: <std::option::Option<u32> as std::ops::FromResidual<std::option::Option<std::convert::Infallible>>>::from_residual.unreachable.1
+Check 50: <std::option::Option<u32> as std::ops::FromResidual<std::option::Option<std::convert::Infallible>>>::from_residual.unreachable.1
 	 - Status: SUCCESS
 	 - Description: "unreachable code"
 	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2883:15 in function <std::option::Option<u32> as std::ops::FromResidual<std::option::Option<std::convert::Infallible>>>::from_residual
 
-Check 103: core::str::validations::utf8_char_width.assertion.1
+Check 51: <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to compute `unchecked_sub` which would overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:549:27 in function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index
+
+Check 52: <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:550:13 in function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index
+
+Check 53: <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:550:13 in function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index
+
+Check 54: std::ptr::align_offset::<u8>.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to compute `unchecked_sub` which would overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2353:32 in function std::ptr::align_offset::<u8>
+
+Check 55: std::ptr::align_offset::<u8>.arithmetic_overflow.2
+	 - Status: SUCCESS
+	 - Description: "attempt to calculate the remainder with a divisor of zero"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2364:33 in function std::ptr::align_offset::<u8>
+
+Check 56: std::ptr::align_offset::<u8>.assume.1
+	 - Status: SUCCESS
+	 - Description: "Rust intrinsic assumption failed"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2387:18 in function std::ptr::align_offset::<u8>
+
+Check 57: std::ptr::align_offset::<u8>.arithmetic_overflow.3
+	 - Status: SUCCESS
+	 - Description: "attempt to calculate the remainder with a divisor of zero"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2390:40 in function std::ptr::align_offset::<u8>
+
+Check 58: std::ptr::align_offset::<u8>.exact_div.1
+	 - Status: SUCCESS
+	 - Description: "exact_div arguments divide exactly"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2395:22 in function std::ptr::align_offset::<u8>
+
+Check 59: std::ptr::align_offset::<u8>.exact_div.2
+	 - Status: SUCCESS
+	 - Description: "exact_div divisor is nonzero"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2395:22 in function std::ptr::align_offset::<u8>
+
+Check 60: std::ptr::align_offset::<u8>.exact_div.3
+	 - Status: SUCCESS
+	 - Description: "exact_div division does not overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2395:22 in function std::ptr::align_offset::<u8>
+
+Check 61: std::ptr::align_offset::<u8>.arithmetic_overflow.4
+	 - Status: SUCCESS
+	 - Description: "attempt to shift by excessive shift distance"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2415:24 in function std::ptr::align_offset::<u8>
+
+Check 62: std::ptr::align_offset::<u8>.arithmetic_overflow.5
+	 - Status: SUCCESS
+	 - Description: "attempt to compute `unchecked_sub` which would overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2417:24 in function std::ptr::align_offset::<u8>
+
+Check 63: std::ptr::align_offset::<u8>.arithmetic_overflow.6
+	 - Status: SUCCESS
+	 - Description: "attempt to shift by excessive shift distance"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2441:27 in function std::ptr::align_offset::<u8>
+
+Check 64: std::ptr::align_offset::<u8>.arithmetic_overflow.7
+	 - Status: SUCCESS
+	 - Description: "attempt to compute `unchecked_sub` which would overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2444:33 in function std::ptr::align_offset::<u8>
+
+Check 65: std::ptr::align_offset::<u8>.arithmetic_overflow.8
+	 - Status: SUCCESS
+	 - Description: "attempt to shift by excessive shift distance"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2447:27 in function std::ptr::align_offset::<u8>
+
+Check 66: std::ptr::align_offset::<u8>.arithmetic_overflow.9
+	 - Status: SUCCESS
+	 - Description: "attempt to shift by excessive shift distance"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2451:50 in function std::ptr::align_offset::<u8>
+
+Check 67: std::ptr::align_offset::<u8>.arithmetic_overflow.10
+	 - Status: SUCCESS
+	 - Description: "attempt to compute `unchecked_sub` which would overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:2451:32 in function std::ptr::align_offset::<u8>
+
+Check 68: std::str::from_utf8.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/converts.rs:91:11 in function std::str::from_utf8
+
+Check 69: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "Offset in bytes overflows isize"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
+
+Check 70: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "Offset result address must equal original pointer address plus offset"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
+
+Check 71: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.3
+	 - Status: SUCCESS
+	 - Description: "Offset result and original pointer must point to the same allocation"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
+
+Check 72: std::result::Result::<&str, std::str::Utf8Error>::unwrap.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs:1230:15 in function std::result::Result::<&str, std::str::Utf8Error>::unwrap
+
+Check 73: core::str::validations::run_utf8_validation.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to multiply with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:132:28 in function core::str::validations::run_utf8_validation
+
+Check 74: core::str::validations::run_utf8_validation.assertion.2
+	 - Status: UNREACHABLE
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:133:51 in function core::str::validations::run_utf8_validation
+
+Check 75: core::str::validations::run_utf8_validation.assertion.3
+	 - Status: UNREACHABLE
+	 - Description: "attempt to add with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:133:51 in function core::str::validations::run_utf8_validation
+
+Check 76: core::str::validations::run_utf8_validation.assertion.4
 	 - Status: SUCCESS
 	 - Description: "index out of bounds: the length is less than or equal to the given index"
-	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:279:5 in function core::str::validations::utf8_char_width
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:164:21 in function core::str::validations::run_utf8_validation
+
+Check 77: core::str::validations::run_utf8_validation.assertion.5
+	 - Status: SUCCESS
+	 - Description: "attempt to add with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:155:17 in function core::str::validations::run_utf8_validation
+
+Check 78: core::str::validations::run_utf8_validation.assertion.6
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:160:17 in function core::str::validations::run_utf8_validation
+
+Check 79: core::str::validations::run_utf8_validation.assertion.7
+	 - Status: SUCCESS
+	 - Description: "attempt to add with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:155:17 in function core::str::validations::run_utf8_validation
+
+Check 80: core::str::validations::run_utf8_validation.assertion.8
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:160:17 in function core::str::validations::run_utf8_validation
+
+Check 81: core::str::validations::run_utf8_validation.assertion.9
+	 - Status: SUCCESS
+	 - Description: "attempt to add with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:155:17 in function core::str::validations::run_utf8_validation
+
+Check 82: core::str::validations::run_utf8_validation.assertion.10
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:160:17 in function core::str::validations::run_utf8_validation
+
+Check 83: core::str::validations::run_utf8_validation.assertion.11
+	 - Status: SUCCESS
+	 - Description: "attempt to add with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:155:17 in function core::str::validations::run_utf8_validation
+
+Check 84: core::str::validations::run_utf8_validation.assertion.12
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:160:17 in function core::str::validations::run_utf8_validation
+
+Check 85: core::str::validations::run_utf8_validation.assertion.13
+	 - Status: SUCCESS
+	 - Description: "attempt to add with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:155:17 in function core::str::validations::run_utf8_validation
+
+Check 86: core::str::validations::run_utf8_validation.assertion.14
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:160:17 in function core::str::validations::run_utf8_validation
+
+Check 87: core::str::validations::run_utf8_validation.assertion.15
+	 - Status: SUCCESS
+	 - Description: "attempt to add with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:155:17 in function core::str::validations::run_utf8_validation
+
+Check 88: core::str::validations::run_utf8_validation.assertion.16
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:160:17 in function core::str::validations::run_utf8_validation
+
+Check 89: core::str::validations::run_utf8_validation.assertion.17
+	 - Status: SUCCESS
+	 - Description: "attempt to add with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:217:13 in function core::str::validations::run_utf8_validation
+
+Check 90: core::str::validations::run_utf8_validation.assertion.18
+	 - Status: UNREACHABLE
+	 - Description: "attempt to add with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:238:21 in function core::str::validations::run_utf8_validation
+
+Check 91: core::str::validations::run_utf8_validation.assertion.19
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:241:38 in function core::str::validations::run_utf8_validation
+
+Check 92: core::str::validations::run_utf8_validation.assertion.20
+	 - Status: SUCCESS
+	 - Description: "attempt to add with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:242:21 in function core::str::validations::run_utf8_validation
+
+Check 93: core::str::validations::run_utf8_validation.assertion.21
+	 - Status: SUCCESS
+	 - Description: "attempt to add with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/validations.rs:245:17 in function core::str::validations::run_utf8_validation
+
+Check 94: std::char::convert::char_try_from_u32.assertion.1
+	 - Status: UNREACHABLE
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/convert.rs:293:44 in function std::char::convert::char_try_from_u32
+
+Check 95: <std::option::Option<&u8> as std::ops::Try>::branch.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2869:15 in function <std::option::Option<&u8> as std::ops::Try>::branch
+
+Check 96: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:335:5 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get
+
+Check 97: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:341:27 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get
+
+Check 98: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:341:27 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::get
+
+Check 99: std::result::unwrap_failed.assertion.1
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs:1871:5 in function std::result::unwrap_failed
+
+Check 100: std::ptr::const_ptr::<impl *const u8>::align_offset.assertion.1
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/const_ptr.rs:1282:13 in function std::ptr::const_ptr::<impl *const u8>::align_offset
+
+Check 101: proofs::decode_reads_utf8_as_the_standard_library_does.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: crates/layeredcfg/src/lib.rs:0:0 in function proofs::decode_reads_utf8_as_the_standard_library_does
+
+Check 102: proofs::decode_reads_utf8_as_the_standard_library_does.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: decoded.code == u32::from(c) && decoded.length == c.len_utf8()"
+	 - Location: crates/layeredcfg/src/proofs.rs:53:20 in function proofs::decode_reads_utf8_as_the_standard_library_does
+
+Check 103: proofs::decode_reads_utf8_as_the_standard_library_does.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: decoded.code == NOT_UTF8 && decoded.length == 1"
+	 - Location: crates/layeredcfg/src/proofs.rs:54:17 in function proofs::decode_reads_utf8_as_the_standard_library_does
 
 Check 104: std::option::Option::<u32>::map::<char, {closure@<std::str::Chars<'_> as std::iter::Iterator>::next::{closure#0}}>.pointer_dereference.1
 	 - Status: SUCCESS
@@ -2603,8 +2603,8 @@ SUMMARY:
  ** 0 of 343 failed (8 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 36.64052s
+Verification Time: 41.735695s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-xtask: peak memory in bytes: 1453973504
+xtask: peak memory in bytes: 1450835968
