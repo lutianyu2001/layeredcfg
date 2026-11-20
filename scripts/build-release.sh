@@ -10,6 +10,9 @@
 # collected from the tag's Cargo.lock, and every file is checked to hold them.
 #
 # Usage: scripts/build-release.sh <tag>
+# With RELEASE_VERSION set (a pre-release, whose tag's version no manifest holds), the files are
+# built with that version: the tag's .github/scripts/release-version.py writes it into the
+# checkout made here, never into the repository.
 # Runs the same way on a machine of one's own and in the release workflow.
 # Needs maturin (MATURIN, or on PATH), zig for the targets of other platforms, the targets
 # installed with rustup, uvx for twine, and cargo-about at the version that the project's
@@ -53,6 +56,9 @@ cleanup() {
 }
 trap cleanup EXIT
 git worktree add -q --detach "$src" "$tag"
+if [ -n "${RELEASE_VERSION:-}" ]; then
+    (cd "$src" && python3 .github/scripts/release-version.py)
+fi
 
 # Into the checkout's third-party/, which pyproject.toml's license-files names: maturin then
 # puts it into the sdist and into each wheel's .dist-info/licenses/. maturin 1.15.0 leaves
